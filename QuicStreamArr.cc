@@ -56,10 +56,9 @@ void QuicStreamArr::AddNewStream(int max_bytes, int index) {
 bool QuicStreamArr::CloseStream(int stream_id) {
     for (int i = 0; i < this->max_streams_num_; i++) {
         if (this->stream_arr_[i].stream_id == stream_id) {
-            IndexQueueNodes *queue_node;
-            queue_node = new IndexQueueNodes;
-            queue_node->setIndex(i);
-            this->free_index_queue_.insert(queue_node); //we add the index of the cell to the free index queue so we can later override it with a new stream.
+            //IndexQueueNodes *queue_node;
+            //queue_node = new IndexQueueNodes;
+            //queue_node->setIndex(i);
             this->valid_streams_num_--;
             this->stream_arr_[i].valid = false;
             return true;
@@ -86,7 +85,7 @@ StreamsData* QuicStreamArr::DataToSend(int bytes_in_packet, int* total_bytes_sen
         int bytes_to_send_in_frame;
         IndexQueueNodes *current_stream_node =
                 (IndexQueueNodes*) avilable_streams_queue_.pop(); //find new available stream.
-        int stream_id = index_queue_node->getIndex();
+        int stream_id = current_stream_node->getIndex();
         checked_streams++;
         //int free_bytes_in_stream;
         //        this->stream_arr_[stream_id].max_bytes_to_send- this->stream_arr_[stream_id].bytes_in_stream;
@@ -102,7 +101,7 @@ StreamsData* QuicStreamArr::DataToSend(int bytes_in_packet, int* total_bytes_sen
         int offset=this->stream_arr_[stream_id].current_offset_in_stream;
         int stream_size = this->stream_arr_[stream_id].stream_size;
         if (bytes_to_send_in_frame+offset>=stream_size){
-            bytes_to_send_in_frame = stream_size-offest;
+            bytes_to_send_in_frame = stream_size-offset;
             isFin=true;
         }
         new_data->AddNewFrame(index_in_frame_array, stream_id, stream_arr_[stream_id].current_offset_in_stream, bytes_to_send_in_frame, isFin);

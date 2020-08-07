@@ -67,9 +67,9 @@ public:
     virtual ~QuicConnection();
     Packet* createQuicPacket(const StreamsData sterams_data);
     void sendPacket(Packet *packet);
-    StreamsData* CreateSendData(int frames_number, int total_bytes_to_send);
+    StreamsData* CreateSendData(int bytes_in_packet, int* total_bytes_sent);
     void recievePacket(Packet *packet);
-    int AddNewStream(int max_bytes, int quanta, int total_bytes);
+    void AddNewStream(int max_bytes,int index);
     bool CloseStream(int stream_id);
 
     bool performStateTransition(const QuicEventCode &event);
