@@ -99,16 +99,18 @@ Packet* QuicConnection::createQuicPacket(const StreamsData sterams_data) {
     // long msgByteLength = 30; //need to change this just for ane exaple to run sim!!!!!!!!!!
 
     Packet *packet = new Packet(msgName);
-    //auto QuicHeader = makeShared<QuicPacketHeader>();
+    auto QuicHeader = makeShared<QuicPacketHeader>();
     // need to set header's dest & source connection ID & setChunkLength &
-    //QuicHeader->setPacket_number(packet_counter);
-    // packet->insertAtFront(QuicHeader);
+    QuicHeader->setPacket_number(packet_counter);
+    QuicHeader->setSrc_connectionID(0);
+    QuicHeader->setDest_connectionID(0);
+    QuicHeader->setChunkLength(B(sizeof(int)*3));
+    packet->insertAtFront(QuicHeader);
     const auto &payload = makeShared<QuicData>();
     //int msgByteLength = sterams_data.getTotalSize();
     int msgByteLength = 200;
     //send_queue->removeDataSent(msgByteLength); // update the send queue
     payload->setChunkLength(B(msgByteLength));
-
     payload->setStream_frames(sterams_data);
     packet->insertAtBack(payload);
     return packet;
@@ -133,12 +135,13 @@ void QuicConnection::recievePacket(Packet *packet) {
     //emit(packetReceivedSignal, packet); for omnet simulation
     num_packets_recieved++;
 
-    //### nned to add header
-    //auto header = packet->popAtFront<QuicPacketHeader>(); // remove header
-
+    auto header = packet->popAtFront<QuicPacketHeader>(); // remove header
     // extract information from header
-    //int income_packet_numer = header->getPacket_number();
-    //int number_of_frames = header->getNum_of_frames();
+    int income_packet_number = header->getPacket_number();
+    int dest_connectionID  = header->getDest_connectionID();
+    int source_connectionID  = header->getSrc_connectionID();
+    EV << "Packet's header info: packet number is " << income_packet_number << " dest connection ID is " <<
+            dest_connectionID << " source connection ID is " << source_connectionID << endl;
 
     auto data = packet->peekData<QuicData>(); // get data from packet
     // process data
