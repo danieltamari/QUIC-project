@@ -123,10 +123,9 @@ void QuicConnection::sendPacket(Packet *packet) {
     //send (packet,"toc_out");//only for sim
 }
 
-StreamsData* QuicConnection::CreateSendData(int frames_number,
-        int bytes_to_send_in_packet) {
-    StreamsData *data_to_send = this->stream_arr->DataToSend(frames_number,
-            bytes_to_send_in_packet);
+StreamsData* QuicConnection::CreateSendData(int bytes_in_packet, int* total_bytes_sent) {
+    StreamsData *data_to_send = this->stream_arr->DataToSend(bytes_in_packet,
+            total_bytes_sent);
     return data_to_send;
 }
 
@@ -210,8 +209,8 @@ L3Address QuicConnection::chooseDestAddr()
     return destAddresses[k];
 }
 
-int QuicConnection::AddNewStream(int max_bytes, int quanta, int total_bytes) {
-    return this->stream_arr->AddNewStream(max_bytes, quanta, total_bytes);
+void QuicConnection::AddNewStream(int max_bytes, int index) {
+    this->stream_arr->AddNewStream(max_bytes, index);
 }
 
 bool QuicConnection::CloseStream(int stream_id) {
@@ -303,9 +302,9 @@ void QuicConnection::ProcessInitState(cMessage *msg) {
 //    }
 
     //only for the sim #####
-    this->AddNewStream(200, 100, 600);
-    this->AddNewStream(300, 200, 700);
-    this->AddNewStream(400, 300, 600);
+    //this->AddNewStream(200, 100, 600);
+    //this->AddNewStream(300, 200, 700);
+    //this->AddNewStream(400, 300, 600);
     ///#########
 
     scheduleAt(simTime(), msg);
@@ -329,8 +328,7 @@ void QuicConnection::ProcessConnectionEst(cMessage *msg) {
     sprintf(msgName, "QuicPacket");
     Packet *send_packet = new Packet(msgName);
     int* total_bytes_sent_in_packet = 0;
-    StreamsData *send_data = this->CreateSendData(curr_frames_number,
-            curr_data_size,total_bytes_sent_in_packet);
+    StreamsData *send_data = this->CreateSendData(curr_data_size,total_bytes_sent_in_packet);
 
     this->send_queue->removeDataSent(*total_bytes_sent_in_packet); // need to do all kinds of checks to see how much data left and everything.
     send_packet = this->createQuicPacket(*send_data);
