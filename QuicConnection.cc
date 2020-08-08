@@ -146,7 +146,7 @@ void QuicConnection::recievePacket(Packet *packet) {
     // process data
     const StreamsData incoming_streams_data = data->getStream_frames();
     int num_of_frames = incoming_streams_data.getNumFrames();
-    for (int i = 0; i < num_of_frames; i++) { // ## change this after fixing header
+    for (int i = 0; i < num_of_frames; i++) {
         int stream_id = incoming_streams_data.getStreamID(i);
         int offset = incoming_streams_data.getOffset(i);
         int length = incoming_streams_data.getLength(i);
@@ -155,9 +155,10 @@ void QuicConnection::recievePacket(Packet *packet) {
         bool is_FIN = incoming_streams_data.getFIN(i);
         if (is_FIN)
             recieve_queue->updateFinal(stream_id, offset, length);
+
         recieve_queue->updateBuffer(stream_id, offset, length);
         if (recieve_queue->check_if_ended(stream_id)) {
-            //  handle stream ending operations
+            //  set offset zero ? (flow control)
         }
     }
     delete packet;

@@ -23,8 +23,10 @@ QuicRecieveQueue::QuicRecieveQueue() {
 
 
 bool QuicRecieveQueue::isStreamIDExist(int stream_id) {
+    // check if stream exist on the map
     try {
         stream_information* info = streams_.at(stream_id);
+        delete info;
         return true;
     }
     catch(const std::out_of_range& oor) {
@@ -33,29 +35,33 @@ bool QuicRecieveQueue::isStreamIDExist(int stream_id) {
 }
 
 void QuicRecieveQueue::updateBuffer(int stream_id, int offset, int length) {
+    // make chunk of data according to the length field
     const auto& data = makeShared<FieldsChunk>();
     data->setChunkLength(B(length));
 
+    // if stream_id doesn't exist on the map, make a new entry
     if (!isStreamIDExist(stream_id)) {
         stream_information new_stream;
         new_stream.buffer = new ReorderBuffer();
-        new_stream.last_frame_sent = false;
+        new_stream.last_frame_received = false;
         new_stream.final_size = -1;
         streams_.insert(std::pair<int, stream_information*>(stream_id, &new_stream));
     }
-
+    // update the reorder buffer according to the frame offset
     stream_information* info = streams_.at(stream_id);
     info->buffer->replace(B(offset), data);
 }
 
 void QuicRecieveQueue::updateFinal(int stream_id, int offset, int length) {
+    // enter this function if frame is  marked with isFIN flag
     if (!isStreamIDExist(stream_id)) {
         stream_information new_stream;
         new_stream.buffer = new ReorderBuffer();
-        new_stream.last_frame_sent = true;
+        new_stream.last_frame_received = true;
         streams_.insert(std::pair<int, stream_information*>(stream_id, &new_stream));
     }
 
+    // update the final_size field as mentioned in RFC
     stream_information* info = streams_.at(stream_id);
     info->final_size = offset + length;
 }
@@ -63,7 +69,7 @@ void QuicRecieveQueue::updateFinal(int stream_id, int offset, int length) {
 bool QuicRecieveQueue::check_if_ended(int stream_id) {
     stream_information* info = streams_.at(stream_id);
     if (info->final_size != -1 && info->buffer->getAvailableDataLength() == B(info->final_size)) { // stream finished
-        streams_.erase(stream_id);
+        streams_.erase(stream_id); // remove the stream entry from the map
         return true;
     }
     return false;

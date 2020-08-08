@@ -25,9 +25,9 @@
 namespace inet {
 
 struct stream_information {
-    int final_size;
-    bool last_frame_sent;
-    ReorderBuffer* buffer;
+    int final_size; // update after the last frame in received
+    bool last_frame_received; // true if the final frame of this stream (marked with isFIN) is received
+    ReorderBuffer* buffer; // buffer to restore all the incoming data from frames OOO
 };
 
 class QuicRecieveQueue {
