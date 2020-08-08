@@ -42,12 +42,14 @@ public:
     int getLength(int index) const;
     bool getFIN(int index) const;
     int getTotalSize() const;
+    int getNumFrames() const;
     virtual ~StreamsData();
 
 private:
     int arr_size_;
     stream_frame* frame_arr;
     int total_size_in_bytes;
+    int number_of_frames;
 };
 
 } /* namespace inet */

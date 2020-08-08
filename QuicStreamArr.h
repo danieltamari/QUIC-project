@@ -52,7 +52,7 @@ public:
     bool CloseStream(int stream_id);
     bool IsAvilableStreamExist();
     int FreeBytesAvilable() {return total_free_bytes_;}
-    StreamsData* DataToSend(int bytes_in_packet, int* total_bytes_sent);//make a streamData to send
+    StreamsData* DataToSend(int bytes_in_packet);//make a streamData to send
 
 
     // void UpdateStremMaxBytes(int stream_id, int max_bytes); ####->connects to flow_control rfc 27 page 21 , in the future.

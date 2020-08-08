@@ -125,9 +125,8 @@ void QuicConnection::sendPacket(Packet *packet) {
     //send (packet,"toc_out");//only for sim
 }
 
-StreamsData* QuicConnection::CreateSendData(int bytes_in_packet, int* total_bytes_sent) {
-    StreamsData *data_to_send = this->stream_arr->DataToSend(bytes_in_packet,
-            total_bytes_sent);
+StreamsData* QuicConnection::CreateSendData(int bytes_in_packet) {
+    StreamsData *data_to_send = this->stream_arr->DataToSend(bytes_in_packet);
     return data_to_send;
 }
 
@@ -145,14 +144,15 @@ void QuicConnection::recievePacket(Packet *packet) {
 
     auto data = packet->peekData<QuicData>(); // get data from packet
     // process data
-    const StreamsData incoming_frames = data->getStream_frames();
-    for (int i = 0; i < 2; i++) { // ## change this after fixing header
-        int stream_id = incoming_frames.getStreamID(i);
-        int offset = incoming_frames.getOffset(i);
-        int length = incoming_frames.getLength(i);
+    const StreamsData incoming_streams_data = data->getStream_frames();
+    int num_of_frames = incoming_streams_data.getNumFrames();
+    for (int i = 0; i < num_of_frames; i++) { // ## change this after fixing header
+        int stream_id = incoming_streams_data.getStreamID(i);
+        int offset = incoming_streams_data.getOffset(i);
+        int length = incoming_streams_data.getLength(i);
         EV << "stream_id is " << stream_id << " offset is " << offset << " length is " << length << endl;
 
-        bool is_FIN = incoming_frames.getFIN(i);
+        bool is_FIN = incoming_streams_data.getFIN(i);
         if (is_FIN)
             recieve_queue->updateFinal(stream_id, offset, length);
         recieve_queue->updateBuffer(stream_id, offset, length);
@@ -330,10 +330,9 @@ void QuicConnection::ProcessConnectionEst(cMessage *msg) {
     char msgName[32];
     sprintf(msgName, "QuicPacket");
     Packet *send_packet = new Packet(msgName);
-    int* total_bytes_sent_in_packet = 0;
-    StreamsData *send_data = this->CreateSendData(curr_data_size,total_bytes_sent_in_packet);
-
-    this->send_queue->removeDataSent(*total_bytes_sent_in_packet); // need to do all kinds of checks to see how much data left and everything.
+    StreamsData *send_data = this->CreateSendData(curr_data_size);
+    int total_bytes_sent_in_packet = send_data->getTotalSize();
+    this->send_queue->removeDataSent(total_bytes_sent_in_packet); // need to do all kinds of checks to see how much data left and everything.
     send_packet = this->createQuicPacket(*send_data);
     sendPacket(send_packet);
 

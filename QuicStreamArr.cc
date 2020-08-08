@@ -49,8 +49,8 @@ void QuicStreamArr::AddNewStream(int max_bytes, int index) {
     this->stream_arr_[index].max_bytes_to_send = max_bytes;
     this->stream_arr_[index].stream_id = index;
     this->stream_arr_[index].valid = true;
-    this->stream_arr_[index].current_offset_in_stream=0;
-    this->stream_arr_[index].stream_size=STREAM_SIZE;
+    this->stream_arr_[index].current_offset_in_stream = 0;
+    this->stream_arr_[index].stream_size = STREAM_SIZE;
 }
 
 bool QuicStreamArr::CloseStream(int stream_id) {
@@ -74,13 +74,13 @@ bool QuicStreamArr::IsAvilableStreamExist() {
     return true;
 }
 
-StreamsData* QuicStreamArr::DataToSend(int bytes_in_packet, int* total_bytes_sent) {
-    int checked_streams=0;
-    int index_in_frame_array=0;
+StreamsData* QuicStreamArr::DataToSend(int bytes_in_packet) {
+    int checked_streams = 0;
+    int index_in_frame_array = 0;
     bool packet_full = false;
     int bytes_left_to_send = bytes_in_packet;
     StreamsData* new_data = new StreamsData(this->number_of_streams);
-    while (!packet_full || checked_streams!=this->number_of_streams) {
+    while (!packet_full || checked_streams != this->number_of_streams) {
         bool isFin = false;
         int bytes_to_send_in_frame;
         IndexQueueNodes *current_stream_node =
@@ -93,28 +93,32 @@ StreamsData* QuicStreamArr::DataToSend(int bytes_in_packet, int* total_bytes_sen
         //    this->avilable_streams_queue_.insert(current_stream_node);
         //    continue;
         //}
-        if (bytes_left_to_send>this->stream_arr_[stream_id].max_bytes_to_send)
-            bytes_to_send_in_frame = this->stream_arr_[stream_id].max_bytes_to_send;
+        if (bytes_left_to_send > this->stream_arr_[stream_id].max_bytes_to_send)
+            bytes_to_send_in_frame =
+                    this->stream_arr_[stream_id].max_bytes_to_send;
         else
             bytes_to_send_in_frame = bytes_left_to_send;
-        this->stream_arr_[stream_id].bytes_in_stream+=bytes_to_send_in_frame;
-        int offset=this->stream_arr_[stream_id].current_offset_in_stream;
+        this->stream_arr_[stream_id].bytes_in_stream += bytes_to_send_in_frame;
+        int offset = this->stream_arr_[stream_id].current_offset_in_stream;
         int stream_size = this->stream_arr_[stream_id].stream_size;
-        if (bytes_to_send_in_frame+offset>=stream_size){
-            bytes_to_send_in_frame = stream_size-offset;
-            isFin=true;
+        if (bytes_to_send_in_frame + offset >= stream_size) {
+            bytes_to_send_in_frame = stream_size - offset;
+            isFin = true;
         }
-        new_data->AddNewFrame(index_in_frame_array, stream_id, stream_arr_[stream_id].current_offset_in_stream, bytes_to_send_in_frame, isFin);
-        this->stream_arr_[stream_id].current_offset_in_stream+=bytes_to_send_in_frame;
-        bytes_left_to_send-=bytes_to_send_in_frame;
-        index_in_frame_array++;
+        new_data->AddNewFrame(index_in_frame_array, stream_id,
+                stream_arr_[stream_id].current_offset_in_stream,
+                bytes_to_send_in_frame, isFin);
+        this->stream_arr_[stream_id].current_offset_in_stream +=
+                bytes_to_send_in_frame;
+        bytes_left_to_send -= bytes_to_send_in_frame;
+
         this->avilable_streams_queue_.insert(current_stream_node);
-        if (bytes_left_to_send==0){
-            packet_full=true;
+        if (bytes_left_to_send == 0) {
+            packet_full = true;
+        }
+        index_in_frame_array++;
     }
-    *total_bytes_sent = bytes_in_packet-bytes_left_to_send;
-}
-return new_data;
+    return new_data;
 }
 
 QuicStreamArr::~QuicStreamArr() {
