@@ -80,7 +80,7 @@ StreamsData* QuicStreamArr::DataToSend(int bytes_in_packet) {
     bool packet_full = false;
     int bytes_left_to_send = bytes_in_packet;
     StreamsData* new_data = new StreamsData(this->number_of_streams);
-    while (!packet_full || checked_streams != this->number_of_streams) {
+    while (!packet_full && checked_streams != this->number_of_streams) {
         bool isFin = false;
         int bytes_to_send_in_frame;
         IndexQueueNodes *current_stream_node =

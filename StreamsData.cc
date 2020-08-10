@@ -1,3 +1,4 @@
+
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
@@ -46,19 +47,19 @@ void StreamsData::AddNewFrame(int index, int stream_id,int offset, int length, b
 }
 
 int StreamsData::getStreamID(int index) const {
-    return stream_arr[index].stream_id;
+    return frame_arr[index].stream_id;
 }
 
 int StreamsData::getOffset(int index) const {
-    return stream_arr[index].offset;
+    return frame_arr[index].offset;
 }
 
 int StreamsData::getLength(int index) const {
-    return stream_arr[index].length;
+    return frame_arr[index].length;
 }
 
 bool StreamsData::getFIN(int index) const {
-    return stream_arr[index].is_FIN;
+    return frame_arr[index].is_FIN;
 }
 
 int StreamsData::getTotalSize() const {

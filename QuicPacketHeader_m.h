@@ -53,7 +53,6 @@ namespace inet {
  *     int dest_connectionID;
  *     int src_connectionID;
  *     int packet_number;
- *     int num_of_frames;
  * }
  * </pre>
  */
@@ -63,7 +62,6 @@ class INET_API QuicPacketHeader : public ::inet::FieldsChunk
     int dest_connectionID = 0;
     int src_connectionID = 0;
     int packet_number = 0;
-    int num_of_frames = 0;
 
   private:
     void copy(const QuicPacketHeader& other);
@@ -88,8 +86,6 @@ class INET_API QuicPacketHeader : public ::inet::FieldsChunk
     virtual void setSrc_connectionID(int src_connectionID);
     virtual int getPacket_number() const;
     virtual void setPacket_number(int packet_number);
-    virtual int getNum_of_frames() const;
-    virtual void setNum_of_frames(int num_of_frames);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const QuicPacketHeader& obj) {obj.parsimPack(b);}
