@@ -18,14 +18,15 @@
 namespace inet {
 
 StreamsData::StreamsData(){
-    stream_arr=NULL;
+    frame_arr=NULL;
 }
 
 StreamsData::StreamsData(int arr_size) {
     // TODO Auto-generated constructor stub
     arr_size_ = arr_size;
-    stream_arr = new stream_frame[arr_size];
+    frame_arr = new stream_frame[arr_size];
     total_size_in_bytes = 0;
+    this->number_of_frames=0;
 }
 
 StreamsData::~StreamsData() {
@@ -36,11 +37,12 @@ void StreamsData::AddNewFrame(int index, int stream_id,int offset, int length, b
         return;
         //("need to throw here some errorr!!!!!1");
     }
-    this->stream_arr[index].length=length;
-    this->stream_arr[index].offset=offset;
-    this->stream_arr[index].stream_id=stream_id;
-    this->stream_arr[index].is_FIN=is_FIN;
+    this->frame_arr[index].length=length;
+    this->frame_arr[index].offset=offset;
+    this->frame_arr[index].stream_id=stream_id;
+    this->frame_arr[index].is_FIN=is_FIN;
     total_size_in_bytes += length;
+    number_of_frames+=1;
 }
 
 int StreamsData::getStreamID(int index) const {
@@ -63,4 +65,7 @@ int StreamsData::getTotalSize() const {
     return total_size_in_bytes;
 }
 
+int StreamsData::getNumFrames()const {
+    return number_of_frames;
+}
 } /* namespace inet */

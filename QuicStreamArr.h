@@ -29,23 +29,30 @@ namespace inet {
 
 struct stream {
     int stream_id;
-    int sent_bytes_num; // the number of bytes that was sent/recived in this stream
-    bool valid; // is the stream open or close, if close we can open a new stream in this cell with new stream_id
-    int max_bytes;// the maximum number of bytes that can be sent in this stream;
-    int curr_quanta; // the quanta we can send through this stream
-    int total_bytes_to_send; // total data size we want to transfer in this stream
-    int bytes_left_to_send; // how many bytes we are left to send in this stream
+    int max_bytes_to_send; // total data size that stream can send simultansiolsley
+    int bytes_in_stream; // total bytes currently in this stream
+    int current_offset_in_stream;
+    bool valid;
+    int stream_size; //
+
+
+//    int sent_bytes_num; // the number of bytes that was sent/recived in this stream
+//    bool valid; // is the stream open or close, if close we can open a new stream in this cell with new stream_id
+//    int max_bytes;// the maximum number of bytes that can be sent in this stream;
+//    int curr_quanta; // the quanta we can send through this stream
+//    int total_bytes_to_send; // total data size we want to transfer in this stream
+//    int bytes_left_to_send; // how many bytes we are left to send in this stream
 };
 
 class QuicStreamArr {
 public:
     QuicStreamArr(int streams_num);
     virtual ~QuicStreamArr();
-    int AddNewStream(int max_bytes,int quanta, int total_bytes);
+    void AddNewStream(int max_bytes, int index);
     bool CloseStream(int stream_id);
     bool IsAvilableStreamExist();
     int FreeBytesAvilable() {return total_free_bytes_;}
-    StreamsData* DataToSend(int frames_number, int total_bytes_to_send);//make a streamData to send
+    StreamsData* DataToSend(int bytes_in_packet);//make a streamData to send
 
 
     // void UpdateStremMaxBytes(int stream_id, int max_bytes); ####->connects to flow_control rfc 27 page 21 , in the future.
@@ -53,12 +60,15 @@ public:
 
 private:
     stream* stream_arr_; // array of the streams
-    int max_streams_num_; // the maximum number of streams that can be opened simultaneously .
+    int max_streams_num_; // the maximum number of streams that can send simultaneously .
     int valid_streams_num_; // current number of open streams.
     int curr_max_stream_;   // the stream with biggest stream_id
-    omnetpp::cQueue free_index_queue_; //this queue holds the indices of the free cells in the stream array. so we can write the data to those cells.
+    //omnetpp::cQueue free_index_queue_; //this queue holds the indices of the free cells in the stream array. so we can write the data to those cells.
     omnetpp::cQueue avilable_streams_queue_;//this queue holds the indices in the array of the streams that are not full and we can send data through them.
     int total_free_bytes_;
+
+    int number_of_streams;
+
 };
 
 } /* namespace inet */
