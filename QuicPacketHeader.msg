@@ -25,4 +25,5 @@ class QuicPacketHeader extends FieldsChunk {
 	int dest_connectionID;
 	int src_connectionID;
 	int packet_number;
+	int num_of_frames;
 }

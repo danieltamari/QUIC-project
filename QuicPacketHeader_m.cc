@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.5 from inet/applications/quicapp/QuicPacketHeader.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicPacketHeader.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -235,6 +235,7 @@ void QuicPacketHeader::copy(const QuicPacketHeader& other)
     this->dest_connectionID = other.dest_connectionID;
     this->src_connectionID = other.src_connectionID;
     this->packet_number = other.packet_number;
+    this->num_of_frames = other.num_of_frames;
 }
 
 void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
@@ -243,6 +244,7 @@ void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->dest_connectionID);
     doParsimPacking(b,this->src_connectionID);
     doParsimPacking(b,this->packet_number);
+    doParsimPacking(b,this->num_of_frames);
 }
 
 void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -251,6 +253,7 @@ void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->dest_connectionID);
     doParsimUnpacking(b,this->src_connectionID);
     doParsimUnpacking(b,this->packet_number);
+    doParsimUnpacking(b,this->num_of_frames);
 }
 
 int QuicPacketHeader::getDest_connectionID() const
@@ -286,6 +289,17 @@ void QuicPacketHeader::setPacket_number(int packet_number)
     this->packet_number = packet_number;
 }
 
+int QuicPacketHeader::getNum_of_frames() const
+{
+    return this->num_of_frames;
+}
+
+void QuicPacketHeader::setNum_of_frames(int num_of_frames)
+{
+    handleChange();
+    this->num_of_frames = num_of_frames;
+}
+
 class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -294,6 +308,7 @@ class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
         FIELD_dest_connectionID,
         FIELD_src_connectionID,
         FIELD_packet_number,
+        FIELD_num_of_frames,
     };
   public:
     QuicPacketHeaderDescriptor();
@@ -356,7 +371,7 @@ const char *QuicPacketHeaderDescriptor::getProperty(const char *propertyname) co
 int QuicPacketHeaderDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 3+basedesc->getFieldCount() : 3;
+    return basedesc ? 4+basedesc->getFieldCount() : 4;
 }
 
 unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
@@ -371,8 +386,9 @@ unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_dest_connectionID
         FD_ISEDITABLE,    // FIELD_src_connectionID
         FD_ISEDITABLE,    // FIELD_packet_number
+        FD_ISEDITABLE,    // FIELD_num_of_frames
     };
-    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 4) ? fieldTypeFlags[field] : 0;
 }
 
 const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
@@ -387,8 +403,9 @@ const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
         "dest_connectionID",
         "src_connectionID",
         "packet_number",
+        "num_of_frames",
     };
-    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 4) ? fieldNames[field] : nullptr;
 }
 
 int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
@@ -398,6 +415,7 @@ int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
     if (fieldName[0] == 'd' && strcmp(fieldName, "dest_connectionID") == 0) return base+0;
     if (fieldName[0] == 's' && strcmp(fieldName, "src_connectionID") == 0) return base+1;
     if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+2;
+    if (fieldName[0] == 'n' && strcmp(fieldName, "num_of_frames") == 0) return base+3;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -413,8 +431,9 @@ const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
         "int",    // FIELD_dest_connectionID
         "int",    // FIELD_src_connectionID
         "int",    // FIELD_packet_number
+        "int",    // FIELD_num_of_frames
     };
-    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 4) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
@@ -484,6 +503,7 @@ std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int 
         case FIELD_dest_connectionID: return long2string(pp->getDest_connectionID());
         case FIELD_src_connectionID: return long2string(pp->getSrc_connectionID());
         case FIELD_packet_number: return long2string(pp->getPacket_number());
+        case FIELD_num_of_frames: return long2string(pp->getNum_of_frames());
         default: return "";
     }
 }
@@ -501,6 +521,7 @@ bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, 
         case FIELD_dest_connectionID: pp->setDest_connectionID(string2long(value)); return true;
         case FIELD_src_connectionID: pp->setSrc_connectionID(string2long(value)); return true;
         case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
+        case FIELD_num_of_frames: pp->setNum_of_frames(string2long(value)); return true;
         default: return false;
     }
 }
