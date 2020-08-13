@@ -21,13 +21,14 @@
 
 #ifndef INET_APPLICATIONS_QUICAPP_QUICRECEIVEQUEUE_H_
 #define INET_APPLICATIONS_QUICAPP_QUICRECEIVEQUEUE_H_
+#define NUM_OF_STREAMS 10 // will be parameters later
 
 namespace inet {
 
 struct stream_information {
-    int final_size;
-    bool last_frame_sent;
-    ReorderBuffer* buffer;
+    int final_size; // update after the last frame in received
+    bool last_frame_received; // true if the final frame of this stream (marked with isFIN) is received
+    ReorderBuffer* buffer; // buffer to restore all the incoming data from frames OOO
 };
 
 class QuicRecieveQueue {
@@ -40,7 +41,8 @@ public:
     bool check_if_ended(int stream_id);
 
 protected:
-    std::map<int, stream_information*> streams_; // map between key -> stream id to it's information
+    //std::map<int, stream_information*> streams_; // map between key -> stream id to it's information
+    stream_information* streams_; // array of the streams info
 };
 
 } /* namespace inet */

@@ -326,6 +326,12 @@ void QuicConnection::ProcessReconnection(cMessage *msg) {
 }
 
 void QuicConnection::ProcessConnectionSend(cMessage *msg) {
+    if (this->send_queue->isQueueEmpty()){
+        EV << "no more data to send" << endl;
+        this->event->setKind(QUIC_E_CONNECTION_TERM);
+        scheduleAt(simTime(),msg); //return to the fsm to finish connection
+        return;
+    }
     EV << "im hereeeeee in connection send" << endl;
     char msgName[32];
     sprintf(msgName, "QuicPacket");
