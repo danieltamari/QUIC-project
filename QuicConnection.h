@@ -40,15 +40,19 @@ enum QuicState {
     QUIC_S_INIT = 0,
     QUIC_S_NEW_CONNECTION = FSM_Steady(1),
     QUIC_S_RECONNECTION = FSM_Steady(2),
-    QUIC_S_CONNECTION_EST = FSM_Steady(3),
-    QUIC_S_CONNECTION_TERM = FSM_Steady(4),
+    //QUIC_S_CONNECTION_EST = FSM_Steady(3),
+    QUIC_S_SEND = FSM_Steady(3),
+    QUIC_S_LISTEN = FSM_Steady(4),
+    QUIC_S_CONNECTION_TERM = FSM_Steady(5),
 };
 
 enum QuicEventCode {
     QUIC_E_INIT = 0,
     QUIC_E_NEW_CONNECTION,
     QUIC_E_RECONNECTION,
-    QUIC_E_CONNECTION_EST,
+    //QUIC_E_CONNECTION_EST,
+    QUIC_E_SEND,
+    QUIC_E_LISTEN,
     QUIC_E_CONNECTION_TERM,
 };
 
@@ -77,7 +81,8 @@ public:
     void ProcessInitState(cMessage *msg);
     void ProcessNewConnection(cMessage *msg);
     void ProcessReconnection(cMessage *msg);
-    void ProcessConnectionEst(cMessage *msg);
+    void ProcessConnectionSend(cMessage *msg);
+    void ProcessConnectionListen(cMessage *msg);
     void processConnectionTerm(cMessage *msg);
     int GetFramesNumber();
     int GetDataSize();

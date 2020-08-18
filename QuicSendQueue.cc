@@ -30,7 +30,17 @@ void QuicSendQueue::addAllData(int total_bytes_to_send) {
 }
 
 void QuicSendQueue::removeDataSent(int msgByteLength) {
+    B bytes_left=send_queue.getLength();
    const Ptr<const Chunk> sent_data = send_queue.pop(B(msgByteLength));
+
+}
+
+bool QuicSendQueue ::isQueueEmpty(){
+    B bytes_left=send_queue.getLength();
+    if (bytes_left==B(0))
+        return true;
+    else
+        return false;
 }
 
 QuicSendQueue::~QuicSendQueue() {

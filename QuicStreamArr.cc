@@ -75,51 +75,45 @@ bool QuicStreamArr::IsAvilableStreamExist() {
 }
 
 StreamsData* QuicStreamArr::DataToSend(int bytes_in_packet) {
-    int checked_streams = 0; // how many frame we checked so far
-    int index_in_frame_array = 0; // index of the frame in StreamsData -> frame_arr
+    int checked_streams = 0;
+    int index_in_frame_array = 0;
     bool packet_full = false;
-    int bytes_left_to_send = bytes_in_packet; // how many bytes we want to send in total
+    int bytes_left_to_send = bytes_in_packet;
     StreamsData* new_data = new StreamsData(this->number_of_streams);
-    while (!packet_full || checked_streams != this->number_of_streams) {
+    while (!packet_full && checked_streams != this->number_of_streams) {
         bool isFin = false;
-        int bytes_to_send_in_frame; // how many bytes we send in current frame
+        int bytes_to_send_in_frame;
         IndexQueueNodes *current_stream_node =
-                (IndexQueueNodes*) avilable_streams_queue_.pop(); // find new available stream.
+                (IndexQueueNodes*) avilable_streams_queue_.pop(); //find new available stream.
         int stream_id = current_stream_node->getIndex();
         checked_streams++;
-
         //int free_bytes_in_stream;
         //        this->stream_arr_[stream_id].max_bytes_to_send- this->stream_arr_[stream_id].bytes_in_stream;
         //if (free_bytes_in_stream == 0) {
         //    this->avilable_streams_queue_.insert(current_stream_node);
         //    continue;
         //}
-
         if (bytes_left_to_send > this->stream_arr_[stream_id].max_bytes_to_send)
-            // we want to send more than what is allowed by the flow control limitations
             bytes_to_send_in_frame =
                     this->stream_arr_[stream_id].max_bytes_to_send;
         else
             bytes_to_send_in_frame = bytes_left_to_send;
-
-        this->stream_arr_[stream_id].bytes_in_stream += bytes_to_send_in_frame; // maybe the bytes_in_stream field is unnecessary?
-
+        this->stream_arr_[stream_id].bytes_in_stream += bytes_to_send_in_frame;
         int offset = this->stream_arr_[stream_id].current_offset_in_stream;
         int stream_size = this->stream_arr_[stream_id].stream_size;
-        // check if the data we want to send from 'offset' location is exceeding the stream's total size
         if (bytes_to_send_in_frame + offset >= stream_size) {
-            bytes_to_send_in_frame = stream_size - offset; // update how many bytes are sent
-            isFin = true; // mark the frame as last for this stream
+            bytes_to_send_in_frame = stream_size - offset;
+            isFin = true;
         }
         new_data->AddNewFrame(index_in_frame_array, stream_id,
                 stream_arr_[stream_id].current_offset_in_stream,
-                bytes_to_send_in_frame, isFin); // make new frame and add it to the StreamsData -> frame_arr
+                bytes_to_send_in_frame, isFin);
         this->stream_arr_[stream_id].current_offset_in_stream +=
                 bytes_to_send_in_frame;
-        bytes_left_to_send -= bytes_to_send_in_frame; // update how many bytes are left to send in total
+        bytes_left_to_send -= bytes_to_send_in_frame;
 
-        this->avilable_streams_queue_.insert(current_stream_node); // add back the straem index to the array
-        if (bytes_left_to_send == 0) { // no more bytes are left to send
+        this->avilable_streams_queue_.insert(current_stream_node);
+        if (bytes_left_to_send == 0) {
             packet_full = true;
         }
         index_in_frame_array++;

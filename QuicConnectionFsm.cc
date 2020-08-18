@@ -17,12 +17,12 @@
 
 namespace inet {
 
-bool QuicConnection::ProcessEvent(const QuicEventCode& event, cMessage *msg) {
+bool QuicConnection::ProcessEvent(const QuicEventCode &event, cMessage *msg) {
     switch (event) {
     case QUIC_E_INIT:
         ProcessInitState(msg);
         break;
-        case QUIC_E_NEW_CONNECTION:
+    case QUIC_E_NEW_CONNECTION:
         ProcessNewConnection(msg); // add function
         break;
 
@@ -30,8 +30,11 @@ bool QuicConnection::ProcessEvent(const QuicEventCode& event, cMessage *msg) {
         ProcessReconnection(msg); //add function
         break;
 
-    case QUIC_E_CONNECTION_EST:
-        ProcessConnectionEst(msg); //add function
+    case QUIC_E_SEND:
+        ProcessConnectionSend(msg); //add function
+        break;
+    case QUIC_E_LISTEN:
+        ProcessConnectionListen(msg); //add function
         break;
     case QUIC_E_CONNECTION_TERM:
         processConnectionTerm(msg);
@@ -43,10 +46,10 @@ bool QuicConnection::ProcessEvent(const QuicEventCode& event, cMessage *msg) {
     }
 
     // then state transitions
-        return performStateTransition(event);
+    return performStateTransition(event);
 }
 
-bool QuicConnection::performStateTransition(const QuicEventCode& event) {
+bool QuicConnection::performStateTransition(const QuicEventCode &event) {
     int oldState = fsm.getState();
 
     switch (fsm.getState()) {
@@ -58,6 +61,9 @@ bool QuicConnection::performStateTransition(const QuicEventCode& event) {
         case QUIC_E_RECONNECTION:
             FSM_Goto(fsm, QUIC_S_RECONNECTION);
             break;
+        case QUIC_E_LISTEN:
+            FSM_Goto(fsm, QUIC_S_LISTEN);
+            break;
         default:
             break;
         }
@@ -65,8 +71,8 @@ bool QuicConnection::performStateTransition(const QuicEventCode& event) {
 
     case QUIC_S_NEW_CONNECTION:
         switch (event) {
-        case QUIC_E_CONNECTION_EST:
-            FSM_Goto(fsm, QUIC_S_CONNECTION_EST);
+        case QUIC_E_SEND:
+            FSM_Goto(fsm, QUIC_S_SEND);
             break;
         case QUIC_E_CONNECTION_TERM:
             FSM_Goto(fsm, QUIC_S_CONNECTION_TERM);
@@ -78,18 +84,27 @@ bool QuicConnection::performStateTransition(const QuicEventCode& event) {
 
     case QUIC_S_RECONNECTION:
         switch (event) {
-        case QUIC_E_CONNECTION_EST:
-            FSM_Goto(fsm, QUIC_S_CONNECTION_EST);
+        case QUIC_E_SEND:
+            FSM_Goto(fsm, QUIC_S_SEND);
             break;
         case QUIC_E_CONNECTION_TERM:
             FSM_Goto(fsm, QUIC_S_CONNECTION_TERM);
             break;
-    default:
-        break;
+        default:
+            break;
         }
         break;
 
-    case QUIC_S_CONNECTION_EST:
+    case QUIC_S_SEND:
+        switch (event) {
+        case QUIC_E_CONNECTION_TERM:
+            FSM_Goto(fsm, QUIC_S_CONNECTION_TERM);
+            break;
+        default:
+            break;
+        }
+        break;
+    case QUIC_S_LISTEN:
         switch (event) {
         case QUIC_E_CONNECTION_TERM:
             FSM_Goto(fsm, QUIC_S_CONNECTION_TERM);
