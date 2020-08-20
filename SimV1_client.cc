@@ -22,7 +22,7 @@ namespace inet {
 #define MSGKIND_CONNECT        1
 #define MSGKIND_SEND       2
 #define MSGKIND_CLOSE      3
-#define TOTAL_BYTES 100000
+#define TOTAL_BYTES 10000
 #define SENDER 1
 #define RECEIVER 2
 

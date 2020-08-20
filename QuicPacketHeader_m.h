@@ -43,7 +43,7 @@ class QuicPacketHeader;
 namespace inet {
 
 /**
- * Class generated from <tt>inet/applications/quicapp/QuicPacketHeader.msg:24</tt> by nedtool.
+ * Class generated from <tt>inet/applications/quicapp/QuicPacketHeader.msg:25</tt> by nedtool.
  * <pre>
  * //
  * // TODO generated message class
@@ -53,6 +53,7 @@ namespace inet {
  *     int dest_connectionID;
  *     int src_connectionID;
  *     int packet_number;
+ *     int packet_type;
  * }
  * </pre>
  */
@@ -62,6 +63,7 @@ class INET_API QuicPacketHeader : public ::inet::FieldsChunk
     int dest_connectionID = 0;
     int src_connectionID = 0;
     int packet_number = 0;
+    int packet_type = 0;
 
   private:
     void copy(const QuicPacketHeader& other);
@@ -86,6 +88,8 @@ class INET_API QuicPacketHeader : public ::inet::FieldsChunk
     virtual void setSrc_connectionID(int src_connectionID);
     virtual int getPacket_number() const;
     virtual void setPacket_number(int packet_number);
+    virtual int getPacket_type() const;
+    virtual void setPacket_type(int packet_type);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const QuicPacketHeader& obj) {obj.parsimPack(b);}

@@ -78,8 +78,9 @@ network QuicV1
         //    }
         client1: QuicClient {
             parameters:
-                @display("p=250,100;i=device/pc3");
+                @display("p=199,100;i=device/pc3");
         }
+
         server: QuicServer {
             parameters:
                 @display("p=331,100;i=device/pc2");
@@ -96,5 +97,5 @@ network QuicV1
         // tic.in <-- {  delay = 100ms; } <-- client1.ClientOut;
         //      toc.out --> {  delay = 100ms; } --> server.ClientIn;
         //toc.in <-- {  delay = 100ms; } <-- server.ClientOut;
-       	client1.pppg++ <--> C <--> server.pppg++;
+        client1.pppg++ <--> C <--> server.pppg++;
 }
