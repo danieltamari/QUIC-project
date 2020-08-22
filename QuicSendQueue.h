@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-#include "inet/common/packet/ChunkQueue.h"
-#include "inet/common/packet/chunk/FieldsChunk.h"
+
+#include "StreamsData.h"
 
 #ifndef INET_APPLICATIONS_QUICAPP_QUICSENDQUEUE_H_
 #define INET_APPLICATIONS_QUICAPP_QUICSENDQUEUE_H_
@@ -22,16 +22,20 @@
 
 namespace inet {
 
+
 class QuicSendQueue {
 public:
     QuicSendQueue();
     virtual ~QuicSendQueue();
-    void addAllData(int total_bytes_to_send);
-    void removeDataSent(int msgByteLength);
+ //   void addAllData(int total_bytes_to_send);
+  //  void removeDataSent(int msgByteLength);
     bool isQueueEmpty();
+    void addStreamFrame(stream_frame frame);
+  //  void removeACKEDFrame();
 
 protected:
-    ChunkQueue send_queue; // stores application data
+  //  ChunkQueue send_queue; // stores application data
+    std::vector<stream_frame> sent_without_ACK_frames;
 };
 
 } /* namespace inet */

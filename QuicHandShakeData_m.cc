@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicData.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicHandShakeData.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include "QuicData_m.h"
+#include "QuicHandShakeData_m.h"
 
 namespace omnetpp {
 
@@ -173,223 +173,6 @@ toVoidPtr(T* t)
 
 }
 
-class StreamsDataDescriptor : public omnetpp::cClassDescriptor
-{
-  private:
-    mutable const char **propertynames;
-    enum FieldConstants {
-    };
-  public:
-    StreamsDataDescriptor();
-    virtual ~StreamsDataDescriptor();
-
-    virtual bool doesSupport(omnetpp::cObject *obj) const override;
-    virtual const char **getPropertyNames() const override;
-    virtual const char *getProperty(const char *propertyname) const override;
-    virtual int getFieldCount() const override;
-    virtual const char *getFieldName(int field) const override;
-    virtual int findField(const char *fieldName) const override;
-    virtual unsigned int getFieldTypeFlags(int field) const override;
-    virtual const char *getFieldTypeString(int field) const override;
-    virtual const char **getFieldPropertyNames(int field) const override;
-    virtual const char *getFieldProperty(int field, const char *propertyname) const override;
-    virtual int getFieldArraySize(void *object, int field) const override;
-
-    virtual const char *getFieldDynamicTypeString(void *object, int field, int i) const override;
-    virtual std::string getFieldValueAsString(void *object, int field, int i) const override;
-    virtual bool setFieldValueAsString(void *object, int field, int i, const char *value) const override;
-
-    virtual const char *getFieldStructName(int field) const override;
-    virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
-};
-
-Register_ClassDescriptor(StreamsDataDescriptor)
-
-StreamsDataDescriptor::StreamsDataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::StreamsData)), "")
-{
-    propertynames = nullptr;
-}
-
-StreamsDataDescriptor::~StreamsDataDescriptor()
-{
-    delete[] propertynames;
-}
-
-bool StreamsDataDescriptor::doesSupport(omnetpp::cObject *obj) const
-{
-    return dynamic_cast<inet::StreamsData *>(obj)!=nullptr;
-}
-
-const char **StreamsDataDescriptor::getPropertyNames() const
-{
-    if (!propertynames) {
-        static const char *names[] = { "existingClass",  nullptr };
-        omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-        const char **basenames = basedesc ? basedesc->getPropertyNames() : nullptr;
-        propertynames = mergeLists(basenames, names);
-    }
-    return propertynames;
-}
-
-const char *StreamsDataDescriptor::getProperty(const char *propertyname) const
-{
-    if (!strcmp(propertyname, "existingClass")) return "";
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->getProperty(propertyname) : nullptr;
-}
-
-int StreamsDataDescriptor::getFieldCount() const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 0+basedesc->getFieldCount() : 0;
-}
-
-unsigned int StreamsDataDescriptor::getFieldTypeFlags(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldTypeFlags(field);
-        field -= basedesc->getFieldCount();
-    }
-    return 0;
-}
-
-const char *StreamsDataDescriptor::getFieldName(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldName(field);
-        field -= basedesc->getFieldCount();
-    }
-    return nullptr;
-}
-
-int StreamsDataDescriptor::findField(const char *fieldName) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->findField(fieldName) : -1;
-}
-
-const char *StreamsDataDescriptor::getFieldTypeString(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldTypeString(field);
-        field -= basedesc->getFieldCount();
-    }
-    return nullptr;
-}
-
-const char **StreamsDataDescriptor::getFieldPropertyNames(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldPropertyNames(field);
-        field -= basedesc->getFieldCount();
-    }
-    switch (field) {
-        default: return nullptr;
-    }
-}
-
-const char *StreamsDataDescriptor::getFieldProperty(int field, const char *propertyname) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldProperty(field, propertyname);
-        field -= basedesc->getFieldCount();
-    }
-    switch (field) {
-        default: return nullptr;
-    }
-}
-
-int StreamsDataDescriptor::getFieldArraySize(void *object, int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldArraySize(object, field);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return 0;
-    }
-}
-
-const char *StreamsDataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldDynamicTypeString(object,field,i);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return nullptr;
-    }
-}
-
-std::string StreamsDataDescriptor::getFieldValueAsString(void *object, int field, int i) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldValueAsString(object,field,i);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return "";
-    }
-}
-
-bool StreamsDataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->setFieldValueAsString(object,field,i,value);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return false;
-    }
-}
-
-const char *StreamsDataDescriptor::getFieldStructName(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldStructName(field);
-        field -= basedesc->getFieldCount();
-    }
-    return nullptr;
-}
-
-void *StreamsDataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldStructValuePointer(object, field, i);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return nullptr;
-    }
-}
-
 namespace inet {
 
 // forward
@@ -424,22 +207,22 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(QuicData)
+Register_Class(QuicHandShakeData)
 
-QuicData::QuicData() : ::inet::FieldsChunk()
+QuicHandShakeData::QuicHandShakeData() : ::inet::FieldsChunk()
 {
 }
 
-QuicData::QuicData(const QuicData& other) : ::inet::FieldsChunk(other)
+QuicHandShakeData::QuicHandShakeData(const QuicHandShakeData& other) : ::inet::FieldsChunk(other)
 {
     copy(other);
 }
 
-QuicData::~QuicData()
+QuicHandShakeData::~QuicHandShakeData()
 {
 }
 
-QuicData& QuicData::operator=(const QuicData& other)
+QuicHandShakeData& QuicHandShakeData::operator=(const QuicHandShakeData& other)
 {
     if (this == &other) return *this;
     ::inet::FieldsChunk::operator=(other);
@@ -447,44 +230,119 @@ QuicData& QuicData::operator=(const QuicData& other)
     return *this;
 }
 
-void QuicData::copy(const QuicData& other)
+void QuicHandShakeData::copy(const QuicHandShakeData& other)
 {
-    this->stream_frames = other.stream_frames;
+    this->initial_source_connection_id = other.initial_source_connection_id;
+    this->original_destination_connection_id = other.original_destination_connection_id;
+    this->retry_source_connection_id = other.retry_source_connection_id;
+    this->max_udp_payload_size = other.max_udp_payload_size;
+    this->initial_max_data = other.initial_max_data;
+    this->initial_max_stream_data = other.initial_max_stream_data;
 }
 
-void QuicData::parsimPack(omnetpp::cCommBuffer *b) const
+void QuicHandShakeData::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
-    doParsimPacking(b,this->stream_frames);
+    doParsimPacking(b,this->initial_source_connection_id);
+    doParsimPacking(b,this->original_destination_connection_id);
+    doParsimPacking(b,this->retry_source_connection_id);
+    doParsimPacking(b,this->max_udp_payload_size);
+    doParsimPacking(b,this->initial_max_data);
+    doParsimPacking(b,this->initial_max_stream_data);
 }
 
-void QuicData::parsimUnpack(omnetpp::cCommBuffer *b)
+void QuicHandShakeData::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
-    doParsimUnpacking(b,this->stream_frames);
+    doParsimUnpacking(b,this->initial_source_connection_id);
+    doParsimUnpacking(b,this->original_destination_connection_id);
+    doParsimUnpacking(b,this->retry_source_connection_id);
+    doParsimUnpacking(b,this->max_udp_payload_size);
+    doParsimUnpacking(b,this->initial_max_data);
+    doParsimUnpacking(b,this->initial_max_stream_data);
 }
 
-const StreamsData * QuicData::getStream_frames() const
+int QuicHandShakeData::getInitial_source_connection_id() const
 {
-    return this->stream_frames;
+    return this->initial_source_connection_id;
 }
 
-void QuicData::setStream_frames(StreamsData * stream_frames)
+void QuicHandShakeData::setInitial_source_connection_id(int initial_source_connection_id)
 {
     handleChange();
-    this->stream_frames = stream_frames;
+    this->initial_source_connection_id = initial_source_connection_id;
 }
 
-class QuicDataDescriptor : public omnetpp::cClassDescriptor
+int QuicHandShakeData::getOriginal_destination_connection_id() const
+{
+    return this->original_destination_connection_id;
+}
+
+void QuicHandShakeData::setOriginal_destination_connection_id(int original_destination_connection_id)
+{
+    handleChange();
+    this->original_destination_connection_id = original_destination_connection_id;
+}
+
+int QuicHandShakeData::getRetry_source_connection_id() const
+{
+    return this->retry_source_connection_id;
+}
+
+void QuicHandShakeData::setRetry_source_connection_id(int retry_source_connection_id)
+{
+    handleChange();
+    this->retry_source_connection_id = retry_source_connection_id;
+}
+
+int QuicHandShakeData::getMax_udp_payload_size() const
+{
+    return this->max_udp_payload_size;
+}
+
+void QuicHandShakeData::setMax_udp_payload_size(int max_udp_payload_size)
+{
+    handleChange();
+    this->max_udp_payload_size = max_udp_payload_size;
+}
+
+int QuicHandShakeData::getInitial_max_data() const
+{
+    return this->initial_max_data;
+}
+
+void QuicHandShakeData::setInitial_max_data(int initial_max_data)
+{
+    handleChange();
+    this->initial_max_data = initial_max_data;
+}
+
+int QuicHandShakeData::getInitial_max_stream_data() const
+{
+    return this->initial_max_stream_data;
+}
+
+void QuicHandShakeData::setInitial_max_stream_data(int initial_max_stream_data)
+{
+    handleChange();
+    this->initial_max_stream_data = initial_max_stream_data;
+}
+
+class QuicHandShakeDataDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_stream_frames,
+        FIELD_initial_source_connection_id,
+        FIELD_original_destination_connection_id,
+        FIELD_retry_source_connection_id,
+        FIELD_max_udp_payload_size,
+        FIELD_initial_max_data,
+        FIELD_initial_max_stream_data,
     };
   public:
-    QuicDataDescriptor();
-    virtual ~QuicDataDescriptor();
+    QuicHandShakeDataDescriptor();
+    virtual ~QuicHandShakeDataDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -506,24 +364,24 @@ class QuicDataDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(QuicDataDescriptor)
+Register_ClassDescriptor(QuicHandShakeDataDescriptor)
 
-QuicDataDescriptor::QuicDataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicData)), "inet::FieldsChunk")
+QuicHandShakeDataDescriptor::QuicHandShakeDataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicHandShakeData)), "inet::FieldsChunk")
 {
     propertynames = nullptr;
 }
 
-QuicDataDescriptor::~QuicDataDescriptor()
+QuicHandShakeDataDescriptor::~QuicHandShakeDataDescriptor()
 {
     delete[] propertynames;
 }
 
-bool QuicDataDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool QuicHandShakeDataDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<QuicData *>(obj)!=nullptr;
+    return dynamic_cast<QuicHandShakeData *>(obj)!=nullptr;
 }
 
-const char **QuicDataDescriptor::getPropertyNames() const
+const char **QuicHandShakeDataDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -534,19 +392,19 @@ const char **QuicDataDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *QuicDataDescriptor::getProperty(const char *propertyname) const
+const char *QuicHandShakeDataDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int QuicDataDescriptor::getFieldCount() const
+int QuicHandShakeDataDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount() : 1;
+    return basedesc ? 6+basedesc->getFieldCount() : 6;
 }
 
-unsigned int QuicDataDescriptor::getFieldTypeFlags(int field) const
+unsigned int QuicHandShakeDataDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -555,12 +413,17 @@ unsigned int QuicDataDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISCOMPOUND | FD_ISPOINTER,    // FIELD_stream_frames
+        FD_ISEDITABLE,    // FIELD_initial_source_connection_id
+        FD_ISEDITABLE,    // FIELD_original_destination_connection_id
+        FD_ISEDITABLE,    // FIELD_retry_source_connection_id
+        FD_ISEDITABLE,    // FIELD_max_udp_payload_size
+        FD_ISEDITABLE,    // FIELD_initial_max_data
+        FD_ISEDITABLE,    // FIELD_initial_max_stream_data
     };
-    return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 6) ? fieldTypeFlags[field] : 0;
 }
 
-const char *QuicDataDescriptor::getFieldName(int field) const
+const char *QuicHandShakeDataDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -569,20 +432,30 @@ const char *QuicDataDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "stream_frames",
+        "initial_source_connection_id",
+        "original_destination_connection_id",
+        "retry_source_connection_id",
+        "max_udp_payload_size",
+        "initial_max_data",
+        "initial_max_stream_data",
     };
-    return (field >= 0 && field < 1) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldNames[field] : nullptr;
 }
 
-int QuicDataDescriptor::findField(const char *fieldName) const
+int QuicHandShakeDataDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 's' && strcmp(fieldName, "stream_frames") == 0) return base+0;
+    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_source_connection_id") == 0) return base+0;
+    if (fieldName[0] == 'o' && strcmp(fieldName, "original_destination_connection_id") == 0) return base+1;
+    if (fieldName[0] == 'r' && strcmp(fieldName, "retry_source_connection_id") == 0) return base+2;
+    if (fieldName[0] == 'm' && strcmp(fieldName, "max_udp_payload_size") == 0) return base+3;
+    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_max_data") == 0) return base+4;
+    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_max_stream_data") == 0) return base+5;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *QuicDataDescriptor::getFieldTypeString(int field) const
+const char *QuicHandShakeDataDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -591,12 +464,17 @@ const char *QuicDataDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "StreamsData",    // FIELD_stream_frames
+        "int",    // FIELD_initial_source_connection_id
+        "int",    // FIELD_original_destination_connection_id
+        "int",    // FIELD_retry_source_connection_id
+        "int",    // FIELD_max_udp_payload_size
+        "int",    // FIELD_initial_max_data
+        "int",    // FIELD_initial_max_stream_data
     };
-    return (field >= 0 && field < 1) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **QuicDataDescriptor::getFieldPropertyNames(int field) const
+const char **QuicHandShakeDataDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -609,7 +487,7 @@ const char **QuicDataDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *QuicDataDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *QuicHandShakeDataDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -622,7 +500,7 @@ const char *QuicDataDescriptor::getFieldProperty(int field, const char *property
     }
 }
 
-int QuicDataDescriptor::getFieldArraySize(void *object, int field) const
+int QuicHandShakeDataDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -630,13 +508,13 @@ int QuicDataDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-const char *QuicDataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *QuicHandShakeDataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -644,14 +522,13 @@ const char *QuicDataDescriptor::getFieldDynamicTypeString(void *object, int fiel
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
-        case FIELD_stream_frames: { const StreamsData * value = pp->getStream_frames(); return omnetpp::opp_typename(typeid(*value)); }
         default: return nullptr;
     }
 }
 
-std::string QuicDataDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string QuicHandShakeDataDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -659,14 +536,19 @@ std::string QuicDataDescriptor::getFieldValueAsString(void *object, int field, i
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
-        case FIELD_stream_frames: {std::stringstream out; out << pp->getStream_frames(); return out.str();}
+        case FIELD_initial_source_connection_id: return long2string(pp->getInitial_source_connection_id());
+        case FIELD_original_destination_connection_id: return long2string(pp->getOriginal_destination_connection_id());
+        case FIELD_retry_source_connection_id: return long2string(pp->getRetry_source_connection_id());
+        case FIELD_max_udp_payload_size: return long2string(pp->getMax_udp_payload_size());
+        case FIELD_initial_max_data: return long2string(pp->getInitial_max_data());
+        case FIELD_initial_max_stream_data: return long2string(pp->getInitial_max_stream_data());
         default: return "";
     }
 }
 
-bool QuicDataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool QuicHandShakeDataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -674,13 +556,19 @@ bool QuicDataDescriptor::setFieldValueAsString(void *object, int field, int i, c
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
+        case FIELD_initial_source_connection_id: pp->setInitial_source_connection_id(string2long(value)); return true;
+        case FIELD_original_destination_connection_id: pp->setOriginal_destination_connection_id(string2long(value)); return true;
+        case FIELD_retry_source_connection_id: pp->setRetry_source_connection_id(string2long(value)); return true;
+        case FIELD_max_udp_payload_size: pp->setMax_udp_payload_size(string2long(value)); return true;
+        case FIELD_initial_max_data: pp->setInitial_max_data(string2long(value)); return true;
+        case FIELD_initial_max_stream_data: pp->setInitial_max_stream_data(string2long(value)); return true;
         default: return false;
     }
 }
 
-const char *QuicDataDescriptor::getFieldStructName(int field) const
+const char *QuicHandShakeDataDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -689,12 +577,11 @@ const char *QuicDataDescriptor::getFieldStructName(int field) const
         field -= basedesc->getFieldCount();
     }
     switch (field) {
-        case FIELD_stream_frames: return omnetpp::opp_typename(typeid(StreamsData));
         default: return nullptr;
     };
 }
 
-void *QuicDataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *QuicHandShakeDataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -702,9 +589,8 @@ void *QuicDataDescriptor::getFieldStructValuePointer(void *object, int field, in
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
-        case FIELD_stream_frames: return toVoidPtr(pp->getStream_frames()); break;
         default: return nullptr;
     }
 }

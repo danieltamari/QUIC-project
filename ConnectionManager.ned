@@ -27,7 +27,7 @@ simple ConnectionManager like IQuicapp
         string destAddresses; // space-separated list of destination IP addresses, can be empty;
                               // see module description for possibilities
         bool excludeLocalDestAddresses = default(true);     // excluding local addresses from destAddresses
-        string chooseDestAddrMode @enum("once","perBurst","perSend"); // when to change the destination address
+        //string chooseDestAddrMode @enum("once","perBurst","perSend"); // when to change the destination address
         int destAddrRNG = default(0); // random generator ID for selecting a destination address
         int localPort = default(-1);  // local UDP port number (-1: use ephemeral port)
         int destPort; // remote UDP port number

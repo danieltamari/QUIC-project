@@ -28,6 +28,7 @@
 #include <omnetpp.h>
 #include "inet/common/ModuleAccess.h"
 #include "QuicConnection.h"
+#include "connection_config_data_m.h"
 
 #ifndef INET_APPLICATIONS_QUICAPP_CONNECTIONMANAGER_H_
 #define INET_APPLICATIONS_QUICAPP_CONNECTIONMANAGER_H_
@@ -35,6 +36,7 @@
 
 enum Packet_type {HANDSHAKE =0,
                   HANDSHAKE_RESPONSE,
+                  FIRST_STREAMS_DATA,
                     };
 
 namespace inet {
@@ -53,7 +55,7 @@ public:
 
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
-    int AddNewConnection(uint32 data_size);
+    int AddNewConnection(int* connection_data, int connection_data_size);
     bool isIDAvailable(int src_ID);
 
 protected:

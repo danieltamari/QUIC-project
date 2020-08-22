@@ -17,50 +17,59 @@
 #include "IndexQueueNodes_m.h"
 #include <iostream>
 
-#define MAX_BYTES 300//will be a parameter in the future
-# define STREAM_SIZE INT_MAX-1
 
 namespace inet {
 
 /*
  * we create a new empty stream array and insert all the cells to the free index queue (because we didn't open any stream yet.
  */
+
+QuicStreamArr::QuicStreamArr() {
+    max_streams_num_ = 0;
+    number_of_streams = 0;
+    last_stream_index_checked=0;
+}
+
+
 QuicStreamArr::QuicStreamArr(int streams_num) {
-    stream_arr_ = new stream[streams_num];
+    //stream_arr_ = new stream[streams_num];
     max_streams_num_ = streams_num;
     number_of_streams = streams_num;
+    last_stream_index_checked=0;
 
     ///#####
     valid_streams_num_ = 0;
     curr_max_stream_ = 0;
     //####
-
-    for (int index = 0; index < streams_num; index++) {
-        this->AddNewStream(MAX_BYTES, index);
-        IndexQueueNodes *queue_node;
-        queue_node = new IndexQueueNodes;
-        queue_node->setIndex(index);
-        this->avilable_streams_queue_.insert(queue_node);
-    }
 }
 
-void QuicStreamArr::AddNewStream(int max_bytes, int index) {
-    this->stream_arr_[index].bytes_in_stream = 0;
-    this->stream_arr_[index].max_bytes_to_send = max_bytes;
-    this->stream_arr_[index].stream_id = index;
-    this->stream_arr_[index].valid = true;
-    this->stream_arr_[index].current_offset_in_stream = 0;
-    this->stream_arr_[index].stream_size = STREAM_SIZE;
+void QuicStreamArr::AddNewStream(int stream_size, int id) {
+   // this->stream_arr_[index].bytes_in_stream = 0;
+   // this->stream_arr_[index].max_bytes_to_send = max_bytes;
+    stream* stream_to_add=new stream;
+    stream_to_add->stream_id = id;
+    stream_to_add->valid = true;
+    stream_to_add->current_offset_in_stream = 0;
+    stream_to_add->stream_size = stream_size;
+    stream_to_add->max_flow_control_window_size = 0;
+    stream_to_add->highest_recieved_byte_offset = 0;
+    stream_to_add->flow_control_recieve_offset = 0;
+    stream_to_add->flow_control_recieve_window = 0;
+    stream_to_add->consumed_bytes = 0;
+    stream_to_add->bytes_left_to_send_in_stream=stream_size;
+    this->stream_arr_.push_back(stream_to_add);
+
+    EV << "stream_id2 is " << this->stream_arr_[id]->stream_id << " stream_size2 is " << this->stream_arr_[id]->stream_size << endl;
 }
 
 bool QuicStreamArr::CloseStream(int stream_id) {
     for (int i = 0; i < this->max_streams_num_; i++) {
-        if (this->stream_arr_[i].stream_id == stream_id) {
+        if (this->stream_arr_[i]->stream_id == stream_id) {
             //IndexQueueNodes *queue_node;
             //queue_node = new IndexQueueNodes;
             //queue_node->setIndex(i);
             this->valid_streams_num_--;
-            this->stream_arr_[i].valid = false;
+            this->stream_arr_[i]->valid = false;
             return true;
         }
     }
@@ -68,57 +77,82 @@ bool QuicStreamArr::CloseStream(int stream_id) {
 }
 
 bool QuicStreamArr::IsAvilableStreamExist() {
-    if (this->avilable_streams_queue_.isEmpty()) {
-        return false;
-    }
-    return true;
+//    if (this->avilable_streams_queue_.isEmpty()) {
+//        return false;
+//    }
+//    return true;
 }
 
-StreamsData* QuicStreamArr::DataToSend(int bytes_in_packet) {
+StreamsData* QuicStreamArr::DataToSend(int max_payload) {
     int checked_streams = 0;
-    int index_in_frame_array = 0;
+    //int index_in_frame_array = 0;
+
     bool packet_full = false;
-    int bytes_left_to_send = bytes_in_packet;
-    StreamsData* new_data = new StreamsData(this->number_of_streams);
+    int bytes_left_to_send_in_packet = max_payload;
+    StreamsData* new_data = new StreamsData();
     while (!packet_full && checked_streams != this->number_of_streams) {
         bool isFin = false;
         int bytes_to_send_in_frame;
-        IndexQueueNodes *current_stream_node =
-                (IndexQueueNodes*) avilable_streams_queue_.pop(); //find new available stream.
-        int stream_id = current_stream_node->getIndex();
+
+        stream* curr_stream = stream_arr_[last_stream_index_checked];
         checked_streams++;
-        //int free_bytes_in_stream;
-        //        this->stream_arr_[stream_id].max_bytes_to_send- this->stream_arr_[stream_id].bytes_in_stream;
-        //if (free_bytes_in_stream == 0) {
-        //    this->avilable_streams_queue_.insert(current_stream_node);
-        //    continue;
-        //}
-        if (bytes_left_to_send > this->stream_arr_[stream_id].max_bytes_to_send)
-            bytes_to_send_in_frame =
-                    this->stream_arr_[stream_id].max_bytes_to_send;
+
+        if (bytes_left_to_send_in_packet > curr_stream->flow_control_recieve_window)
+            bytes_to_send_in_frame = curr_stream->flow_control_recieve_window;
         else
-            bytes_to_send_in_frame = bytes_left_to_send;
-        this->stream_arr_[stream_id].bytes_in_stream += bytes_to_send_in_frame;
-        int offset = this->stream_arr_[stream_id].current_offset_in_stream;
-        int stream_size = this->stream_arr_[stream_id].stream_size;
-        if (bytes_to_send_in_frame + offset >= stream_size) {
-            bytes_to_send_in_frame = stream_size - offset;
+            bytes_to_send_in_frame = bytes_left_to_send_in_packet;
+
+        if (curr_stream->bytes_left_to_send_in_stream < bytes_to_send_in_frame)
+            bytes_to_send_in_frame = curr_stream->bytes_left_to_send_in_stream;
+
+        if (bytes_to_send_in_frame == 0) {
+            last_stream_index_checked++;
+            if (last_stream_index_checked == number_of_streams)
+                last_stream_index_checked = 0;
+            continue;
+        }
+
+        stream_arr_[last_stream_index_checked]->bytes_left_to_send_in_stream -= bytes_to_send_in_frame;
+        int stream_id = curr_stream->stream_id;
+        int offset = curr_stream->current_offset_in_stream;
+        int stream_size = curr_stream->stream_size;
+
+        if (bytes_to_send_in_frame + offset == stream_size) {
             isFin = true;
         }
-        new_data->AddNewFrame(index_in_frame_array, stream_id,
-                stream_arr_[stream_id].current_offset_in_stream,
-                bytes_to_send_in_frame, isFin);
-        this->stream_arr_[stream_id].current_offset_in_stream +=
-                bytes_to_send_in_frame;
-        bytes_left_to_send -= bytes_to_send_in_frame;
 
-        this->avilable_streams_queue_.insert(current_stream_node);
-        if (bytes_left_to_send == 0) {
+        stream_frame* new_frame = new_data->AddNewFrame(stream_id, offset, bytes_to_send_in_frame, isFin);
+        stream_arr_[last_stream_index_checked]->current_offset_in_stream += bytes_to_send_in_frame;
+        bytes_left_to_send_in_packet -= bytes_to_send_in_frame;
+        stream_frame frame;
+        frame.is_FIN = isFin;
+        frame.length = bytes_to_send_in_frame;
+        frame.offset = offset;
+        frame.stream_id = stream_id;
+
+      //  this->avilable_streams_queue_.insert(current_stream_node);
+        if (bytes_left_to_send_in_packet == 0) {
             packet_full = true;
         }
-        index_in_frame_array++;
+
+       // stream_arr_[last_stream_index_checked]->send_queue->addStreamFrame(frame);
+
+        last_stream_index_checked++;
+        if (last_stream_index_checked == number_of_streams)
+            last_stream_index_checked = 0;
+
     }
     return new_data;
+}
+
+
+void QuicStreamArr::setAllStreamsWindows(int window_size) {
+    for (std::vector<stream*>::iterator it =
+                    this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
+        (*it)->max_flow_control_window_size = window_size;
+        (*it)->flow_control_recieve_offset = window_size;
+        (*it)->flow_control_recieve_window = window_size;
+    }
 }
 
 QuicStreamArr::~QuicStreamArr() {

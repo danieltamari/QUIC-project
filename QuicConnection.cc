@@ -19,16 +19,19 @@
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "inet/common/ModuleAccess.h"
 
+#define Min_FlowControl_Window 16 * 1024  // 16 KB
+#define Max_Stream_ReceiveWindow 16 * 1024 * 1024   // 16 MB
+#define Max_Connection_ReceiveWindow 24 * 1024 * 1024  // 24 MB
 #define DEAFULT_STREAM_NUM 10
-#define DATA_SIZE 2000
+#define MAX_PAYLOAD_PACKET 2000
 #define FRAMES 3
 
 namespace inet {
 
 QuicConnection::QuicConnection() {
-    stream_arr = new QuicStreamArr(DEAFULT_STREAM_NUM);
+    stream_arr = new QuicStreamArr();
     recieve_queue = new QuicRecieveQueue();
-    send_queue = new QuicSendQueue();
+  //  send_queue = new QuicSendQueue();
     this->packet_counter = 0;
     this->num_packets_sent = 0;
     this->num_packets_recieved = 0;
@@ -46,22 +49,24 @@ QuicConnection::QuicConnection() {
     event->setKind(QUIC_E_SERVER_PROCESS_HANDSHAKE);
 
 
-    //JUST FOR THE SIM
-    this->curr_data_size = DATA_SIZE;
-    this->curr_frames_number = FRAMES;
+//    //JUST FOR THE SIM
+//    this->curr_data_size = DATA_SIZE;
+//    this->curr_frames_number = FRAMES;
 }
 
-QuicConnection::QuicConnection(uint32 data_size) {
-    stream_arr = new QuicStreamArr(DEAFULT_STREAM_NUM);
+QuicConnection::QuicConnection(int* connection_data, int connection_data_size) {
+    stream_arr = new QuicStreamArr(connection_data_size);
     recieve_queue = new QuicRecieveQueue();
-    send_queue = new QuicSendQueue();
-    send_queue->addAllData(data_size);
+   // send_queue = new QuicSendQueue();
+    //send_queue->addAllData(data_size);
+    for (int i=0; i<connection_data_size; i++) {
+        AddNewStream(connection_data[i],i);
+    }
 
     this->packet_counter = 0;
     this->num_packets_sent = 0;
     this->num_packets_recieved = 0;
     this->total_bytes_to_send = 0;
-
     this->first_connection = true;
 
     char fsmname[24];
@@ -74,8 +79,8 @@ QuicConnection::QuicConnection(uint32 data_size) {
 
 
     //JUST FOR THE SIM
-    this->curr_data_size = DATA_SIZE;
-    this->curr_frames_number = FRAMES;
+   // this->curr_data_size = DATA_SIZE;
+   // this->curr_frames_number = FRAMES;
 }
 
 
@@ -83,28 +88,28 @@ QuicConnection::~QuicConnection() {
     // TODO Auto-generated destructor stub
 }
 
-Packet* QuicConnection::createQuicDataPacket(const StreamsData sterams_data) {
+Packet* QuicConnection::createQuicDataPacket(StreamsData* streams_data) {
     char msgName[32];
-    sprintf(msgName, "QUIC packet number-%d", packet_counter++);
+    sprintf(msgName, "QUIC packet number-%d", packet_counter);
 
-    // long msgByteLength = 30; //need to change this just for ane exaple to run sim!!!!!!!!!!
-
-    Packet *packet = new Packet(msgName);
+    Packet *packet_to_send = new Packet(msgName);
     auto QuicHeader = makeShared<QuicPacketHeader>();
-    // need to set header's dest & source connection ID & setChunkLength &
     QuicHeader->setPacket_number(packet_counter);
-    QuicHeader->setSrc_connectionID(0);
-    QuicHeader->setDest_connectionID(0);
-    QuicHeader->setChunkLength(B(sizeof(int)*3));
-    packet->insertAtFront(QuicHeader);
+    QuicHeader->setSrc_connectionID(connection_source_ID);
+    QuicHeader->setDest_connectionID(connection_dest_ID);
+    QuicHeader->setPacket_type(2);
+    QuicHeader->setChunkLength(B(sizeof(int)*4));
+    packet_to_send->insertAtFront(QuicHeader);
+    packet_counter++;
+
     const auto &payload = makeShared<QuicData>();
-    //int msgByteLength = sterams_data.getTotalSize();
-    int msgByteLength = 200;
+    int msgByteLength = streams_data->getTotalSize();
+    //int msgByteLength = 200;
     //send_queue->removeDataSent(msgByteLength); // update the send queue
     payload->setChunkLength(B(msgByteLength));
-    payload->setStream_frames(sterams_data);
-    packet->insertAtBack(payload);
-    return packet;
+    payload->setStream_frames(streams_data);
+    packet_to_send->insertAtBack(payload);
+    return packet_to_send;
 }
 
 void QuicConnection::sendPacket(Packet *packet) {
@@ -116,62 +121,62 @@ void QuicConnection::sendPacket(Packet *packet) {
     //send (packet,"toc_out");//only for sim
 }
 
-StreamsData* QuicConnection::CreateSendData(int bytes_in_packet) {
-    StreamsData *data_to_send = this->stream_arr->DataToSend(bytes_in_packet);
+StreamsData* QuicConnection::CreateSendData(int max_payload) {
+    StreamsData *data_to_send = this->stream_arr->DataToSend(max_payload);
     return data_to_send;
 }
 
 
 void QuicConnection::recievePacket(Packet *packet) {
-    //emit(packetReceivedSignal, packet); for omnet simulation
-    num_packets_recieved++;
-
-    //### nned to add header
-    auto header = packet->popAtFront<QuicPacketHeader>(); // remove header
-
-    // extract information from header
-    int income_packet_number = header->getPacket_number();
-    int dest_connectionID  = header->getDest_connectionID();
-    int source_connectionID  = header->getSrc_connectionID();
-
-    EV << "Packet's header info: packet number is " << income_packet_number << " dest connection ID is " <<
-            dest_connectionID << " source connection ID is " << source_connectionID << endl;
-
-    int src_ID = this->GetSourceID();
-    EV << "connection src ID is " << src_ID <<  endl;
-       auto data = packet->peekData<QuicData>(); // get data from packet
-       // process data
-       const StreamsData incoming_streams_data = data->getStream_frames();
-       int num_of_frames = incoming_streams_data.getNumFrames();
-       for (int i = 0; i < num_of_frames; i++) { // ## change this after fixing header
-           int stream_id = incoming_streams_data.getStreamID(i);
-           int offset = incoming_streams_data.getOffset(i);
-           int length = incoming_streams_data.getLength(i);
-           EV << "stream_id is " << stream_id << " offset is " << offset << " length is " << length << endl;
-
-           bool is_FIN = incoming_streams_data.getFIN(i);
-           if (is_FIN)
-               recieve_queue->updateFinal(stream_id, offset, length);
-           recieve_queue->updateBuffer(stream_id, offset, length);
-           if (recieve_queue->check_if_ended(stream_id)) {
-               //  handle stream ending operations
-           }
-       }
-       delete packet;
-
-    char msgName[32];
-    sprintf(msgName, "QUIC packet ACK-%d", packet_counter++);
-    Packet *ack = new Packet(msgName);
-
-    const auto &payload = makeShared<ApplicationPacket>();
-
-    int msgByteLength = 5;
-    payload->setChunkLength(B(msgByteLength));
-    ack->insertAtBack(payload);
-
-    //L3Address destAddr = chooseDestAddr();
-    //socket.sendTo(ack, destAddr, this->destPort);
-    num_packets_sent++;
+//    //emit(packetReceivedSignal, packet); for omnet simulation
+//    num_packets_recieved++;
+//
+//    //### nned to add header
+//    auto header = packet->popAtFront<QuicPacketHeader>(); // remove header
+//
+//    // extract information from header
+//    int income_packet_number = header->getPacket_number();
+//    int dest_connectionID  = header->getDest_connectionID();
+//    int source_connectionID  = header->getSrc_connectionID();
+//
+//    EV << "Packet's header info: packet number is " << income_packet_number << " dest connection ID is " <<
+//            dest_connectionID << " source connection ID is " << source_connectionID << endl;
+//
+//    int src_ID = this->GetSourceID();
+//    EV << "connection src ID is " << src_ID <<  endl;
+//       auto data = packet->peekData<QuicData>(); // get data from packet
+//       // process data
+////       StreamsData* incoming_streams_data = data->getStream_frames();
+////       int num_of_frames = incoming_streams_data.getNumFrames();
+////       for (int i = 0; i < num_of_frames; i++) { // ## change this after fixing header
+////           int stream_id = incoming_streams_data.getStreamID(i);
+////           int offset = incoming_streams_data.getOffset(i);
+////           int length = incoming_streams_data.getLength(i);
+////           EV << "stream_id is " << stream_id << " offset is " << offset << " length is " << length << endl;
+////
+////           bool is_FIN = incoming_streams_data.getFIN(i);
+//           if (is_FIN)
+//               recieve_queue->updateFinal(stream_id, offset, length);
+//           recieve_queue->updateBuffer(stream_id, offset, length);
+//           if (recieve_queue->check_if_ended(stream_id)) {
+//               //  handle stream ending operations
+//           }
+//       }
+//       delete packet;
+//
+//    char msgName[32];
+//    sprintf(msgName, "QUIC packet ACK-%d", packet_counter++);
+//    Packet *ack = new Packet(msgName);
+//
+//    const auto &payload = makeShared<ApplicationPacket>();
+//
+//    int msgByteLength = 5;
+//    payload->setChunkLength(B(msgByteLength));
+//    ack->insertAtBack(payload);
+//
+//    //L3Address destAddr = chooseDestAddr();
+//    //socket.sendTo(ack, destAddr, this->destPort);
+//    num_packets_sent++;
 }
 
 //void QuicConnection::socketDataArrived(UdpSocket *socket, Packet *packet) {
@@ -204,8 +209,8 @@ void QuicConnection::recievePacket(Packet *packet) {
 //    return destAddresses[k];
 //}
 
-void QuicConnection::AddNewStream(int max_bytes, int index) {
-    this->stream_arr->AddNewStream(max_bytes, index);
+void QuicConnection::AddNewStream(int stream_size, int index) {
+    this->stream_arr->AddNewStream(stream_size, index);
 }
 
 bool QuicConnection::CloseStream(int stream_id) {
@@ -244,18 +249,18 @@ void QuicConnection::SetDestID(int dest_ID) {
     this->connection_dest_ID = dest_ID;
 }
 
-void QuicConnection::ProcessInitialClientData(int total_bytes_to_send) {
-    this->total_bytes_to_send = total_bytes_to_send;
-    this->send_queue->addAllData(total_bytes_to_send);
-}
+//void QuicConnection::ProcessInitialClientData(int total_bytes_to_send) {
+//    this->total_bytes_to_send = total_bytes_to_send;
+//    this->send_queue->addAllData(total_bytes_to_send);
+//}
 
-Packet* QuicConnection::ProcessInitiateHandshake() {
+Packet* QuicConnection::ProcessInitiateHandshake(Packet* packet) {
     EV << " ProcessInitiateHandshake in quicConnection" << endl;
     char msgName[32];
     sprintf(msgName, "QUIC INITIAL HANDSHAKE");
     int src_ID = 0;
     int dest_ID = std::rand();
-    Packet *packet = new Packet(msgName);
+    Packet *packet_to_send = new Packet(msgName);
     auto QuicHeader = makeShared<QuicPacketHeader>();
     // need to set header's dest & source connection ID & setChunkLength &
     QuicHeader->setPacket_number(0);
@@ -263,33 +268,71 @@ Packet* QuicConnection::ProcessInitiateHandshake() {
     QuicHeader->setDest_connectionID(dest_ID);
     QuicHeader->setPacket_type(0);
     QuicHeader->setChunkLength(B(sizeof(int)*4));
-    packet->insertAtFront(QuicHeader);
+    packet_to_send->insertAtFront(QuicHeader);
     this->SetSourceID(src_ID);
     this->SetDestID(dest_ID);
-    this->event->setKind(QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE);
 
-    return packet;
+    const auto &payload = makeShared<QuicHandShakeData>();
+    payload->setInitial_source_connection_id(src_ID);
+    payload->setChunkLength(B(sizeof(int)*1));
+    packet_to_send->insertAtBack(payload);
+
+    this->event->setKind(QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE);
+    return packet_to_send;
 }
 
 
-Packet* QuicConnection::ServerProcessHandshake() {
+Packet* QuicConnection::ServerProcessHandshake(Packet* packet) {
 
     EV << " ProcessInitiateHandshake server in quicConnection" << endl;
     char msgName[32];
     sprintf(msgName, "QUIC HANDSHAKE RESPONSE");
     int src_ID = this->GetSourceID();
     int dest_ID = this->GetDestID();
-    Packet *packet = new Packet(msgName);
+    Packet *packet_to_send = new Packet(msgName);
     auto QuicHeader = makeShared<QuicPacketHeader>();
     QuicHeader->setPacket_number(0);
     QuicHeader->setSrc_connectionID(src_ID);
     QuicHeader->setDest_connectionID(dest_ID);
     QuicHeader->setPacket_type(1);
     QuicHeader->setChunkLength(B(sizeof(int)*4));
-    packet->insertAtFront(QuicHeader);
-    //this->event->setKind(QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE);
-    return packet;
+    packet_to_send->insertAtFront(QuicHeader);
+
+    const auto &payload = makeShared<QuicHandShakeData>();
+    int msgByteLength = 1;
+    payload->setInitial_max_data(Min_FlowControl_Window); // initial window per connection
+    payload->setInitial_max_stream_data(Min_FlowControl_Window); // initial window per stream
+    payload->setMax_udp_payload_size(MAX_PAYLOAD_PACKET);
+    //payload->setMax_udp_payload_size(); find value for UDP payload
+    payload->setChunkLength(B(sizeof(int)*3));
+    packet_to_send->insertAtBack(payload);
+    this->event->setKind(QUIC_S_SERVER_WAIT_FOR_DATA);
+    return packet_to_send;
 }
+
+Packet* QuicConnection::ProcessClientHandshakeResponse(Packet* packet) {
+
+    auto header = packet->popAtFront<QuicPacketHeader>();
+    auto data = packet->peekData<QuicHandShakeData>(); // get data from packet
+    // process data
+    int initial_stream_window = data->getInitial_max_stream_data();
+    int initial_connection_window = data->getInitial_max_data();
+    int max_payload = data->getMax_udp_payload_size();
+    this->connection_window = initial_connection_window;
+    this->stream_arr->setAllStreamsWindows(initial_stream_window);
+    this->max_payload = max_payload;
+
+    StreamsData *send_data = this->CreateSendData(max_payload);
+    Packet* packet_to_send = createQuicDataPacket(send_data);
+    this->event->setKind(QUIC_S_SEND);
+    return packet_to_send;
+}
+
+Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
+
+}
+
+
 
 
 //void QuicConnection::ProcessNewConnection(cMessage *msg) {
@@ -352,10 +395,10 @@ int QuicConnection::GetEventKind() {
 ////    }
 //}
 
-Packet* QuicConnection::ActivateFsm() {
+Packet* QuicConnection::ActivateFsm(Packet* packet) {
     EV << "im hereeeeee in connection ActivateFsm" << endl;
         QuicEventCode event = preanalyseAppCommandEvent(this->event->getKind());
-        Packet* ret_packet = ProcessEvent(event);
+        Packet* ret_packet = ProcessEvent(event,packet);
         return ret_packet;
 ;
 
@@ -370,6 +413,9 @@ QuicEventCode QuicConnection::preanalyseAppCommandEvent(int commandCode) {
 
     case QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
         return QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE;
+
+    case QUIC_E_SERVER_WAIT_FOR_DATA:
+        return QUIC_E_SERVER_WAIT_FOR_DATA;
 
     case QUIC_E_RECONNECTION:
         return QUIC_E_RECONNECTION;

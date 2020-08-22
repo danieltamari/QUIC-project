@@ -22,6 +22,8 @@
 #include "QuicConnection.h"
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/common/lifecycle/LifecycleOperation.h"
+#include "connection_config_data_m.h"
+
 
 
 
@@ -54,7 +56,10 @@ protected:
  simtime_t tOpen;
  simtime_t tSend;
  simtime_t tClose;
- long total_bytes_to_send;
+
+ //long total_bytes_to_send;
+ //int* streams;
+
 
  int current_connectionID;//for the future to save the current connection id.
  bool first_connection;//curentlly bool in the future need to compare connection id input with "current_connectionID" or to save all previous connections

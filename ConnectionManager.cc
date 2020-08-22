@@ -40,7 +40,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
     int dest_ID_from_peer = header->getDest_connectionID();
 
     switch (packet_type) {
-    case HANDSHAKE: { // HANDSHAKE PACKET
+    case 0: { // HANDSHAKE PACKET
         QuicConnection connection = QuicConnection(); // create new connection at server's side
         if (isIDAvailable(src_ID_from_peer)) {
             connection.SetDestID(src_ID_from_peer);
@@ -52,18 +52,23 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
         int index = connections.size();
         this->connections.push_back(connection);
 
-        Packet *handshake__response_packet = connections[index].ActivateFsm();
+        Packet *handshake__response_packet = connections[index].ActivateFsm(packet);
         sendPacket(handshake__response_packet);
+        break;
     }
-    case HANDSHAKE_RESPONSE: { // HANDSHAKE RESPONSE PACKET
+    case 1: { // HANDSHAKE RESPONSE PACKET
         for (std::vector<QuicConnection>::iterator it =
                 this->connections.begin(); it != connections.end(); ++it) {
             if (it->GetDestID() == src_ID_from_peer) {
                 it->SetSourceID(dest_ID_from_peer);
                 it->SetDestID(src_ID_from_peer);
+                Packet *first_data_packet = it->ActivateFsm(packet);
+                sendPacket(first_data_packet);
                 break;
             }
         }
+        break;
+
     }
     }
     // active FSM
@@ -104,17 +109,24 @@ void ConnectionManager::handleMessage(cMessage *msg) {
         connectToUDPSocket();
         if (msg->getKind() == SENDER) {
             Packet *packet = check_and_cast<Packet*>(msg);
-            uint32 total_bytes = (packet->getByteLength());
-            int connection_index = AddNewConnection(total_bytes);
+          //  uint32 total_bytes = (packet->getByteLength());
+            auto packet_data = packet->peekData<connection_config_data>();
+            int connection_data_size = packet_data->getConnection_dataArraySize();
+            int* connection_data = new int [connection_data_size];
+            for (int i=0; i<connection_data_size; i++) {
+                connection_data[i] = packet_data->getConnection_data(i);
+            }
+            int connection_index = AddNewConnection(connection_data, connection_data_size);
             Packet *handshake_packet =
-                    connections[connection_index].ActivateFsm(); //activate fsm always return a packet which type is set by the current state: handshake,data, etc....
+                    connections[connection_index].ActivateFsm(packet); //activate fsm always return a packet which type is set by the current state: handshake,data, etc....
             sendPacket(handshake_packet);
         }
     }
 }
 
-int ConnectionManager::AddNewConnection(uint32 data_size) {
-    QuicConnection connection = QuicConnection(data_size);
+int ConnectionManager::AddNewConnection(int* connection_data, int connection_data_size) {
+    QuicConnection connection = QuicConnection(connection_data, connection_data_size);
+
     int index = connections.size();
     this->connections.push_back(connection);
     return index;

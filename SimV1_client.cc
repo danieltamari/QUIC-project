@@ -22,7 +22,9 @@ namespace inet {
 #define MSGKIND_CONNECT        1
 #define MSGKIND_SEND       2
 #define MSGKIND_CLOSE      3
-#define TOTAL_BYTES 10000
+#define NUMBER_OF_STREAMS 4
+# define STREAM_SIZE 60000
+
 #define SENDER 1
 #define RECEIVER 2
 
@@ -42,7 +44,8 @@ void SimV1_client::initialize(int stage) {
     // need to add connection id parameter and update it here
 
     this->tOpen=0;
-    this->total_bytes_to_send=TOTAL_BYTES;
+    //this->total_bytes_to_send=TOTAL_BYTES;
+
 
     fsm_state = new cMessage("fsm_state");
     //scheduleAt(simTime(), fsm_state);
@@ -92,10 +95,22 @@ void SimV1_client::connect() {
 }
 
 void SimV1_client::sendData() {
-    //long numBytes = commands[commandIndex].numBytes;
-    long numBytes=this->total_bytes_to_send;
-    EV_INFO << "sending data with " << numBytes << " bytes\n";
-    send(createDataPacket(numBytes), "out");
+    int number_of_streams = par("number_of_streams");
+    int stream_size=par("stream_size");
+
+
+    Packet *msg = new Packet("connection_data");
+    const auto &payload = makeShared<connection_config_data>();
+    payload->setConnection_dataArraySize(number_of_streams);
+    for (int i=0; i<number_of_streams; i++){
+        payload->setConnection_data(i, stream_size);
+    }
+    payload->setChunkLength(B(sizeof(int)*1));
+    msg->insertAtBack(payload);
+    msg->setKind(SENDER);
+    //long numBytes=this->total_bytes_to_send;
+    EV_INFO << "sending array size: "<< number_of_streams << "with stream_size " << stream_size;
+    send(msg, "out");
 //    if (++commandIndex < (int)commands.size()) {
 //        simtime_t tSend = commands[commandIndex].tSend;
 //        scheduleAt(std::max(tSend, simTime()), timeoutMsg);
@@ -116,7 +131,6 @@ Packet *SimV1_client::createDataPacket(long sendBytes)
     //payload->addTag<CreationTimeTag>()->setCreationTime(simTime());
     Packet *packet = new Packet("data1");
     packet->insertAtBack(payload);
-    packet->setKind(SENDER);
     return packet;
 }
 

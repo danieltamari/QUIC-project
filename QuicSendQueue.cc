@@ -19,28 +19,20 @@ namespace inet {
 
 QuicSendQueue::QuicSendQueue() {
     // TODO Auto-generated constructor stub
-   // send_queue = new ChunkQueue();
+    // send_queue = new ChunkQueue();
 }
 
 
-void QuicSendQueue::addAllData(int total_bytes_to_send) {
-    const auto& data_to_send = makeShared<FieldsChunk>();
-    data_to_send->setChunkLength(B(total_bytes_to_send));
-    send_queue.push(data_to_send);
-}
-
-void QuicSendQueue::removeDataSent(int msgByteLength) {
-    B bytes_left=send_queue.getLength();
-   const Ptr<const Chunk> sent_data = send_queue.pop(B(msgByteLength));
-
+void QuicSendQueue::addStreamFrame(stream_frame frame) {
+    this->sent_without_ACK_frames.push_back(frame);
 }
 
 bool QuicSendQueue ::isQueueEmpty(){
-    B bytes_left=send_queue.getLength();
-    if (bytes_left==B(0))
-        return true;
-    else
-        return false;
+//    B bytes_left=send_queue.getLength();
+//    if (bytes_left==B(0))
+//        return true;
+//    else
+//        return false;
 }
 
 QuicSendQueue::~QuicSendQueue() {

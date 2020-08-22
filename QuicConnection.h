@@ -20,6 +20,7 @@
 #include "QuicStreamArr.h"
 #include "QuicData_m.h"
 #include "QuicPacketHeader_m.h"
+#include "QuicHandShakeData_m.h"
 #include "StreamsData.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
@@ -40,17 +41,19 @@ enum QuicState {
     QUIC_S_CLIENT_INITIATE_HANDSHAKE = 0,
     QUIC_S_SERVER_PROCESS_HANDSHAKE = FSM_Steady(1),
     QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE = FSM_Steady(2),
-    QUIC_S_NEW_CONNECTION = FSM_Steady(3),
-    QUIC_S_RECONNECTION = FSM_Steady(4),
-    QUIC_S_SEND = FSM_Steady(5),
-    QUIC_S_LISTEN = FSM_Steady(6),
-    QUIC_S_CONNECTION_TERM = FSM_Steady(7),
+    QUIC_S_SERVER_WAIT_FOR_DATA =FSM_Steady(3),
+    QUIC_S_NEW_CONNECTION = FSM_Steady(4),
+    QUIC_S_RECONNECTION = FSM_Steady(5),
+    QUIC_S_SEND = FSM_Steady(6),
+    QUIC_S_LISTEN = FSM_Steady(7),
+    QUIC_S_CONNECTION_TERM = FSM_Steady(8),
 };
 
 enum QuicEventCode {
     QUIC_E_CLIENT_INITIATE_HANDSHAKE = 0,
     QUIC_E_SERVER_PROCESS_HANDSHAKE,
     QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE,
+    QUIC_E_SERVER_WAIT_FOR_DATA,
     QUIC_E_NEW_CONNECTION,
     QUIC_E_RECONNECTION,
     QUIC_E_SEND,
@@ -68,21 +71,24 @@ enum QuicEventCode {
 class QuicConnection { //public cSimpleModule, public UdpSocket::ICallback{
 public:
     QuicConnection();
-    QuicConnection(uint32 data_size);
+    QuicConnection(int* connection_data, int connection_data_size);
 
     virtual ~QuicConnection();
-    Packet* createQuicDataPacket(const StreamsData sterams_data);
+    Packet* createQuicDataPacket(StreamsData* streams_data);
     void sendPacket(Packet *packet);
-    StreamsData* CreateSendData(int bytes_in_packet);
+    StreamsData* CreateSendData(int max_payload);
     void recievePacket(Packet *packet);
-    void AddNewStream(int max_bytes,int index);
+    void AddNewStream(int stream_size,int index);
     bool CloseStream(int stream_id);
 
     void performStateTransition(const QuicEventCode &event);
-    Packet* ProcessEvent(const QuicEventCode &event);
-    Packet* ActivateFsm();
-    Packet* ProcessInitiateHandshake();
-    Packet* ServerProcessHandshake();
+    Packet* ProcessEvent(const QuicEventCode &event,Packet* packet);
+    Packet* ActivateFsm(Packet* packet);
+    Packet* ProcessInitiateHandshake(Packet* packet);
+    Packet* ServerProcessHandshake(Packet* packet);
+    Packet* ProcessClientHandshakeResponse(Packet* packet);
+    Packet* ProcessServerWaitData(Packet* packet);
+
     //void ProcessNewConnection(cMessage *msg);
     //void ProcessReconnection(cMessage *msg);
     //Packet* ProcessConnectionSend(cMessage *msg);
@@ -106,8 +112,8 @@ public:
         return this->first_connection;
     }
 
-    void moveDataToSendQueue(int bytes_num);
-    void ProcessInitialClientData(int total_bytes_to_send);
+  //  void moveDataToSendQueue(int bytes_num);
+  //  void ProcessInitialClientData(int total_bytes_to_send);
 
 //    virtual void socketDataArrived(UdpSocket *socket, Packet *packet) override;
 //    virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
@@ -139,7 +145,7 @@ protected:
 
 
     QuicStreamArr *stream_arr; //the class that represent the entire data of the data that was sent
-    QuicSendQueue *send_queue; // this queue suppose to hold bytes when all the streams are full
+ //   QuicSendQueue *send_queue; // this queue suppose to hold bytes when all the streams are full
     QuicRecieveQueue *recieve_queue;
     int packet_counter; // counter to assign each packet header a unique packet number
     int num_packets_sent;
@@ -156,7 +162,8 @@ protected:
     cMessage *event = nullptr;
     cMessage *start_fsm;
 
-
+    int connection_window; // flow control
+    int max_payload;
 };
 
 //Define_Module(QuicConnection);

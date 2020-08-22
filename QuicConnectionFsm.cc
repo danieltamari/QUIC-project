@@ -17,18 +17,22 @@
 
 namespace inet {
 
-Packet* QuicConnection::ProcessEvent(const QuicEventCode &event) {
+Packet* QuicConnection::ProcessEvent(const QuicEventCode &event,Packet* packet) {
     Packet *conn_packet = NULL;
     switch (event) {
     case QUIC_E_CLIENT_INITIATE_HANDSHAKE:
-        conn_packet = ProcessInitiateHandshake();
+        conn_packet = ProcessInitiateHandshake(packet);
         break;
     case QUIC_E_SERVER_PROCESS_HANDSHAKE:
-        conn_packet = ServerProcessHandshake();
+        conn_packet = ServerProcessHandshake(packet);
         break;
-//    case QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
-//        ProcessNewConnection(msg); // add function
-//        break;
+    case QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
+        conn_packet=ProcessClientHandshakeResponse(packet); // add function
+        break;
+    case QUIC_E_SERVER_WAIT_FOR_DATA:
+        conn_packet=ProcessServerWaitData(packet); // add function
+        break;
+
 
 //
 //    case QUIC_E_RECONNECTION:
@@ -70,15 +74,15 @@ void QuicConnection::performStateTransition(const QuicEventCode &event) {
         break;
     case QUIC_S_SERVER_PROCESS_HANDSHAKE:
         switch (event) {
-        case QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
-            FSM_Goto(fsm, QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE);
+        case QUIC_E_SERVER_WAIT_FOR_DATA:
+            FSM_Goto(fsm, QUIC_S_SERVER_WAIT_FOR_DATA);
             break;
         default:
             break;
         }
         break;
 
-    case QUIC_S_NEW_CONNECTION:
+    case QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
         switch (event) {
         case QUIC_E_SEND:
             FSM_Goto(fsm, QUIC_S_SEND);
@@ -91,14 +95,14 @@ void QuicConnection::performStateTransition(const QuicEventCode &event) {
         }
         break;
 
-    case QUIC_S_RECONNECTION:
+    case QUIC_S_SERVER_WAIT_FOR_DATA:
         switch (event) {
         case QUIC_E_SEND:
-            FSM_Goto(fsm, QUIC_S_SEND);
-            break;
-        case QUIC_E_CONNECTION_TERM:
-            FSM_Goto(fsm, QUIC_S_CONNECTION_TERM);
-            break;
+//            FSM_Goto(fsm, QUIC_S_SEND);
+//            break;
+//        case QUIC_E_CONNECTION_TERM:
+//            FSM_Goto(fsm, QUIC_S_CONNECTION_TERM);
+           break;
         default:
             break;
         }

@@ -11,25 +11,17 @@
 // 
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
-// 	
+// 
 
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
-
-cplusplus {{
-#include "StreamsData.h"
-}}
-
-//class noncobject StreamsData;
-class StreamsData { 
-    @existingClass;
-     }
 namespace inet;
+
 
 //
 // TODO generated message class
 //
-class QuicData extends FieldsChunk  {
-    StreamsData* stream_frames;
-    }
+class connection_config_data extends FieldsChunk {
+	int connection_data[];
+}
