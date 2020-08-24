@@ -26,6 +26,7 @@
 namespace inet {
 
 struct stream_information {
+    int stream_id;
     int final_size; // update after the last frame in received
     bool last_frame_received; // true if the final frame of this stream (marked with isFIN) is received
     ReorderBuffer* buffer; // buffer to restore all the incoming data from frames OOO
@@ -34,15 +35,26 @@ struct stream_information {
 class QuicRecieveQueue {
 public:
     QuicRecieveQueue();
+    QuicRecieveQueue(int stream_id);
     virtual ~QuicRecieveQueue();
-    void updateBuffer(int stream_id, int offset, int length);
-    bool isStreamIDExist(int stream_id);
-    void updateFinal(int stream_id, int offset, int length);
-    bool check_if_ended(int stream_id);
+  //  void updateBuffer(int stream_id, int offset, int length);
+ //   bool isStreamIDExist(int stream_id);
+ //   void updateFinal(int stream_id, int offset, int length);
+    bool check_if_ended();
+
+    void addStreamFrame(stream_frame* frame);
+    void updateStreamInfo(int offset,int length,bool is_FIN);
+
+    int getStreamID();
+    int getfinal_size();
+    bool getlast_frame_received();
+
+
 
 protected:
-    //std::map<int, stream_information*> streams_; // map between key -> stream id to it's information
-    stream_information* streams_; // array of the streams info
+    stream_information* stream_info;
+    std::vector<stream_frame*> received_frames; // store received frames - not sure if necessary
+
 };
 
 } /* namespace inet */

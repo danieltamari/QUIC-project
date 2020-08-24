@@ -54,14 +54,14 @@ namespace inet {
  * //
  * class QuicData extends FieldsChunk
  * {
- *     StreamsData stream_frames;
+ *     StreamsData *stream_frames;
  * }
  * </pre>
  */
 class INET_API QuicData : public ::inet::FieldsChunk
 {
   protected:
-    StreamsData stream_frames;
+    StreamsData * stream_frames = nullptr;
 
   private:
     void copy(const QuicData& other);
@@ -80,9 +80,9 @@ class INET_API QuicData : public ::inet::FieldsChunk
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
-    virtual const StreamsData& getStream_frames() const;
-    virtual StreamsData& getStream_framesForUpdate() { handleChange();return const_cast<StreamsData&>(const_cast<QuicData*>(this)->getStream_frames());}
-    virtual void setStream_frames(const StreamsData& stream_frames);
+    virtual const StreamsData * getStream_frames() const;
+    virtual StreamsData * getStream_framesForUpdate() { handleChange();return const_cast<StreamsData *>(const_cast<QuicData*>(this)->getStream_frames());}
+    virtual void setStream_frames(StreamsData * stream_frames);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const QuicData& obj) {obj.parsimPack(b);}

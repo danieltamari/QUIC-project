@@ -18,6 +18,9 @@ package inet.applications.quicapp;
 
 simple SimV1_client
 {
+    parameters:
+        int number_of_streams;
+        int stream_size;
     gates:
         input in;
         output out;

@@ -464,12 +464,12 @@ void QuicData::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->stream_frames);
 }
 
-const StreamsData& QuicData::getStream_frames() const
+const StreamsData * QuicData::getStream_frames() const
 {
     return this->stream_frames;
 }
 
-void QuicData::setStream_frames(const StreamsData& stream_frames)
+void QuicData::setStream_frames(StreamsData * stream_frames)
 {
     handleChange();
     this->stream_frames = stream_frames;
@@ -555,7 +555,7 @@ unsigned int QuicDataDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISCOMPOUND,    // FIELD_stream_frames
+        FD_ISCOMPOUND | FD_ISPOINTER,    // FIELD_stream_frames
     };
     return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
@@ -646,6 +646,7 @@ const char *QuicDataDescriptor::getFieldDynamicTypeString(void *object, int fiel
     }
     QuicData *pp = (QuicData *)object; (void)pp;
     switch (field) {
+        case FIELD_stream_frames: { const StreamsData * value = pp->getStream_frames(); return omnetpp::opp_typename(typeid(*value)); }
         default: return nullptr;
     }
 }
@@ -703,7 +704,7 @@ void *QuicDataDescriptor::getFieldStructValuePointer(void *object, int field, in
     }
     QuicData *pp = (QuicData *)object; (void)pp;
     switch (field) {
-        case FIELD_stream_frames: return toVoidPtr(&pp->getStream_frames()); break;
+        case FIELD_stream_frames: return toVoidPtr(pp->getStream_frames()); break;
         default: return nullptr;
     }
 }

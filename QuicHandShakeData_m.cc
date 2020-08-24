@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicPacketHeader.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicHandShakeData.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include "QuicPacketHeader_m.h"
+#include "QuicHandShakeData_m.h"
 
 namespace omnetpp {
 
@@ -207,22 +207,22 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(QuicPacketHeader)
+Register_Class(QuicHandShakeData)
 
-QuicPacketHeader::QuicPacketHeader() : ::inet::FieldsChunk()
+QuicHandShakeData::QuicHandShakeData() : ::inet::FieldsChunk()
 {
 }
 
-QuicPacketHeader::QuicPacketHeader(const QuicPacketHeader& other) : ::inet::FieldsChunk(other)
+QuicHandShakeData::QuicHandShakeData(const QuicHandShakeData& other) : ::inet::FieldsChunk(other)
 {
     copy(other);
 }
 
-QuicPacketHeader::~QuicPacketHeader()
+QuicHandShakeData::~QuicHandShakeData()
 {
 }
 
-QuicPacketHeader& QuicPacketHeader::operator=(const QuicPacketHeader& other)
+QuicHandShakeData& QuicHandShakeData::operator=(const QuicHandShakeData& other)
 {
     if (this == &other) return *this;
     ::inet::FieldsChunk::operator=(other);
@@ -230,89 +230,119 @@ QuicPacketHeader& QuicPacketHeader::operator=(const QuicPacketHeader& other)
     return *this;
 }
 
-void QuicPacketHeader::copy(const QuicPacketHeader& other)
+void QuicHandShakeData::copy(const QuicHandShakeData& other)
 {
-    this->dest_connectionID = other.dest_connectionID;
-    this->src_connectionID = other.src_connectionID;
-    this->packet_number = other.packet_number;
-    this->packet_type = other.packet_type;
+    this->initial_source_connection_id = other.initial_source_connection_id;
+    this->original_destination_connection_id = other.original_destination_connection_id;
+    this->retry_source_connection_id = other.retry_source_connection_id;
+    this->max_udp_payload_size = other.max_udp_payload_size;
+    this->initial_max_data = other.initial_max_data;
+    this->initial_max_stream_data = other.initial_max_stream_data;
 }
 
-void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
+void QuicHandShakeData::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
-    doParsimPacking(b,this->dest_connectionID);
-    doParsimPacking(b,this->src_connectionID);
-    doParsimPacking(b,this->packet_number);
-    doParsimPacking(b,this->packet_type);
+    doParsimPacking(b,this->initial_source_connection_id);
+    doParsimPacking(b,this->original_destination_connection_id);
+    doParsimPacking(b,this->retry_source_connection_id);
+    doParsimPacking(b,this->max_udp_payload_size);
+    doParsimPacking(b,this->initial_max_data);
+    doParsimPacking(b,this->initial_max_stream_data);
 }
 
-void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
+void QuicHandShakeData::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
-    doParsimUnpacking(b,this->dest_connectionID);
-    doParsimUnpacking(b,this->src_connectionID);
-    doParsimUnpacking(b,this->packet_number);
-    doParsimUnpacking(b,this->packet_type);
+    doParsimUnpacking(b,this->initial_source_connection_id);
+    doParsimUnpacking(b,this->original_destination_connection_id);
+    doParsimUnpacking(b,this->retry_source_connection_id);
+    doParsimUnpacking(b,this->max_udp_payload_size);
+    doParsimUnpacking(b,this->initial_max_data);
+    doParsimUnpacking(b,this->initial_max_stream_data);
 }
 
-int QuicPacketHeader::getDest_connectionID() const
+int QuicHandShakeData::getInitial_source_connection_id() const
 {
-    return this->dest_connectionID;
+    return this->initial_source_connection_id;
 }
 
-void QuicPacketHeader::setDest_connectionID(int dest_connectionID)
-{
-    handleChange();
-    this->dest_connectionID = dest_connectionID;
-}
-
-int QuicPacketHeader::getSrc_connectionID() const
-{
-    return this->src_connectionID;
-}
-
-void QuicPacketHeader::setSrc_connectionID(int src_connectionID)
+void QuicHandShakeData::setInitial_source_connection_id(int initial_source_connection_id)
 {
     handleChange();
-    this->src_connectionID = src_connectionID;
+    this->initial_source_connection_id = initial_source_connection_id;
 }
 
-int QuicPacketHeader::getPacket_number() const
+int QuicHandShakeData::getOriginal_destination_connection_id() const
 {
-    return this->packet_number;
+    return this->original_destination_connection_id;
 }
 
-void QuicPacketHeader::setPacket_number(int packet_number)
-{
-    handleChange();
-    this->packet_number = packet_number;
-}
-
-int QuicPacketHeader::getPacket_type() const
-{
-    return this->packet_type;
-}
-
-void QuicPacketHeader::setPacket_type(int packet_type)
+void QuicHandShakeData::setOriginal_destination_connection_id(int original_destination_connection_id)
 {
     handleChange();
-    this->packet_type = packet_type;
+    this->original_destination_connection_id = original_destination_connection_id;
 }
 
-class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
+int QuicHandShakeData::getRetry_source_connection_id() const
+{
+    return this->retry_source_connection_id;
+}
+
+void QuicHandShakeData::setRetry_source_connection_id(int retry_source_connection_id)
+{
+    handleChange();
+    this->retry_source_connection_id = retry_source_connection_id;
+}
+
+int QuicHandShakeData::getMax_udp_payload_size() const
+{
+    return this->max_udp_payload_size;
+}
+
+void QuicHandShakeData::setMax_udp_payload_size(int max_udp_payload_size)
+{
+    handleChange();
+    this->max_udp_payload_size = max_udp_payload_size;
+}
+
+int QuicHandShakeData::getInitial_max_data() const
+{
+    return this->initial_max_data;
+}
+
+void QuicHandShakeData::setInitial_max_data(int initial_max_data)
+{
+    handleChange();
+    this->initial_max_data = initial_max_data;
+}
+
+int QuicHandShakeData::getInitial_max_stream_data() const
+{
+    return this->initial_max_stream_data;
+}
+
+void QuicHandShakeData::setInitial_max_stream_data(int initial_max_stream_data)
+{
+    handleChange();
+    this->initial_max_stream_data = initial_max_stream_data;
+}
+
+class QuicHandShakeDataDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_dest_connectionID,
-        FIELD_src_connectionID,
-        FIELD_packet_number,
-        FIELD_packet_type,
+        FIELD_initial_source_connection_id,
+        FIELD_original_destination_connection_id,
+        FIELD_retry_source_connection_id,
+        FIELD_max_udp_payload_size,
+        FIELD_initial_max_data,
+        FIELD_initial_max_stream_data,
     };
   public:
-    QuicPacketHeaderDescriptor();
-    virtual ~QuicPacketHeaderDescriptor();
+    QuicHandShakeDataDescriptor();
+    virtual ~QuicHandShakeDataDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -334,24 +364,24 @@ class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(QuicPacketHeaderDescriptor)
+Register_ClassDescriptor(QuicHandShakeDataDescriptor)
 
-QuicPacketHeaderDescriptor::QuicPacketHeaderDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicPacketHeader)), "inet::FieldsChunk")
+QuicHandShakeDataDescriptor::QuicHandShakeDataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicHandShakeData)), "inet::FieldsChunk")
 {
     propertynames = nullptr;
 }
 
-QuicPacketHeaderDescriptor::~QuicPacketHeaderDescriptor()
+QuicHandShakeDataDescriptor::~QuicHandShakeDataDescriptor()
 {
     delete[] propertynames;
 }
 
-bool QuicPacketHeaderDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool QuicHandShakeDataDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<QuicPacketHeader *>(obj)!=nullptr;
+    return dynamic_cast<QuicHandShakeData *>(obj)!=nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getPropertyNames() const
+const char **QuicHandShakeDataDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -362,19 +392,19 @@ const char **QuicPacketHeaderDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *QuicPacketHeaderDescriptor::getProperty(const char *propertyname) const
+const char *QuicHandShakeDataDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::getFieldCount() const
+int QuicHandShakeDataDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 4+basedesc->getFieldCount() : 4;
+    return basedesc ? 6+basedesc->getFieldCount() : 6;
 }
 
-unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
+unsigned int QuicHandShakeDataDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -383,15 +413,17 @@ unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_dest_connectionID
-        FD_ISEDITABLE,    // FIELD_src_connectionID
-        FD_ISEDITABLE,    // FIELD_packet_number
-        FD_ISEDITABLE,    // FIELD_packet_type
+        FD_ISEDITABLE,    // FIELD_initial_source_connection_id
+        FD_ISEDITABLE,    // FIELD_original_destination_connection_id
+        FD_ISEDITABLE,    // FIELD_retry_source_connection_id
+        FD_ISEDITABLE,    // FIELD_max_udp_payload_size
+        FD_ISEDITABLE,    // FIELD_initial_max_data
+        FD_ISEDITABLE,    // FIELD_initial_max_stream_data
     };
-    return (field >= 0 && field < 4) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 6) ? fieldTypeFlags[field] : 0;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
+const char *QuicHandShakeDataDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -400,26 +432,30 @@ const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "dest_connectionID",
-        "src_connectionID",
-        "packet_number",
-        "packet_type",
+        "initial_source_connection_id",
+        "original_destination_connection_id",
+        "retry_source_connection_id",
+        "max_udp_payload_size",
+        "initial_max_data",
+        "initial_max_stream_data",
     };
-    return (field >= 0 && field < 4) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldNames[field] : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
+int QuicHandShakeDataDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'd' && strcmp(fieldName, "dest_connectionID") == 0) return base+0;
-    if (fieldName[0] == 's' && strcmp(fieldName, "src_connectionID") == 0) return base+1;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+2;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_type") == 0) return base+3;
+    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_source_connection_id") == 0) return base+0;
+    if (fieldName[0] == 'o' && strcmp(fieldName, "original_destination_connection_id") == 0) return base+1;
+    if (fieldName[0] == 'r' && strcmp(fieldName, "retry_source_connection_id") == 0) return base+2;
+    if (fieldName[0] == 'm' && strcmp(fieldName, "max_udp_payload_size") == 0) return base+3;
+    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_max_data") == 0) return base+4;
+    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_max_stream_data") == 0) return base+5;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
+const char *QuicHandShakeDataDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -428,15 +464,17 @@ const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_dest_connectionID
-        "int",    // FIELD_src_connectionID
-        "int",    // FIELD_packet_number
-        "int",    // FIELD_packet_type
+        "int",    // FIELD_initial_source_connection_id
+        "int",    // FIELD_original_destination_connection_id
+        "int",    // FIELD_retry_source_connection_id
+        "int",    // FIELD_max_udp_payload_size
+        "int",    // FIELD_initial_max_data
+        "int",    // FIELD_initial_max_stream_data
     };
-    return (field >= 0 && field < 4) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
+const char **QuicHandShakeDataDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -449,7 +487,7 @@ const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *QuicHandShakeDataDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -462,7 +500,7 @@ const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *
     }
 }
 
-int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
+int QuicHandShakeDataDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -470,13 +508,13 @@ int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *QuicHandShakeDataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -484,13 +522,13 @@ const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, 
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string QuicHandShakeDataDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -498,17 +536,19 @@ std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int 
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
-        case FIELD_dest_connectionID: return long2string(pp->getDest_connectionID());
-        case FIELD_src_connectionID: return long2string(pp->getSrc_connectionID());
-        case FIELD_packet_number: return long2string(pp->getPacket_number());
-        case FIELD_packet_type: return long2string(pp->getPacket_type());
+        case FIELD_initial_source_connection_id: return long2string(pp->getInitial_source_connection_id());
+        case FIELD_original_destination_connection_id: return long2string(pp->getOriginal_destination_connection_id());
+        case FIELD_retry_source_connection_id: return long2string(pp->getRetry_source_connection_id());
+        case FIELD_max_udp_payload_size: return long2string(pp->getMax_udp_payload_size());
+        case FIELD_initial_max_data: return long2string(pp->getInitial_max_data());
+        case FIELD_initial_max_stream_data: return long2string(pp->getInitial_max_stream_data());
         default: return "";
     }
 }
 
-bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool QuicHandShakeDataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -516,17 +556,19 @@ bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, 
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
-        case FIELD_dest_connectionID: pp->setDest_connectionID(string2long(value)); return true;
-        case FIELD_src_connectionID: pp->setSrc_connectionID(string2long(value)); return true;
-        case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
-        case FIELD_packet_type: pp->setPacket_type(string2long(value)); return true;
+        case FIELD_initial_source_connection_id: pp->setInitial_source_connection_id(string2long(value)); return true;
+        case FIELD_original_destination_connection_id: pp->setOriginal_destination_connection_id(string2long(value)); return true;
+        case FIELD_retry_source_connection_id: pp->setRetry_source_connection_id(string2long(value)); return true;
+        case FIELD_max_udp_payload_size: pp->setMax_udp_payload_size(string2long(value)); return true;
+        case FIELD_initial_max_data: pp->setInitial_max_data(string2long(value)); return true;
+        case FIELD_initial_max_stream_data: pp->setInitial_max_stream_data(string2long(value)); return true;
         default: return false;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
+const char *QuicHandShakeDataDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -539,7 +581,7 @@ const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
     };
 }
 
-void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *QuicHandShakeDataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -547,7 +589,7 @@ void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int f
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    QuicHandShakeData *pp = (QuicHandShakeData *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }

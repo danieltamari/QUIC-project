@@ -31,5 +31,5 @@ namespace inet;
 // TODO generated message class
 //
 class QuicData extends FieldsChunk  {
-    StreamsData stream_frames;
+    StreamsData* stream_frames;
     }

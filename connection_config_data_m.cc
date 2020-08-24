@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicPacketHeader.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/connection_config_data.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include "QuicPacketHeader_m.h"
+#include "connection_config_data_m.h"
 
 namespace omnetpp {
 
@@ -207,22 +207,23 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(QuicPacketHeader)
+Register_Class(connection_config_data)
 
-QuicPacketHeader::QuicPacketHeader() : ::inet::FieldsChunk()
+connection_config_data::connection_config_data() : ::inet::FieldsChunk()
 {
 }
 
-QuicPacketHeader::QuicPacketHeader(const QuicPacketHeader& other) : ::inet::FieldsChunk(other)
+connection_config_data::connection_config_data(const connection_config_data& other) : ::inet::FieldsChunk(other)
 {
     copy(other);
 }
 
-QuicPacketHeader::~QuicPacketHeader()
+connection_config_data::~connection_config_data()
 {
+    delete [] this->connection_data;
 }
 
-QuicPacketHeader& QuicPacketHeader::operator=(const QuicPacketHeader& other)
+connection_config_data& connection_config_data::operator=(const connection_config_data& other)
 {
     if (this == &other) return *this;
     ::inet::FieldsChunk::operator=(other);
@@ -230,89 +231,116 @@ QuicPacketHeader& QuicPacketHeader::operator=(const QuicPacketHeader& other)
     return *this;
 }
 
-void QuicPacketHeader::copy(const QuicPacketHeader& other)
+void connection_config_data::copy(const connection_config_data& other)
 {
-    this->dest_connectionID = other.dest_connectionID;
-    this->src_connectionID = other.src_connectionID;
-    this->packet_number = other.packet_number;
-    this->packet_type = other.packet_type;
+    delete [] this->connection_data;
+    this->connection_data = (other.connection_data_arraysize==0) ? nullptr : new int[other.connection_data_arraysize];
+    connection_data_arraysize = other.connection_data_arraysize;
+    for (size_t i = 0; i < connection_data_arraysize; i++) {
+        this->connection_data[i] = other.connection_data[i];
+    }
 }
 
-void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
+void connection_config_data::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
-    doParsimPacking(b,this->dest_connectionID);
-    doParsimPacking(b,this->src_connectionID);
-    doParsimPacking(b,this->packet_number);
-    doParsimPacking(b,this->packet_type);
+    b->pack(connection_data_arraysize);
+    doParsimArrayPacking(b,this->connection_data,connection_data_arraysize);
 }
 
-void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
+void connection_config_data::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
-    doParsimUnpacking(b,this->dest_connectionID);
-    doParsimUnpacking(b,this->src_connectionID);
-    doParsimUnpacking(b,this->packet_number);
-    doParsimUnpacking(b,this->packet_type);
+    delete [] this->connection_data;
+    b->unpack(connection_data_arraysize);
+    if (connection_data_arraysize == 0) {
+        this->connection_data = nullptr;
+    } else {
+        this->connection_data = new int[connection_data_arraysize];
+        doParsimArrayUnpacking(b,this->connection_data,connection_data_arraysize);
+    }
 }
 
-int QuicPacketHeader::getDest_connectionID() const
+size_t connection_config_data::getConnection_dataArraySize() const
 {
-    return this->dest_connectionID;
+    return connection_data_arraysize;
 }
 
-void QuicPacketHeader::setDest_connectionID(int dest_connectionID)
+int connection_config_data::getConnection_data(size_t k) const
 {
-    handleChange();
-    this->dest_connectionID = dest_connectionID;
+    if (k >= connection_data_arraysize) throw omnetpp::cRuntimeError("Array of size connection_data_arraysize indexed by %lu", (unsigned long)k);
+    return this->connection_data[k];
 }
 
-int QuicPacketHeader::getSrc_connectionID() const
-{
-    return this->src_connectionID;
-}
-
-void QuicPacketHeader::setSrc_connectionID(int src_connectionID)
-{
-    handleChange();
-    this->src_connectionID = src_connectionID;
-}
-
-int QuicPacketHeader::getPacket_number() const
-{
-    return this->packet_number;
-}
-
-void QuicPacketHeader::setPacket_number(int packet_number)
+void connection_config_data::setConnection_dataArraySize(size_t newSize)
 {
     handleChange();
-    this->packet_number = packet_number;
+    int *connection_data2 = (newSize==0) ? nullptr : new int[newSize];
+    size_t minSize = connection_data_arraysize < newSize ? connection_data_arraysize : newSize;
+    for (size_t i = 0; i < minSize; i++)
+        connection_data2[i] = this->connection_data[i];
+    for (size_t i = minSize; i < newSize; i++)
+        connection_data2[i] = 0;
+    delete [] this->connection_data;
+    this->connection_data = connection_data2;
+    connection_data_arraysize = newSize;
 }
 
-int QuicPacketHeader::getPacket_type() const
+void connection_config_data::setConnection_data(size_t k, int connection_data)
 {
-    return this->packet_type;
+    if (k >= connection_data_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
+    handleChange();
+    this->connection_data[k] = connection_data;
 }
 
-void QuicPacketHeader::setPacket_type(int packet_type)
+void connection_config_data::insertConnection_data(size_t k, int connection_data)
 {
     handleChange();
-    this->packet_type = packet_type;
+    if (k > connection_data_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
+    size_t newSize = connection_data_arraysize + 1;
+    int *connection_data2 = new int[newSize];
+    size_t i;
+    for (i = 0; i < k; i++)
+        connection_data2[i] = this->connection_data[i];
+    connection_data2[k] = connection_data;
+    for (i = k + 1; i < newSize; i++)
+        connection_data2[i] = this->connection_data[i-1];
+    delete [] this->connection_data;
+    this->connection_data = connection_data2;
+    connection_data_arraysize = newSize;
 }
 
-class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
+void connection_config_data::insertConnection_data(int connection_data)
+{
+    insertConnection_data(connection_data_arraysize, connection_data);
+}
+
+void connection_config_data::eraseConnection_data(size_t k)
+{
+    if (k >= connection_data_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
+    handleChange();
+    size_t newSize = connection_data_arraysize - 1;
+    int *connection_data2 = (newSize == 0) ? nullptr : new int[newSize];
+    size_t i;
+    for (i = 0; i < k; i++)
+        connection_data2[i] = this->connection_data[i];
+    for (i = k; i < newSize; i++)
+        connection_data2[i] = this->connection_data[i+1];
+    delete [] this->connection_data;
+    this->connection_data = connection_data2;
+    connection_data_arraysize = newSize;
+}
+
+class connection_config_dataDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_dest_connectionID,
-        FIELD_src_connectionID,
-        FIELD_packet_number,
-        FIELD_packet_type,
+        FIELD_connection_data,
     };
   public:
-    QuicPacketHeaderDescriptor();
-    virtual ~QuicPacketHeaderDescriptor();
+    connection_config_dataDescriptor();
+    virtual ~connection_config_dataDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -334,24 +362,24 @@ class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(QuicPacketHeaderDescriptor)
+Register_ClassDescriptor(connection_config_dataDescriptor)
 
-QuicPacketHeaderDescriptor::QuicPacketHeaderDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicPacketHeader)), "inet::FieldsChunk")
+connection_config_dataDescriptor::connection_config_dataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::connection_config_data)), "inet::FieldsChunk")
 {
     propertynames = nullptr;
 }
 
-QuicPacketHeaderDescriptor::~QuicPacketHeaderDescriptor()
+connection_config_dataDescriptor::~connection_config_dataDescriptor()
 {
     delete[] propertynames;
 }
 
-bool QuicPacketHeaderDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool connection_config_dataDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<QuicPacketHeader *>(obj)!=nullptr;
+    return dynamic_cast<connection_config_data *>(obj)!=nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getPropertyNames() const
+const char **connection_config_dataDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -362,19 +390,19 @@ const char **QuicPacketHeaderDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *QuicPacketHeaderDescriptor::getProperty(const char *propertyname) const
+const char *connection_config_dataDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::getFieldCount() const
+int connection_config_dataDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 4+basedesc->getFieldCount() : 4;
+    return basedesc ? 1+basedesc->getFieldCount() : 1;
 }
 
-unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
+unsigned int connection_config_dataDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -383,15 +411,12 @@ unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_dest_connectionID
-        FD_ISEDITABLE,    // FIELD_src_connectionID
-        FD_ISEDITABLE,    // FIELD_packet_number
-        FD_ISEDITABLE,    // FIELD_packet_type
+        FD_ISARRAY | FD_ISEDITABLE,    // FIELD_connection_data
     };
-    return (field >= 0 && field < 4) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
+const char *connection_config_dataDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -400,26 +425,20 @@ const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "dest_connectionID",
-        "src_connectionID",
-        "packet_number",
-        "packet_type",
+        "connection_data",
     };
-    return (field >= 0 && field < 4) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 1) ? fieldNames[field] : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
+int connection_config_dataDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'd' && strcmp(fieldName, "dest_connectionID") == 0) return base+0;
-    if (fieldName[0] == 's' && strcmp(fieldName, "src_connectionID") == 0) return base+1;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+2;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_type") == 0) return base+3;
+    if (fieldName[0] == 'c' && strcmp(fieldName, "connection_data") == 0) return base+0;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
+const char *connection_config_dataDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -428,15 +447,12 @@ const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_dest_connectionID
-        "int",    // FIELD_src_connectionID
-        "int",    // FIELD_packet_number
-        "int",    // FIELD_packet_type
+        "int",    // FIELD_connection_data
     };
-    return (field >= 0 && field < 4) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 1) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
+const char **connection_config_dataDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -449,7 +465,7 @@ const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *connection_config_dataDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -462,7 +478,7 @@ const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *
     }
 }
 
-int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
+int connection_config_dataDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -470,13 +486,14 @@ int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
+        case FIELD_connection_data: return pp->getConnection_dataArraySize();
         default: return 0;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *connection_config_dataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -484,13 +501,13 @@ const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, 
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string connection_config_dataDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -498,17 +515,14 @@ std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int 
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
-        case FIELD_dest_connectionID: return long2string(pp->getDest_connectionID());
-        case FIELD_src_connectionID: return long2string(pp->getSrc_connectionID());
-        case FIELD_packet_number: return long2string(pp->getPacket_number());
-        case FIELD_packet_type: return long2string(pp->getPacket_type());
+        case FIELD_connection_data: return long2string(pp->getConnection_data(i));
         default: return "";
     }
 }
 
-bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool connection_config_dataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -516,17 +530,14 @@ bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, 
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
-        case FIELD_dest_connectionID: pp->setDest_connectionID(string2long(value)); return true;
-        case FIELD_src_connectionID: pp->setSrc_connectionID(string2long(value)); return true;
-        case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
-        case FIELD_packet_type: pp->setPacket_type(string2long(value)); return true;
+        case FIELD_connection_data: pp->setConnection_data(i,string2long(value)); return true;
         default: return false;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
+const char *connection_config_dataDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -539,7 +550,7 @@ const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
     };
 }
 
-void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *connection_config_dataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -547,7 +558,7 @@ void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int f
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }

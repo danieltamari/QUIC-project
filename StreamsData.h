@@ -35,21 +35,16 @@ struct stream_frame {
 class StreamsData {
 public:
     StreamsData();
-    StreamsData(int arr_size);
-    void AddNewFrame(int index, int stream_id,int offset, int length, bool is_FIN);
-    int getStreamID(int index) const;
-    int getOffset(int index) const;
-    int getLength(int index) const;
-    bool getFIN(int index) const;
+    stream_frame* AddNewFrame(int stream_id,int offset, int length, bool is_FIN);
+    std::vector<stream_frame*> getFramesArray() const;
     int getTotalSize() const;
-    int getNumFrames() const;
     virtual ~StreamsData();
 
 private:
-    int arr_size_;
-    stream_frame* frame_arr;
+   // int arr_size_;
+    std::vector<stream_frame*> frame_arr;
     int total_size_in_bytes;
-    int number_of_frames;
+   // int number_of_frames;
 };
 
 } /* namespace inet */
