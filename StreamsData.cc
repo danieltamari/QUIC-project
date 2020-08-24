@@ -17,55 +17,37 @@
 
 namespace inet {
 
-StreamsData::StreamsData(){
-    frame_arr=NULL;
-}
 
-StreamsData::StreamsData(int arr_size) {
-    // TODO Auto-generated constructor stub
-    arr_size_ = arr_size;
-    frame_arr = new stream_frame[arr_size];
+StreamsData::StreamsData() {
+   // frame_arr = new stream_frame[arr_size];
     total_size_in_bytes = 0;
-    this->number_of_frames=0;
 }
 
 StreamsData::~StreamsData() {
     // TODO Auto-generated destructor stub
 }
-void StreamsData::AddNewFrame(int index, int stream_id,int offset, int length, bool is_FIN) {
-    if (index > this->arr_size_) {
-        return;
-        //("need to throw here some errorr!!!!!1");
-    }
-    this->frame_arr[index].length=length;
-    this->frame_arr[index].offset=offset;
-    this->frame_arr[index].stream_id=stream_id;
-    this->frame_arr[index].is_FIN=is_FIN;
+
+stream_frame* StreamsData::AddNewFrame(int stream_id,int offset, int length, bool is_FIN) {
+
+    stream_frame* new_frame = new stream_frame;
+    new_frame->stream_id = stream_id;
+    new_frame->length = length;
+    new_frame->offset = offset;
+    new_frame->is_FIN = is_FIN;
+    frame_arr.push_back(new_frame);
     total_size_in_bytes += length;
-    number_of_frames+=1;
+   // number_of_frames+=1;
+    return new_frame;
 }
 
-int StreamsData::getStreamID(int index) const {
-    return frame_arr[index].stream_id;
+std::vector<stream_frame*> StreamsData::getFramesArray() const {
+    return frame_arr;
 }
 
-int StreamsData::getOffset(int index) const {
-    return frame_arr[index].offset;
-}
-
-int StreamsData::getLength(int index) const {
-    return frame_arr[index].length;
-}
-
-bool StreamsData::getFIN(int index) const {
-    return frame_arr[index].is_FIN;
-}
 
 int StreamsData::getTotalSize() const {
     return total_size_in_bytes;
 }
 
-int StreamsData::getNumFrames()const {
-    return number_of_frames;
-}
+
 } /* namespace inet */

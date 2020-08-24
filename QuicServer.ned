@@ -15,7 +15,7 @@
 
 package inet.applications.quicapp;
 import inet.applications.contract.IApp;
-import inet.applications.quicapp.QuicConnection;
+import inet.applications.quicapp.ConnectionManager;
 import inet.applications.quicapp.SimV1_server;
 import inet.node.inet.StandardHost;
 import inet.applications.quicapp.IQuicapp;
@@ -27,7 +27,7 @@ import inet.common.MessageDispatcher;
 module QuicServer extends TransportLayerNodeBase
 {
     submodules:
-        connection: <> like IQuicapp {
+        connection_manager: <> like IQuicapp {
             parameters:
                 @display("p=781.19995,53.55,row,150");
         }
@@ -41,9 +41,9 @@ module QuicServer extends TransportLayerNodeBase
                 @display("p=750,146;b=1000,5,,,,1");
         }
     connections allowunconnected:
-        toc.out --> connection.quicIn;
-          connection.socketOut --> at.in++;
-        connection.socketIn <-- at.out++;
+        toc.out --> connection_manager.quicIn;
+        connection_manager.socketOut --> at.in++;
+        connection_manager.socketIn <-- at.out++;
         
         at.out++ --> udp.appIn if hasUdp;
         at.in++ <-- udp.appOut if hasUdp;
