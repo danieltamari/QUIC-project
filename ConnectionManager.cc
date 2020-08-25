@@ -40,7 +40,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
     int dest_ID_from_peer = header->getDest_connectionID();
 
     switch (packet_type) {
-    case HANDSHAKE: { // HANDSHAKE PACKET
+    case HANDSHAKE: { // HANDSHAKE PACKET (in server)
         QuicConnection connection = QuicConnection(); // create new connection at server's side
         if (isIDAvailable(src_ID_from_peer)) {
             connection.SetDestID(src_ID_from_peer);
@@ -57,7 +57,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
         break;
     }
 
-    case HANDSHAKE_RESPONSE: { // HANDSHAKE RESPONSE PACKET
+    case HANDSHAKE_RESPONSE: { // HANDSHAKE RESPONSE PACKET (in client)
         for (std::vector<QuicConnection>::iterator it =
                 this->connections.begin(); it != connections.end(); ++it) {
             if (it->GetDestID() == src_ID_from_peer) {
@@ -65,6 +65,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 it->SetDestID(src_ID_from_peer);
                 Packet *first_data_packet = it->ActivateFsm(packet);
                 sendPacket(first_data_packet);
+
                 break;
             }
         }
@@ -78,6 +79,40 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
             if (it->GetDestID() == src_ID_from_peer) {
                 Packet *ACK_packet = it->ActivateFsm(packet);
                 sendPacket(ACK_packet);
+                std::vector<Packet*> connection_max_data_vector = it->getMaxStreamDataPackets();
+                for (std::vector<Packet*>::iterator it =
+                        connection_max_data_vector.begin(); it != connection_max_data_vector.end(); ++it) {
+                Packet* send_max_data_packet = *it;
+                sendPacket(send_max_data_packet);
+                }
+                for (std::vector<Packet*>::iterator it =
+                        connection_max_data_vector.begin(); it != connection_max_data_vector.end(); ++it) {
+                    connection_max_data_vector.pop_back();
+                }
+                int total_connection_consumed_bytes=it->GetTotalConsumedBytes();
+                int max_connection_offset=it->GetMaxOffset();
+                int connection_window_size=it->GetWindowSize();
+
+                if (total_connection_consumed_bytes+max_connection_offset<connection_window_size/2){
+                    // create max_data packet
+                    char msgName[32];
+                    sprintf(msgName, "MAX DATA packet");
+                    Packet *max_data_packet = new Packet(msgName);
+                    int src_ID = it->GetSourceID();
+                    int dest_ID = it->GetDestID();
+                    auto QuicHeader = makeShared<QuicPacketHeader>();
+                    QuicHeader->setDest_connectionID(dest_ID);
+                    QuicHeader->setSrc_connectionID(src_ID);
+                    QuicHeader->setPacket_type(5);
+                    QuicHeader->setChunkLength(B(sizeof(int)*4));
+                    max_data_packet->insertAtFront(QuicHeader);
+                    const auto &payload = makeShared<MaxData>();
+                    int max_data=total_connection_consumed_bytes+connection_window_size;
+                    payload->setMaximum_Data(max_data);
+                    payload->setChunkLength(B(sizeof(int)*1));
+                    max_data_packet->insertAtBack(payload);
+                    sendPacket(max_data_packet);
+                }
                 break;
             }
         }
@@ -88,6 +123,22 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
 
         break;
     }
+
+    case MAX_STREAM_DATA: { //MAX_STREAM_DATA
+        auto data = packet->peekData<MaxStreamData>();
+        int stream_id = data->getStream_ID();
+        int max_stream_data_size = data->getMaximum_Stream_Data();
+        break;
+    }
+
+    case MAX_DATA: { //MAX_DATA
+        auto data = packet->peekData<MaxData>();
+        int max_data_size = data->getMaximum_Data();
+
+        break;
+    }
+
+
     // active FSM
     }
 }

@@ -62,12 +62,14 @@ public:
     QuicStreamArr(int streams_num);
     virtual ~QuicStreamArr();
     void AddNewStream(int stream_size, int stream_id);
-    void AddNewStream(int stream_id);
+    void AddNewStreamServer(int stream_id, int inital_stream_window);
     bool CloseStream(int stream_id);
     bool IsAvilableStreamExist();
     int FreeBytesAvilable() {return total_free_bytes_;}
-    StreamsData* DataToSend(int max_payload);//make a streamData to send
+    StreamsData* DataToSend(int max_payload, int connection_flow_control_recieve_window);//make a streamData to send
     void setAllStreamsWindows(int window_size);
+    int getTotalConsumedBytes();
+    int getTotalMaxOffset();
 
     bool isStreamExist(int stream_id);
     stream* getStream(int stream_id);

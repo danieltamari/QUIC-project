@@ -27,6 +27,7 @@ QuicRecieveQueue::QuicRecieveQueue(int stream_id) {
     stream_info->final_size = -1 ;
     stream_info->last_frame_received = false;
     stream_info->buffer = new ReorderBuffer();
+    stream_info->buffer->setExpectedOffset(b(0));
 }
 
 void QuicRecieveQueue::addStreamFrame(stream_frame* frame) {
@@ -41,11 +42,21 @@ void QuicRecieveQueue::updateStreamInfo(int offset,int length,bool is_FIN) {
    // update the reorder buffer according to the frame offset
    stream_info->buffer->replace(B(offset), data);
 
+
+
    if (is_FIN) {
        // update the final_size field as mentioned in RFC
        stream_info->final_size = offset + length;
        stream_info->last_frame_received = true;
    }
+}
+
+int QuicRecieveQueue::moveDataToApp() {
+    B data_length = stream_info->buffer->getAvailableDataLength();
+    uint32_t data_length_int =(uint32_t)data_length.get();
+    EV << "data length is " << data_length <<"data_length_int is " <<data_length_int<< endl;
+    auto data = stream_info->buffer->popAvailableData();
+    return data_length_int;
 }
 
 int QuicRecieveQueue::getStreamID() {

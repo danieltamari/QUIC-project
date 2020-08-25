@@ -22,6 +22,7 @@ namespace inet;
 //
 // TODO generated message class
 //
+
 class QuicHandShakeData extends FieldsChunk {
     // Transport parameters exchanged during Handshake
     

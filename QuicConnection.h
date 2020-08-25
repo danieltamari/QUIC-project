@@ -21,6 +21,7 @@
 #include "QuicData_m.h"
 #include "QuicPacketHeader_m.h"
 #include "QuicHandShakeData_m.h"
+#include "MaxStreamData_m.h"
 #include "StreamsData.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
@@ -76,7 +77,7 @@ public:
     virtual ~QuicConnection();
     Packet* createQuicDataPacket(StreamsData* streams_data);
     void sendPacket(Packet *packet);
-    StreamsData* CreateSendData(int max_payload);
+    StreamsData* CreateSendData(int max_payload, int connection_window);
     void recievePacket(std::vector<stream_frame*> accepted_frames);
     void AddNewStream(int stream_size,int index);
     bool CloseStream(int stream_id);
@@ -102,9 +103,14 @@ public:
     void SetSourceID(int source_ID);
     int GetDestID();
     void SetDestID(int dest_ID);
+    bool SendMaxDataPacket();
+    int GetTotalConsumedBytes();
+    int GetWindowSize();
+    int GetMaxOffset();
 
     //virtual void initialize() override;
     //virtual void handleMessage(cMessage *msg) override;
+    std::vector<Packet*> getMaxStreamDataPackets();
 
     QuicEventCode preanalyseAppCommandEvent(int commandCode);
     int GetEventKind();
@@ -162,8 +168,16 @@ protected:
     cMessage *event = nullptr;
     cMessage *start_fsm;
 
-    int connection_window; // flow control
+    //flow control server side parameters
+    int connection_flow_control_recieve_window; // flow control
+
+
+    //flow control client side parameters
+
+    int inital_stream_window;
     int max_payload;
+
+    std::vector<Packet*> max_stream_data_packets_;
 };
 
 //Define_Module(QuicConnection);

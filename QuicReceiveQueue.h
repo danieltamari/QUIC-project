@@ -48,7 +48,7 @@ public:
     int getStreamID();
     int getfinal_size();
     bool getlast_frame_received();
-
+    int moveDataToApp();
 
 
 protected:

@@ -22,6 +22,7 @@
 #include "QuicStreamArr.h"
 #include "QuicData_m.h"
 #include "QuicPacketHeader_m.h"
+#include "MaxData_m.h"
 #include "StreamsData.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
@@ -37,7 +38,9 @@
 enum Packet_type {HANDSHAKE =0,
                   HANDSHAKE_RESPONSE,
                   FIRST_STREAMS_DATA,
-                  ACK_PACKET
+                  ACK_PACKET,
+                  MAX_STREAM_DATA,
+                  MAX_DATA
                     };
 
 namespace inet {

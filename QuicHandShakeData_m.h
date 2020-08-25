@@ -43,11 +43,8 @@ class QuicHandShakeData;
 namespace inet {
 
 /**
- * Class generated from <tt>inet/applications/quicapp/QuicHandShakeData.msg:25</tt> by nedtool.
+ * Class generated from <tt>inet/applications/quicapp/QuicHandShakeData.msg:26</tt> by nedtool.
  * <pre>
- * //
- * // TODO generated message class
- * //
  * class QuicHandShakeData extends FieldsChunk
  * {
  *     // The value that the endpoint included in the Source Connection ID field of the first

@@ -20,6 +20,8 @@
 #include "inet/common/ModuleAccess.h"
 
 #define Min_FlowControl_Window 16 * 1024  // 16 KB
+#define Init_Connection_FlowControl_Window 64 * 1024  // 16 KB
+
 #define Max_Stream_ReceiveWindow 16 * 1024 * 1024   // 16 MB
 #define Max_Connection_ReceiveWindow 24 * 1024 * 1024  // 24 MB
 #define DEAFULT_STREAM_NUM 10
@@ -28,6 +30,7 @@
 
 namespace inet {
 
+//constructor of connection in the server
 QuicConnection::QuicConnection() {
     stream_arr = new QuicStreamArr();
   //  recieve_queue = new QuicRecieveQueue();
@@ -36,9 +39,14 @@ QuicConnection::QuicConnection() {
     this->num_packets_sent = 0;
     this->num_packets_recieved = 0;
     this->total_bytes_to_send = 0;
+    this->total_consumed_bytes =0;
+    this->total_flow_control_recieve_offset=0;
+    send_max_data_packet=false;
+    connection_flow_control_recieve_window=Init_Connection_FlowControl_Window;
+
     // will need to configure these for socket operations
     //this->destIPaddress = IP_address;
-
+    this->inital_stream_window = Min_FlowControl_Window;
     this->first_connection = true;
     char fsmname[24];
     //sprintf(fsmname, "fsm-%d", socketId); ### CHANGE DO THIS LATER WHEN CONFIGUE SOCKET ID
@@ -63,12 +71,15 @@ QuicConnection::QuicConnection(int* connection_data, int connection_data_size) {
     for (int i=0; i<connection_data_size; i++) {
         AddNewStream(connection_data[i],i);
     }
-
+    this->total_consumed_bytes =0;
+    this->total_flow_control_recieve_offset=0;
     this->packet_counter = 0;
     this->num_packets_sent = 0;
     this->num_packets_recieved = 0;
     this->total_bytes_to_send = 0;
     this->first_connection = true;
+    this->inital_stream_window = Min_FlowControl_Window;
+    send_max_data_packet=false;
 
     char fsmname[24];
     //sprintf(fsmname, "fsm-%d", socketId); ### CHANGE DO THIS LATER WHEN CONFIGUE SOCKET ID
@@ -122,8 +133,8 @@ void QuicConnection::sendPacket(Packet *packet) {
     //send (packet,"toc_out");//only for sim
 }
 
-StreamsData* QuicConnection::CreateSendData(int max_payload) {
-    StreamsData *data_to_send = this->stream_arr->DataToSend(max_payload);
+StreamsData* QuicConnection::CreateSendData(int max_payload, int connection_window) {
+    StreamsData *data_to_send = this->stream_arr->DataToSend(max_payload, connection_window);
     return data_to_send;
 }
 
@@ -141,7 +152,7 @@ void QuicConnection::recievePacket(std::vector<stream_frame*> accepted_frames) {
             EV << "stream_id is " << stream_id << " offset is " << offset << " length is " << length << endl;
 
             if(!stream_arr->isStreamExist(stream_id)) {
-                stream_arr->AddNewStream(stream_id);
+                stream_arr->AddNewStreamServer(stream_id, inital_stream_window);
             }
 
             // find the stream in stream_arr
@@ -152,42 +163,54 @@ void QuicConnection::recievePacket(std::vector<stream_frame*> accepted_frames) {
 
             curr_stream->receive_queue->addStreamFrame(curr_frame);
 
-           if (curr_stream->receive_queue->check_if_ended()) {
+            if (offset + length > curr_stream->highest_recieved_byte_offset) {
+                curr_stream->highest_recieved_byte_offset = offset + length;
+                curr_stream->flow_control_recieve_window = curr_stream->flow_control_recieve_offset - curr_stream->highest_recieved_byte_offset;
+            }
+
+           int consumed_bytes_size = curr_stream->receive_queue->moveDataToApp(); // remove all available data
+           curr_stream->consumed_bytes = consumed_bytes_size;
+
+           if (curr_stream->flow_control_recieve_offset-curr_stream->consumed_bytes<curr_stream->max_flow_control_window_size/2){
+               // create max_stream_data packet
+               char msgName[32];
+               sprintf(msgName, "MAX STREAM DATA packet");
+               Packet *max_stream_data_packet = new Packet(msgName);
+               int src_ID = this->GetSourceID();
+               int dest_ID = this->GetDestID();
+               auto QuicHeader = makeShared<QuicPacketHeader>();
+               QuicHeader->setDest_connectionID(dest_ID);
+               QuicHeader->setSrc_connectionID(src_ID);
+               QuicHeader->setPacket_type(4);
+               QuicHeader->setChunkLength(B(sizeof(int)*4));
+               max_stream_data_packet->insertAtFront(QuicHeader);
+               const auto &payload = makeShared<MaxStreamData>();
+               payload->setStream_ID(stream_id);
+               int max_stream_data=curr_stream->consumed_bytes+curr_stream->max_flow_control_window_size;
+               payload->setMaximum_Stream_Data(max_stream_data);
+               payload->setChunkLength(B(sizeof(int)*1));
+               max_stream_data_packet->insertAtBack(payload);
+
+               max_stream_data_packets_.push_back(max_stream_data_packet);
+           }
+
+            if (curr_stream->receive_queue->check_if_ended()) {
 //               //  handle stream ending operations
            }
        }
+//    this->total_consumed_bytes = stream_arr->getTotalConsumedBytes();
+//    this->total_flow_control_recieve_offset = stream_arr->getTotalMaxOffset();
+//    if (total_flow_control_recieve_offset-total_consumed_bytes<connection_flow_control_recieve_window/2){
+//        send_max_data_packet=true;
+//    }
 
 }
 
-//void QuicConnection::socketDataArrived(UdpSocket *socket, Packet *packet) {
-//    EV << "data arrived everything is ok" << endl;
-//    QuicEventCode event = preanalyseAppCommandEvent(this->event->getKind());
-//    bool ret = ProcessEvent(event, packet);
-//    if (!ret)
-//        processConnectionTerm(packet);
-//    return;
-//
-//    // process incoming packet
-//}
+std::vector<Packet*> QuicConnection::getMaxStreamDataPackets()  {
+    return max_stream_data_packets_;
+}
 
-//void QuicConnection::socketErrorArrived(UdpSocket *socket,
-//        Indication *indication) {
-//    EV_WARN << "Ignoring UDP error report " << indication->getName() << endl;
-//    delete indication;
-//}
-//
-//void QuicConnection::socketClosed(UdpSocket *socket) {
-//    //if (operationalState == State::STOPPING_OPERATION)
-//    //    startActiveOperationExtraTimeOrFinish(par("stopOperationExtraTime"));
-//}
-//
-//L3Address QuicConnection::chooseDestAddr() {
-//    if (destAddresses.size() == 1)
-//        return destAddresses[0];
-//
-//    int k = getRNG(destAddrRNG)->intRand(destAddresses.size());
-//    return destAddresses[k];
-//}
+
 
 void QuicConnection::AddNewStream(int stream_size, int index) {
     this->stream_arr->AddNewStream(stream_size, index);
@@ -229,10 +252,6 @@ void QuicConnection::SetDestID(int dest_ID) {
     this->connection_dest_ID = dest_ID;
 }
 
-//void QuicConnection::ProcessInitialClientData(int total_bytes_to_send) {
-//    this->total_bytes_to_send = total_bytes_to_send;
-//    this->send_queue->addAllData(total_bytes_to_send);
-//}
 
 Packet* QuicConnection::ProcessInitiateHandshake(Packet* packet) {
     EV << " ProcessInitiateHandshake in quicConnection" << endl;
@@ -298,12 +317,15 @@ Packet* QuicConnection::ProcessClientHandshakeResponse(Packet* packet) {
     int initial_stream_window = data->getInitial_max_stream_data();
     int initial_connection_window = data->getInitial_max_data();
     int max_payload = data->getMax_udp_payload_size();
-    this->connection_window = initial_connection_window;
+    this->connection_flow_control_recieve_window = initial_connection_window;
     this->stream_arr->setAllStreamsWindows(initial_stream_window);
     this->max_payload = max_payload;
 
-    StreamsData *send_data = this->CreateSendData(max_payload);
+    StreamsData *send_data = this->CreateSendData(max_payload, connection_flow_control_recieve_window);
+    int num_bytes_to_send = send_data->getTotalSize();
+    connection_flow_control_recieve_window -= num_bytes_to_send;
     Packet* packet_to_send = createQuicDataPacket(send_data);
+
     num_packets_sent++;
     this->event->setKind(QUIC_S_SEND);
     return packet_to_send;
@@ -346,7 +368,76 @@ Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
 }
 
 
+int QuicConnection::GetEventKind() {
+    return this->event->getKind();
+}
 
+
+int QuicConnection::GetTotalConsumedBytes(){
+    return this->stream_arr->getTotalConsumedBytes();
+}
+
+int QuicConnection::GetWindowSize(){
+    return this->connection_flow_control_recieve_window;
+}
+
+int QuicConnection::GetMaxOffset(){
+    return this->stream_arr->getTotalMaxOffset();
+}
+
+
+
+Packet* QuicConnection::ActivateFsm(Packet* packet) {
+    EV << "im hereeeeee in connection ActivateFsm" << endl;
+        QuicEventCode event = preanalyseAppCommandEvent(this->event->getKind());
+        Packet* ret_packet = ProcessEvent(event,packet);
+        return ret_packet;
+;
+
+}
+QuicEventCode QuicConnection::preanalyseAppCommandEvent(int commandCode) {
+    switch (commandCode) {
+    case QUIC_E_CLIENT_INITIATE_HANDSHAKE:
+        return QUIC_E_CLIENT_INITIATE_HANDSHAKE;
+
+    case  QUIC_E_SERVER_PROCESS_HANDSHAKE:
+        return QUIC_E_SERVER_PROCESS_HANDSHAKE;
+
+    case QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
+        return QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE;
+
+    case QUIC_E_SERVER_WAIT_FOR_DATA:
+        return QUIC_E_SERVER_WAIT_FOR_DATA;
+
+    case QUIC_E_RECONNECTION:
+        return QUIC_E_RECONNECTION;
+
+    case QUIC_E_SEND:
+        return QUIC_E_SEND;
+
+    case QUIC_E_LISTEN:
+        return QUIC_E_LISTEN;
+
+    case QUIC_E_CONNECTION_TERM:
+        return QUIC_E_CONNECTION_TERM;
+
+        //default:
+        // throw cRuntimeError(tcpMain, "Unknown message kind in app command");
+    }
+}
+
+} /* namespace inet */
+
+
+//############## DELETE THIS:
+
+//void QuicConnection::initialize() {
+////    if (this->first_connection) {
+////        this->event->setKind(QUIC_E_NEW_CONNECTION);
+////    } else {
+////        this->event->setKind(QUIC_E_RECONNECTION);
+////    }
+//}
 
 //void QuicConnection::ProcessNewConnection(cMessage *msg) {
 ////    EV << "process new connection in quicConnection" << endl;
@@ -396,55 +487,37 @@ Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
 //    this->send_queue->addAllData(bytes_num);
 //}
 
-int QuicConnection::GetEventKind() {
-    return this->event->getKind();
-}
-
-//void QuicConnection::initialize() {
-////    if (this->first_connection) {
-////        this->event->setKind(QUIC_E_NEW_CONNECTION);
-////    } else {
-////        this->event->setKind(QUIC_E_RECONNECTION);
-////    }
+//void QuicConnection::ProcessInitialClientData(int total_bytes_to_send) {
+//    this->total_bytes_to_send = total_bytes_to_send;
+//    this->send_queue->addAllData(total_bytes_to_send);
 //}
 
-Packet* QuicConnection::ActivateFsm(Packet* packet) {
-    EV << "im hereeeeee in connection ActivateFsm" << endl;
-        QuicEventCode event = preanalyseAppCommandEvent(this->event->getKind());
-        Packet* ret_packet = ProcessEvent(event,packet);
-        return ret_packet;
-;
+//void QuicConnection::socketDataArrived(UdpSocket *socket, Packet *packet) {
+//    EV << "data arrived everything is ok" << endl;
+//    QuicEventCode event = preanalyseAppCommandEvent(this->event->getKind());
+//    bool ret = ProcessEvent(event, packet);
+//    if (!ret)
+//        processConnectionTerm(packet);
+//    return;
+//
+//    // process incoming packet
+//}
 
-}
-QuicEventCode QuicConnection::preanalyseAppCommandEvent(int commandCode) {
-    switch (commandCode) {
-    case QUIC_E_CLIENT_INITIATE_HANDSHAKE:
-        return QUIC_E_CLIENT_INITIATE_HANDSHAKE;
-
-    case  QUIC_E_SERVER_PROCESS_HANDSHAKE:
-        return QUIC_E_SERVER_PROCESS_HANDSHAKE;
-
-    case QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
-        return QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE;
-
-    case QUIC_E_SERVER_WAIT_FOR_DATA:
-        return QUIC_E_SERVER_WAIT_FOR_DATA;
-
-    case QUIC_E_RECONNECTION:
-        return QUIC_E_RECONNECTION;
-
-    case QUIC_E_SEND:
-        return QUIC_E_SEND;
-
-    case QUIC_E_LISTEN:
-        return QUIC_E_LISTEN;
-
-    case QUIC_E_CONNECTION_TERM:
-        return QUIC_E_CONNECTION_TERM;
-
-        //default:
-        // throw cRuntimeError(tcpMain, "Unknown message kind in app command");
-    }
-}
-
-} /* namespace inet */
+//void QuicConnection::socketErrorArrived(UdpSocket *socket,
+//        Indication *indication) {
+//    EV_WARN << "Ignoring UDP error report " << indication->getName() << endl;
+//    delete indication;
+//}
+//
+//void QuicConnection::socketClosed(UdpSocket *socket) {
+//    //if (operationalState == State::STOPPING_OPERATION)
+//    //    startActiveOperationExtraTimeOrFinish(par("stopOperationExtraTime"));
+//}
+//
+//L3Address QuicConnection::chooseDestAddr() {
+//    if (destAddresses.size() == 1)
+//        return destAddresses[0];
+//
+//    int k = getRNG(destAddrRNG)->intRand(destAddresses.size());
+//    return destAddresses[k];
+//}
