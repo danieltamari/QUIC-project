@@ -16,6 +16,7 @@
 #include "inet/common/INETDefs.h"
 #include "QuicSendQueue.h"
 #include "QuicReceiveQueue.h"
+#include "QuicConnectionSendQueue.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
 #include "QuicData_m.h"
@@ -43,9 +44,9 @@ enum QuicState {
     QUIC_S_SERVER_PROCESS_HANDSHAKE = FSM_Steady(1),
     QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE = FSM_Steady(2),
     QUIC_S_SERVER_WAIT_FOR_DATA =FSM_Steady(3),
-    QUIC_S_NEW_CONNECTION = FSM_Steady(4),
-    QUIC_S_RECONNECTION = FSM_Steady(5),
-    QUIC_S_SEND = FSM_Steady(6),
+    QUIC_S_SEND = FSM_Steady(4),
+    QUIC_S_NEW_CONNECTION = FSM_Steady(5),
+    QUIC_S_RECONNECTION = FSM_Steady(6),
     QUIC_S_LISTEN = FSM_Steady(7),
     QUIC_S_CONNECTION_TERM = FSM_Steady(8),
 };
@@ -55,9 +56,9 @@ enum QuicEventCode {
     QUIC_E_SERVER_PROCESS_HANDSHAKE,
     QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE,
     QUIC_E_SERVER_WAIT_FOR_DATA,
+    QUIC_E_SEND,
     QUIC_E_NEW_CONNECTION,
     QUIC_E_RECONNECTION,
-    QUIC_E_SEND,
     QUIC_E_LISTEN,
     QUIC_E_CONNECTION_TERM,
 };
@@ -72,7 +73,7 @@ enum QuicEventCode {
 class QuicConnection { //public cSimpleModule, public UdpSocket::ICallback{
 public:
     QuicConnection();
-    QuicConnection(int* connection_data, int connection_data_size);
+    QuicConnection(int* connection_data, int connection_data_size,int server_number_to_send);
 
     virtual ~QuicConnection();
     Packet* createQuicDataPacket(StreamsData* streams_data);
@@ -89,6 +90,7 @@ public:
     Packet* ServerProcessHandshake(Packet* packet);
     Packet* ProcessClientHandshakeResponse(Packet* packet);
     Packet* ProcessServerWaitData(Packet* packet);
+    Packet* ProcessClientSend(Packet* packet);
 
     //void ProcessNewConnection(cMessage *msg);
     //void ProcessReconnection(cMessage *msg);
@@ -105,8 +107,19 @@ public:
     void SetDestID(int dest_ID);
     bool SendMaxDataPacket();
     int GetTotalConsumedBytes();
-    int GetWindowSize();
+    int GetConnectionsRecieveWindow();
+    int GetConnectionsRecieveOffset();
+    int GetConnectionMaxWindow();
     int GetMaxOffset();
+    void setConnectionsRecieveOffset(int offset);
+    void setConnectionsRecieveWindow(int window_size);
+    void setClientNumber(int client_number);
+    int GetClientNumber();
+    Packet* RemovePacketFromQueue(int packet_number);
+    void updateFlowControl(Packet* acked_packet);
+
+
+    void updateMaxStreamData(int stream_id, int max_stream_data_offset);
 
     //virtual void initialize() override;
     //virtual void handleMessage(cMessage *msg) override;
@@ -138,7 +151,7 @@ public:
 protected:
     int connection_source_ID;
     int connection_dest_ID;
-
+    int module_number_to_send;
     // state
 //     UdpSocket socket;
 //     L3Address destAddr;
@@ -151,8 +164,11 @@ protected:
 
 
     QuicStreamArr *stream_arr; //the class that represent the entire data of the data that was sent
- //   QuicSendQueue *send_queue; // this queue suppose to hold bytes when all the streams are full
- //   QuicRecieveQueue *recieve_queue;
+    //QuicConnectionSendQueue *send_queue; // this queue suppose to hold packets not acked yet
+    std::list<Packet*> send_queue;
+
+
+    //   QuicRecieveQueue *recieve_queue;
     int packet_counter; // counter to assign each packet header a unique packet number
     int num_packets_sent;
     int num_packets_recieved;
@@ -169,7 +185,9 @@ protected:
     cMessage *start_fsm;
 
     //flow control server side parameters
-    int connection_flow_control_recieve_window; // flow control
+    int connection_max_flow_control_window_size; // constant
+    int connection_flow_control_recieve_offset; //
+    int connection_flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
 
 
     //flow control client side parameters

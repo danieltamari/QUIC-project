@@ -28,6 +28,7 @@
 #define MAX_PAYLOAD_PACKET 2000
 #define FRAMES 3
 
+
 namespace inet {
 
 //constructor of connection in the server
@@ -39,9 +40,10 @@ QuicConnection::QuicConnection() {
     this->num_packets_sent = 0;
     this->num_packets_recieved = 0;
     this->total_bytes_to_send = 0;
-    this->total_consumed_bytes =0;
-    this->total_flow_control_recieve_offset=0;
-    send_max_data_packet=false;
+    //this->total_consumed_bytes =0;
+    //this->total_flow_control_recieve_offset=0;
+    connection_max_flow_control_window_size=Init_Connection_FlowControl_Window;
+    connection_flow_control_recieve_offset=Init_Connection_FlowControl_Window;
     connection_flow_control_recieve_window=Init_Connection_FlowControl_Window;
 
     // will need to configure these for socket operations
@@ -62,24 +64,25 @@ QuicConnection::QuicConnection() {
 //    this->curr_frames_number = FRAMES;
 }
 
-QuicConnection::QuicConnection(int* connection_data, int connection_data_size) {
+QuicConnection::QuicConnection(int* connection_data, int connection_data_size,int server_number_to_send) {
     stream_arr = new QuicStreamArr(connection_data_size);
    // recieve_queue = new QuicRecieveQueue();
-   // send_queue = new QuicSendQueue();
+    //send_queue = new QuicConnectionSendQueue();
+
     //send_queue->addAllData(data_size);
 
     for (int i=0; i<connection_data_size; i++) {
         AddNewStream(connection_data[i],i);
     }
-    this->total_consumed_bytes =0;
-    this->total_flow_control_recieve_offset=0;
+    //this->total_consumed_bytes =0;
+    //this->total_flow_control_recieve_offset=0;
     this->packet_counter = 0;
     this->num_packets_sent = 0;
     this->num_packets_recieved = 0;
     this->total_bytes_to_send = 0;
     this->first_connection = true;
     this->inital_stream_window = Min_FlowControl_Window;
-    send_max_data_packet=false;
+    this->module_number_to_send=server_number_to_send;
 
     char fsmname[24];
     //sprintf(fsmname, "fsm-%d", socketId); ### CHANGE DO THIS LATER WHEN CONFIGUE SOCKET ID
@@ -100,6 +103,14 @@ QuicConnection::~QuicConnection() {
     // TODO Auto-generated destructor stub
 }
 
+void QuicConnection::setClientNumber(int client_number){
+    this->module_number_to_send=client_number;
+}
+
+int QuicConnection::GetClientNumber(){
+    return module_number_to_send;
+}
+
 Packet* QuicConnection::createQuicDataPacket(StreamsData* streams_data) {
     char msgName[32];
     sprintf(msgName, "QUIC packet number-%d", packet_counter);
@@ -112,7 +123,6 @@ Packet* QuicConnection::createQuicDataPacket(StreamsData* streams_data) {
     QuicHeader->setPacket_type(2);
     QuicHeader->setChunkLength(B(sizeof(int)*4));
     packet_to_send->insertAtFront(QuicHeader);
-    packet_counter++;
 
     const auto &payload = makeShared<QuicData>();
     int msgByteLength = streams_data->getTotalSize();
@@ -163,13 +173,13 @@ void QuicConnection::recievePacket(std::vector<stream_frame*> accepted_frames) {
 
             curr_stream->receive_queue->addStreamFrame(curr_frame);
 
-            if (offset + length > curr_stream->highest_recieved_byte_offset) {
+            if (offset + length > curr_stream->highest_recieved_byte_offset) {// if only true if we get streams ooo so we won't update highest offset
                 curr_stream->highest_recieved_byte_offset = offset + length;
                 curr_stream->flow_control_recieve_window = curr_stream->flow_control_recieve_offset - curr_stream->highest_recieved_byte_offset;
             }
 
            int consumed_bytes_size = curr_stream->receive_queue->moveDataToApp(); // remove all available data
-           curr_stream->consumed_bytes = consumed_bytes_size;
+           curr_stream->consumed_bytes += consumed_bytes_size;
 
            if (curr_stream->flow_control_recieve_offset-curr_stream->consumed_bytes<curr_stream->max_flow_control_window_size/2){
                // create max_stream_data packet
@@ -186,11 +196,12 @@ void QuicConnection::recievePacket(std::vector<stream_frame*> accepted_frames) {
                max_stream_data_packet->insertAtFront(QuicHeader);
                const auto &payload = makeShared<MaxStreamData>();
                payload->setStream_ID(stream_id);
-               int max_stream_data=curr_stream->consumed_bytes+curr_stream->max_flow_control_window_size;
-               payload->setMaximum_Stream_Data(max_stream_data);
+               int max_stream_offset=curr_stream->consumed_bytes+curr_stream->max_flow_control_window_size;//update to the client
+               curr_stream->flow_control_recieve_offset=curr_stream->consumed_bytes+curr_stream->max_flow_control_window_size;//self update moving flow control window
+               curr_stream->flow_control_recieve_window=curr_stream->flow_control_recieve_offset-curr_stream->highest_recieved_byte_offset;
+               payload->setMaximum_Stream_Data(max_stream_offset);
                payload->setChunkLength(B(sizeof(int)*1));
                max_stream_data_packet->insertAtBack(payload);
-
                max_stream_data_packets_.push_back(max_stream_data_packet);
            }
 
@@ -208,6 +219,12 @@ void QuicConnection::recievePacket(std::vector<stream_frame*> accepted_frames) {
 
 std::vector<Packet*> QuicConnection::getMaxStreamDataPackets()  {
     return max_stream_data_packets_;
+}
+
+void QuicConnection::updateMaxStreamData(int stream_id, int max_stream_data_offset){
+    stream* curr_stream = stream_arr->getStream(stream_id);
+    curr_stream->flow_control_recieve_offset=max_stream_data_offset;
+    curr_stream->flow_control_recieve_window=curr_stream->flow_control_recieve_offset-curr_stream->highest_recieved_byte_offset;
 }
 
 
@@ -267,6 +284,8 @@ Packet* QuicConnection::ProcessInitiateHandshake(Packet* packet) {
     QuicHeader->setDest_connectionID(dest_ID);
     QuicHeader->setPacket_type(0);
     QuicHeader->setChunkLength(B(sizeof(int)*4));
+    QuicHeader->setClient_number(packet->getKind());//###### NEED TO CHANGE
+
     packet_to_send->insertAtFront(QuicHeader);
     this->SetSourceID(src_ID);
     this->SetDestID(dest_ID);
@@ -317,19 +336,27 @@ Packet* QuicConnection::ProcessClientHandshakeResponse(Packet* packet) {
     int initial_stream_window = data->getInitial_max_stream_data();
     int initial_connection_window = data->getInitial_max_data();
     int max_payload = data->getMax_udp_payload_size();
+    this->connection_max_flow_control_window_size = initial_connection_window;
+    this->connection_flow_control_recieve_offset = initial_connection_window;
     this->connection_flow_control_recieve_window = initial_connection_window;
+
     this->stream_arr->setAllStreamsWindows(initial_stream_window);
     this->max_payload = max_payload;
 
     StreamsData *send_data = this->CreateSendData(max_payload, connection_flow_control_recieve_window);
-    int num_bytes_to_send = send_data->getTotalSize();
-    connection_flow_control_recieve_window -= num_bytes_to_send;
+//    int num_bytes_to_send = send_data->getTotalSize();
+//    connection_flow_control_recieve_window -= num_bytes_to_send;
     Packet* packet_to_send = createQuicDataPacket(send_data);
+    Packet* copy_packet_to_send=createQuicDataPacket(send_data);
+    packet_counter++;
+    this->send_queue.push_back(copy_packet_to_send);
 
     num_packets_sent++;
     this->event->setKind(QUIC_S_SEND);
     return packet_to_send;
 }
+
+
 
 Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
 
@@ -348,7 +375,14 @@ Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
     // process data
     const StreamsData* streams_data = data->getStream_frames();
     std::vector<stream_frame*> accepted_frames = streams_data->getFramesArray();
+  //  int received_data_size = streams_data->getTotalSize();
     recievePacket(accepted_frames);
+
+    // update flow control
+    this->connection_flow_control_recieve_window=this->connection_flow_control_recieve_offset-this->GetMaxOffset();
+    //int total_connection_consumed_bytes=it->GetTotalConsumedBytes();
+    //int connection_window_size=it->GetWindowSize();
+    //int max_data=total_connection_consumed_bytes+connection_window_size; // check if correct
 
     // create ACK packet
     char msgName[32];
@@ -367,6 +401,54 @@ Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
     return ack;
 }
 
+Packet* QuicConnection::ProcessClientSend(Packet* packet){
+    StreamsData *send_data = this->CreateSendData(max_payload, connection_flow_control_recieve_window);
+    Packet* packet_to_send = createQuicDataPacket(send_data);
+    Packet* copy_packet_to_send=createQuicDataPacket(send_data);
+    this->send_queue.push_back(copy_packet_to_send);
+    packet_counter++;
+    num_packets_sent++;
+    return packet_to_send;
+}
+
+Packet* QuicConnection::RemovePacketFromQueue(int packet_number){
+    Packet* packet_to_remove;
+    for (std::list<Packet*>::iterator it =
+            send_queue.begin(); it != send_queue.end(); ++it) {
+            auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
+            if (current_header->getPacket_number()==packet_number){
+                packet_to_remove=*it;
+                send_queue.remove(packet_to_remove);
+                break;
+            }
+    }
+    return packet_to_remove;
+}
+
+void QuicConnection::updateFlowControl(Packet* acked_packet){
+    auto header = acked_packet->popAtFront<QuicPacketHeader>();
+    auto data = acked_packet->peekData<QuicData>();
+    // get frames from packet
+    const StreamsData* streams_data = data->getStream_frames();
+    std::vector<stream_frame*> frames_in_packet = streams_data->getFramesArray();
+    // update per stream
+    for (std::vector<stream_frame*>::iterator it =
+            frames_in_packet.begin(); it != frames_in_packet.end(); ++it) {
+            stream_frame* curr_frame = *it;
+            int stream_id = curr_frame->stream_id;
+            int offset = curr_frame->offset;
+            int length = curr_frame->length;
+            stream* curr_stream = stream_arr->getStream(stream_id);
+            curr_stream->highest_recieved_byte_offset = offset + length;
+            curr_stream->flow_control_recieve_window=curr_stream->flow_control_recieve_offset-curr_stream->highest_recieved_byte_offset;
+    }
+
+    //update connection
+    int sum_highest_offsets = this->GetMaxOffset();
+    connection_flow_control_recieve_window = connection_flow_control_recieve_offset -sum_highest_offsets;
+
+}
+
 
 int QuicConnection::GetEventKind() {
     return this->event->getKind();
@@ -377,7 +459,7 @@ int QuicConnection::GetTotalConsumedBytes(){
     return this->stream_arr->getTotalConsumedBytes();
 }
 
-int QuicConnection::GetWindowSize(){
+int QuicConnection::GetConnectionsRecieveWindow(){
     return this->connection_flow_control_recieve_window;
 }
 
@@ -386,6 +468,21 @@ int QuicConnection::GetMaxOffset(){
 }
 
 
+int QuicConnection::GetConnectionsRecieveOffset(){
+    return this->connection_flow_control_recieve_offset;
+}
+
+int QuicConnection::GetConnectionMaxWindow(){
+    return this->connection_max_flow_control_window_size;
+}
+
+void QuicConnection::setConnectionsRecieveOffset(int offset){
+    this->connection_flow_control_recieve_offset = offset;
+}
+
+void QuicConnection::setConnectionsRecieveWindow(int window_size) {
+    this->connection_flow_control_recieve_window = window_size;
+}
 
 Packet* QuicConnection::ActivateFsm(Packet* packet) {
     EV << "im hereeeeee in connection ActivateFsm" << endl;

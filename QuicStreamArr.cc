@@ -144,8 +144,8 @@ StreamsData* QuicStreamArr::DataToSend(int max_payload, int connection_flow_cont
 
         // update stream flow control
         curr_stream->bytes_left_to_send_in_stream -= bytes_to_send_in_frame;
-        curr_stream->highest_recieved_byte_offset+=bytes_to_send_in_frame;
-        curr_stream->flow_control_recieve_window=curr_stream->flow_control_recieve_offset-curr_stream->highest_recieved_byte_offset;
+//        curr_stream->highest_recieved_byte_offset+=bytes_to_send_in_frame;
+//        curr_stream->flow_control_recieve_window=curr_stream->flow_control_recieve_offset-curr_stream->highest_recieved_byte_offset;
 
         connection_window_size -= bytes_to_send_in_frame;
 

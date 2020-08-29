@@ -22,6 +22,9 @@
 #define SENDER 1
 #define RECEIVER 2
 
+#define CHECK 12
+
+
 namespace inet {
 
 ConnectionManager::ConnectionManager() {
@@ -35,13 +38,17 @@ ConnectionManager::~ConnectionManager() {
 void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
     // process incoming packet
     auto header = packet->peekAtFront<QuicPacketHeader>();
+
     int packet_type = header->getPacket_type();
     int src_ID_from_peer = header->getSrc_connectionID();
     int dest_ID_from_peer = header->getDest_connectionID();
 
     switch (packet_type) {
     case HANDSHAKE: { // HANDSHAKE PACKET (in server)
+
         QuicConnection connection = QuicConnection(); // create new connection at server's side
+        int client_number=header->getClient_number();
+        connection.setClientNumber(client_number);
         if (isIDAvailable(src_ID_from_peer)) {
             connection.SetDestID(src_ID_from_peer);
         } else {
@@ -53,7 +60,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
         this->connections.push_back(connection);
 
         Packet *handshake__response_packet = connections[index].ActivateFsm(packet);
-        sendPacket(handshake__response_packet);
+        sendPacket(handshake__response_packet,connection.GetClientNumber());
         break;
     }
 
@@ -64,7 +71,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 it->SetSourceID(dest_ID_from_peer);
                 it->SetDestID(src_ID_from_peer);
                 Packet *first_data_packet = it->ActivateFsm(packet);
-                sendPacket(first_data_packet);
+                sendPacket(first_data_packet,it->GetClientNumber());
 
                 break;
             }
@@ -78,22 +85,24 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 this->connections.begin(); it != connections.end(); ++it) {
             if (it->GetDestID() == src_ID_from_peer) {
                 Packet *ACK_packet = it->ActivateFsm(packet);
-                sendPacket(ACK_packet);
+                sendPacket(ACK_packet,it->GetClientNumber());
                 std::vector<Packet*> connection_max_data_vector = it->getMaxStreamDataPackets();
-                for (std::vector<Packet*>::iterator it =
-                        connection_max_data_vector.begin(); it != connection_max_data_vector.end(); ++it) {
-                Packet* send_max_data_packet = *it;
-                sendPacket(send_max_data_packet);
+                for (std::vector<Packet*>::iterator it_packet =
+                        connection_max_data_vector.begin(); it_packet != connection_max_data_vector.end(); ++it_packet) {
+                Packet* send_max_data_packet = *it_packet;
+                sendPacket(send_max_data_packet,it->GetClientNumber());
                 }
-                for (std::vector<Packet*>::iterator it =
-                        connection_max_data_vector.begin(); it != connection_max_data_vector.end(); ++it) {
+                for (std::vector<Packet*>::iterator it_max=
+                        connection_max_data_vector.begin(); it_max != connection_max_data_vector.end(); ++it_max) {
                     connection_max_data_vector.pop_back();
                 }
                 int total_connection_consumed_bytes=it->GetTotalConsumedBytes();
+                int connection_flow_control_recieve_offset = it->GetConnectionsRecieveOffset();
+                int connection_max_flow_control_window_size = it->GetConnectionMaxWindow();
                 int max_connection_offset=it->GetMaxOffset();
-                int connection_window_size=it->GetWindowSize();
 
-                if (total_connection_consumed_bytes+max_connection_offset<connection_window_size/2){
+
+                if (connection_flow_control_recieve_offset-total_connection_consumed_bytes<connection_max_flow_control_window_size/2){
                     // create max_data packet
                     char msgName[32];
                     sprintf(msgName, "MAX DATA packet");
@@ -107,11 +116,14 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                     QuicHeader->setChunkLength(B(sizeof(int)*4));
                     max_data_packet->insertAtFront(QuicHeader);
                     const auto &payload = makeShared<MaxData>();
-                    int max_data=total_connection_consumed_bytes+connection_window_size;
-                    payload->setMaximum_Data(max_data);
+                    int max_offset = total_connection_consumed_bytes+connection_max_flow_control_window_size;
+                    it->setConnectionsRecieveOffset(max_offset);
+                    int window_size = max_offset-max_connection_offset;
+                    it->setConnectionsRecieveWindow(window_size);
+                    payload->setMaximum_Data(max_offset);
                     payload->setChunkLength(B(sizeof(int)*1));
                     max_data_packet->insertAtBack(payload);
-                    sendPacket(max_data_packet);
+                    //sendPacket(max_data_packet);
                 }
                 break;
             }
@@ -120,6 +132,17 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
     }
 
     case ACK_PACKET: { //ACK
+        for (std::vector<QuicConnection>::iterator it =
+                 this->connections.begin(); it != connections.end(); ++it) {
+             if (it->GetDestID() == src_ID_from_peer){
+                 int packet_number = header->getPacket_number();
+                 Packet* acked_packet=it->RemovePacketFromQueue(packet_number);
+                 it->updateFlowControl(acked_packet);
+                 Packet *data_packet = it->ActivateFsm(packet);
+                 sendPacket(data_packet,it->GetClientNumber());
+                 break;
+             }
+        }
 
         break;
     }
@@ -127,14 +150,30 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
     case MAX_STREAM_DATA: { //MAX_STREAM_DATA
         auto data = packet->peekData<MaxStreamData>();
         int stream_id = data->getStream_ID();
-        int max_stream_data_size = data->getMaximum_Stream_Data();
+        int max_stream_data_offset = data->getMaximum_Stream_Data();
+        for (std::vector<QuicConnection>::iterator it =
+                this->connections.begin(); it != connections.end(); ++it) {
+            if (it->GetDestID() == src_ID_from_peer){
+                it->updateMaxStreamData(stream_id, max_stream_data_offset);
+                break;
+            }
+        }
         break;
     }
 
     case MAX_DATA: { //MAX_DATA
         auto data = packet->peekData<MaxData>();
-        int max_data_size = data->getMaximum_Data();
-
+        int max_data_offset = data->getMaximum_Data();
+        for (std::vector<QuicConnection>::iterator it =
+                 this->connections.begin(); it != connections.end(); ++it) {
+             if (it->GetDestID() == src_ID_from_peer){
+                 it->setConnectionsRecieveOffset(max_data_offset);
+                 int max_connection_offset = it->GetMaxOffset();
+                 int window_size = max_data_offset-max_connection_offset;
+                 it->setConnectionsRecieveWindow(window_size);
+                 break;
+             }
+         }
         break;
     }
 
@@ -154,11 +193,12 @@ void ConnectionManager::socketClosed(UdpSocket *socket) {
     //    startActiveOperationExtraTimeOrFinish(par("stopOperationExtraTime"));
 }
 
-L3Address ConnectionManager::chooseDestAddr() {
+L3Address ConnectionManager::chooseDestAddr(int module_number) {
     if (destAddresses.size() == 1)
         return destAddresses[0];
-    int k = getRNG(destAddrRNG)->intRand(destAddresses.size());
-    return destAddresses[k];
+    //int k = getRNG(destAddrRNG)->intRand(destAddresses.size());
+    //return destAddresses[k];
+    return destAddresses[module_number];
 
 }
 
@@ -185,16 +225,23 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             for (int i=0; i<connection_data_size; i++) {
                 connection_data[i] = packet_data->getConnection_data(i);
             }
-            int connection_index = AddNewConnection(connection_data, connection_data_size);
+            int server_number_to_send=packet_data->getServer_number();
+            int my_client_number=packet_data->getMy_client_number();
+            int connection_index = AddNewConnection(connection_data, connection_data_size,server_number_to_send);
+            Packet* client_number_pkt = new Packet ("client_number");
+            client_number_pkt->setKind(my_client_number);
             Packet *handshake_packet =
-                    connections[connection_index].ActivateFsm(packet); //activate fsm always return a packet which type is set by the current state: handshake,data, etc....
-            sendPacket(handshake_packet);
+                    connections[connection_index].ActivateFsm(client_number_pkt); //activate fsm always return a packet which type is set by the current state: handshake,data, etc....
+            //handshake_packet->setKind(my_client_number);
+
+            //handshake_packet->setControlInfo(client_number);
+            sendPacket(handshake_packet,server_number_to_send);
         }
     }
 }
 
-int ConnectionManager::AddNewConnection(int* connection_data, int connection_data_size) {
-    QuicConnection connection = QuicConnection(connection_data, connection_data_size);
+int ConnectionManager::AddNewConnection(int* connection_data, int connection_data_size,int server_number_to_send) {
+    QuicConnection connection = QuicConnection(connection_data, connection_data_size,server_number_to_send);
 
     int index = connections.size();
     this->connections.push_back(connection);
@@ -225,9 +272,9 @@ void ConnectionManager::connectToUDPSocket() {
     }
 }
 
-void ConnectionManager::sendPacket(Packet *packet) {
+void ConnectionManager::sendPacket(Packet *packet,int module_number) {
 
-    L3Address destAddr = chooseDestAddr();
+    L3Address destAddr = chooseDestAddr(module_number);
     socket.sendTo(packet, destAddr, this->destPort);
 }
 

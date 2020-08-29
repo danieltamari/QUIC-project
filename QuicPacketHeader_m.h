@@ -54,6 +54,10 @@ namespace inet {
  *     int src_connectionID;
  *     int packet_number;
  *     int packet_type;
+ * 
+ * 
+ *     // simulate the sending ip address ########## ASK MICHA, CHANGE IN FUTURE
+ *     int client_number;
  * }
  * </pre>
  */
@@ -64,6 +68,7 @@ class INET_API QuicPacketHeader : public ::inet::FieldsChunk
     int src_connectionID = 0;
     int packet_number = 0;
     int packet_type = 0;
+    int client_number = 0;
 
   private:
     void copy(const QuicPacketHeader& other);
@@ -90,6 +95,8 @@ class INET_API QuicPacketHeader : public ::inet::FieldsChunk
     virtual void setPacket_number(int packet_number);
     virtual int getPacket_type() const;
     virtual void setPacket_type(int packet_type);
+    virtual int getClient_number() const;
+    virtual void setClient_number(int client_number);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const QuicPacketHeader& obj) {obj.parsimPack(b);}

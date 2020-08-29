@@ -13,30 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "QuicSendQueue.h"
+#include "QuicConnectionSendQueue.h"
+
 
 namespace inet {
 
-QuicSendQueue::QuicSendQueue() {
+QuicConnectionSendQueue::QuicConnectionSendQueue() {
     // TODO Auto-generated constructor stub
-    // send_queue = new ChunkQueue();
+
 }
 
-
-bool QuicSendQueue ::isQueueEmpty(){
-//    B bytes_left=send_queue.getLength();
-//    if (bytes_left==B(0))
-//        return true;
-//    else
-//        return false;
-}
-
-QuicSendQueue::~QuicSendQueue() {
+QuicConnectionSendQueue::~QuicConnectionSendQueue() {
     // TODO Auto-generated destructor stub
 }
 
-void QuicSendQueue::addStreamFrame(stream_frame* frame) {
-    this->sent_without_ACK_frames.push_back(frame);
+void QuicConnectionSendQueue::addPacket(Packet *packet) {
+    this->sent_without_ACK_packets.push_back(packet);
 }
 
 } /* namespace inet */

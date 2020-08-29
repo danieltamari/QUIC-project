@@ -13,30 +13,25 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "QuicSendQueue.h"
+#ifndef INET_APPLICATIONS_QUICAPP_QUICCONNECTIONSENDQUEUE_H_
+#define INET_APPLICATIONS_QUICAPP_QUICCONNECTIONSENDQUEUE_H_
+
+#include "inet/common/packet/Packet.h"
 
 namespace inet {
 
-QuicSendQueue::QuicSendQueue() {
-    // TODO Auto-generated constructor stub
-    // send_queue = new ChunkQueue();
-}
+class QuicConnectionSendQueue {
+public:
+    QuicConnectionSendQueue();
+    virtual ~QuicConnectionSendQueue();
+    void addPacket(Packet* packet);
 
 
-bool QuicSendQueue ::isQueueEmpty(){
-//    B bytes_left=send_queue.getLength();
-//    if (bytes_left==B(0))
-//        return true;
-//    else
-//        return false;
-}
+protected:
+    std::vector<Packet*> sent_without_ACK_packets;
 
-QuicSendQueue::~QuicSendQueue() {
-    // TODO Auto-generated destructor stub
-}
-
-void QuicSendQueue::addStreamFrame(stream_frame* frame) {
-    this->sent_without_ACK_frames.push_back(frame);
-}
+};
 
 } /* namespace inet */
+
+#endif /* INET_APPLICATIONS_QUICAPP_QUICCONNECTIONSENDQUEUE_H_ */

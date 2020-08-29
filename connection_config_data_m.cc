@@ -239,6 +239,8 @@ void connection_config_data::copy(const connection_config_data& other)
     for (size_t i = 0; i < connection_data_arraysize; i++) {
         this->connection_data[i] = other.connection_data[i];
     }
+    this->server_number = other.server_number;
+    this->my_client_number = other.my_client_number;
 }
 
 void connection_config_data::parsimPack(omnetpp::cCommBuffer *b) const
@@ -246,6 +248,8 @@ void connection_config_data::parsimPack(omnetpp::cCommBuffer *b) const
     ::inet::FieldsChunk::parsimPack(b);
     b->pack(connection_data_arraysize);
     doParsimArrayPacking(b,this->connection_data,connection_data_arraysize);
+    doParsimPacking(b,this->server_number);
+    doParsimPacking(b,this->my_client_number);
 }
 
 void connection_config_data::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -259,6 +263,8 @@ void connection_config_data::parsimUnpack(omnetpp::cCommBuffer *b)
         this->connection_data = new int[connection_data_arraysize];
         doParsimArrayUnpacking(b,this->connection_data,connection_data_arraysize);
     }
+    doParsimUnpacking(b,this->server_number);
+    doParsimUnpacking(b,this->my_client_number);
 }
 
 size_t connection_config_data::getConnection_dataArraySize() const
@@ -331,12 +337,36 @@ void connection_config_data::eraseConnection_data(size_t k)
     connection_data_arraysize = newSize;
 }
 
+int connection_config_data::getServer_number() const
+{
+    return this->server_number;
+}
+
+void connection_config_data::setServer_number(int server_number)
+{
+    handleChange();
+    this->server_number = server_number;
+}
+
+int connection_config_data::getMy_client_number() const
+{
+    return this->my_client_number;
+}
+
+void connection_config_data::setMy_client_number(int my_client_number)
+{
+    handleChange();
+    this->my_client_number = my_client_number;
+}
+
 class connection_config_dataDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
         FIELD_connection_data,
+        FIELD_server_number,
+        FIELD_my_client_number,
     };
   public:
     connection_config_dataDescriptor();
@@ -399,7 +429,7 @@ const char *connection_config_dataDescriptor::getProperty(const char *propertyna
 int connection_config_dataDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount() : 1;
+    return basedesc ? 3+basedesc->getFieldCount() : 3;
 }
 
 unsigned int connection_config_dataDescriptor::getFieldTypeFlags(int field) const
@@ -412,8 +442,10 @@ unsigned int connection_config_dataDescriptor::getFieldTypeFlags(int field) cons
     }
     static unsigned int fieldTypeFlags[] = {
         FD_ISARRAY | FD_ISEDITABLE,    // FIELD_connection_data
+        FD_ISEDITABLE,    // FIELD_server_number
+        FD_ISEDITABLE,    // FIELD_my_client_number
     };
-    return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
 }
 
 const char *connection_config_dataDescriptor::getFieldName(int field) const
@@ -426,8 +458,10 @@ const char *connection_config_dataDescriptor::getFieldName(int field) const
     }
     static const char *fieldNames[] = {
         "connection_data",
+        "server_number",
+        "my_client_number",
     };
-    return (field >= 0 && field < 1) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
 }
 
 int connection_config_dataDescriptor::findField(const char *fieldName) const
@@ -435,6 +469,8 @@ int connection_config_dataDescriptor::findField(const char *fieldName) const
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
     if (fieldName[0] == 'c' && strcmp(fieldName, "connection_data") == 0) return base+0;
+    if (fieldName[0] == 's' && strcmp(fieldName, "server_number") == 0) return base+1;
+    if (fieldName[0] == 'm' && strcmp(fieldName, "my_client_number") == 0) return base+2;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -448,8 +484,10 @@ const char *connection_config_dataDescriptor::getFieldTypeString(int field) cons
     }
     static const char *fieldTypeStrings[] = {
         "int",    // FIELD_connection_data
+        "int",    // FIELD_server_number
+        "int",    // FIELD_my_client_number
     };
-    return (field >= 0 && field < 1) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **connection_config_dataDescriptor::getFieldPropertyNames(int field) const
@@ -518,6 +556,8 @@ std::string connection_config_dataDescriptor::getFieldValueAsString(void *object
     connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
         case FIELD_connection_data: return long2string(pp->getConnection_data(i));
+        case FIELD_server_number: return long2string(pp->getServer_number());
+        case FIELD_my_client_number: return long2string(pp->getMy_client_number());
         default: return "";
     }
 }
@@ -533,6 +573,8 @@ bool connection_config_dataDescriptor::setFieldValueAsString(void *object, int f
     connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
         case FIELD_connection_data: pp->setConnection_data(i,string2long(value)); return true;
+        case FIELD_server_number: pp->setServer_number(string2long(value)); return true;
+        case FIELD_my_client_number: pp->setMy_client_number(string2long(value)); return true;
         default: return false;
     }
 }

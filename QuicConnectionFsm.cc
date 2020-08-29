@@ -32,16 +32,16 @@ Packet* QuicConnection::ProcessEvent(const QuicEventCode &event,Packet* packet) 
     case QUIC_E_SERVER_WAIT_FOR_DATA:
         conn_packet=ProcessServerWaitData(packet); // add function
         break;
-
+           case QUIC_E_SEND:
+               conn_packet=ProcessClientSend(packet); //add function
+                break;
 
 //
 //    case QUIC_E_RECONNECTION:
 //        ProcessReconnection(msg); //add function
 //        break;
 //
-//    case QUIC_E_SEND:
-//        ProcessConnectionSend(msg); //add function
-//        break;
+
 //    case QUIC_E_LISTEN:
 //        ProcessConnectionListen(msg); //add function
 //        break;
@@ -97,7 +97,8 @@ void QuicConnection::performStateTransition(const QuicEventCode &event) {
 
     case QUIC_S_SERVER_WAIT_FOR_DATA:
         switch (event) {
-        case QUIC_E_SEND:
+        case QUIC_E_SEND://Delete later
+
 //            FSM_Goto(fsm, QUIC_S_SEND);
 //            break;
 //        case QUIC_E_CONNECTION_TERM:
