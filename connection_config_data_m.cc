@@ -239,8 +239,7 @@ void connection_config_data::copy(const connection_config_data& other)
     for (size_t i = 0; i < connection_data_arraysize; i++) {
         this->connection_data[i] = other.connection_data[i];
     }
-    this->server_number = other.server_number;
-    this->my_client_number = other.my_client_number;
+    this->connectAddress = other.connectAddress;
 }
 
 void connection_config_data::parsimPack(omnetpp::cCommBuffer *b) const
@@ -248,8 +247,7 @@ void connection_config_data::parsimPack(omnetpp::cCommBuffer *b) const
     ::inet::FieldsChunk::parsimPack(b);
     b->pack(connection_data_arraysize);
     doParsimArrayPacking(b,this->connection_data,connection_data_arraysize);
-    doParsimPacking(b,this->server_number);
-    doParsimPacking(b,this->my_client_number);
+    doParsimPacking(b,this->connectAddress);
 }
 
 void connection_config_data::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -263,8 +261,7 @@ void connection_config_data::parsimUnpack(omnetpp::cCommBuffer *b)
         this->connection_data = new int[connection_data_arraysize];
         doParsimArrayUnpacking(b,this->connection_data,connection_data_arraysize);
     }
-    doParsimUnpacking(b,this->server_number);
-    doParsimUnpacking(b,this->my_client_number);
+    doParsimUnpacking(b,this->connectAddress);
 }
 
 size_t connection_config_data::getConnection_dataArraySize() const
@@ -337,26 +334,15 @@ void connection_config_data::eraseConnection_data(size_t k)
     connection_data_arraysize = newSize;
 }
 
-int connection_config_data::getServer_number() const
+const char * connection_config_data::getConnectAddress() const
 {
-    return this->server_number;
+    return this->connectAddress.c_str();
 }
 
-void connection_config_data::setServer_number(int server_number)
+void connection_config_data::setConnectAddress(const char * connectAddress)
 {
     handleChange();
-    this->server_number = server_number;
-}
-
-int connection_config_data::getMy_client_number() const
-{
-    return this->my_client_number;
-}
-
-void connection_config_data::setMy_client_number(int my_client_number)
-{
-    handleChange();
-    this->my_client_number = my_client_number;
+    this->connectAddress = connectAddress;
 }
 
 class connection_config_dataDescriptor : public omnetpp::cClassDescriptor
@@ -365,8 +351,7 @@ class connection_config_dataDescriptor : public omnetpp::cClassDescriptor
     mutable const char **propertynames;
     enum FieldConstants {
         FIELD_connection_data,
-        FIELD_server_number,
-        FIELD_my_client_number,
+        FIELD_connectAddress,
     };
   public:
     connection_config_dataDescriptor();
@@ -429,7 +414,7 @@ const char *connection_config_dataDescriptor::getProperty(const char *propertyna
 int connection_config_dataDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 3+basedesc->getFieldCount() : 3;
+    return basedesc ? 2+basedesc->getFieldCount() : 2;
 }
 
 unsigned int connection_config_dataDescriptor::getFieldTypeFlags(int field) const
@@ -442,10 +427,9 @@ unsigned int connection_config_dataDescriptor::getFieldTypeFlags(int field) cons
     }
     static unsigned int fieldTypeFlags[] = {
         FD_ISARRAY | FD_ISEDITABLE,    // FIELD_connection_data
-        FD_ISEDITABLE,    // FIELD_server_number
-        FD_ISEDITABLE,    // FIELD_my_client_number
+        FD_ISEDITABLE,    // FIELD_connectAddress
     };
-    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
 const char *connection_config_dataDescriptor::getFieldName(int field) const
@@ -458,10 +442,9 @@ const char *connection_config_dataDescriptor::getFieldName(int field) const
     }
     static const char *fieldNames[] = {
         "connection_data",
-        "server_number",
-        "my_client_number",
+        "connectAddress",
     };
-    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
 int connection_config_dataDescriptor::findField(const char *fieldName) const
@@ -469,8 +452,7 @@ int connection_config_dataDescriptor::findField(const char *fieldName) const
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
     if (fieldName[0] == 'c' && strcmp(fieldName, "connection_data") == 0) return base+0;
-    if (fieldName[0] == 's' && strcmp(fieldName, "server_number") == 0) return base+1;
-    if (fieldName[0] == 'm' && strcmp(fieldName, "my_client_number") == 0) return base+2;
+    if (fieldName[0] == 'c' && strcmp(fieldName, "connectAddress") == 0) return base+1;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -484,10 +466,9 @@ const char *connection_config_dataDescriptor::getFieldTypeString(int field) cons
     }
     static const char *fieldTypeStrings[] = {
         "int",    // FIELD_connection_data
-        "int",    // FIELD_server_number
-        "int",    // FIELD_my_client_number
+        "string",    // FIELD_connectAddress
     };
-    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **connection_config_dataDescriptor::getFieldPropertyNames(int field) const
@@ -556,8 +537,7 @@ std::string connection_config_dataDescriptor::getFieldValueAsString(void *object
     connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
         case FIELD_connection_data: return long2string(pp->getConnection_data(i));
-        case FIELD_server_number: return long2string(pp->getServer_number());
-        case FIELD_my_client_number: return long2string(pp->getMy_client_number());
+        case FIELD_connectAddress: return oppstring2string(pp->getConnectAddress());
         default: return "";
     }
 }
@@ -573,8 +553,7 @@ bool connection_config_dataDescriptor::setFieldValueAsString(void *object, int f
     connection_config_data *pp = (connection_config_data *)object; (void)pp;
     switch (field) {
         case FIELD_connection_data: pp->setConnection_data(i,string2long(value)); return true;
-        case FIELD_server_number: pp->setServer_number(string2long(value)); return true;
-        case FIELD_my_client_number: pp->setMy_client_number(string2long(value)); return true;
+        case FIELD_connectAddress: pp->setConnectAddress((value)); return true;
         default: return false;
     }
 }

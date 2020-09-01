@@ -16,7 +16,6 @@
 #include "inet/common/INETDefs.h"
 #include "QuicSendQueue.h"
 #include "QuicReceiveQueue.h"
-#include "QuicConnectionSendQueue.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
 #include "QuicData_m.h"
@@ -72,8 +71,8 @@ enum QuicEventCode {
 
 class QuicConnection { //public cSimpleModule, public UdpSocket::ICallback{
 public:
-    QuicConnection();
-    QuicConnection(int* connection_data, int connection_data_size,int server_number_to_send);
+    QuicConnection(L3Address destination);
+    QuicConnection(int* connection_data, int connection_data_size,L3Address destination);
 
     virtual ~QuicConnection();
     Packet* createQuicDataPacket(StreamsData* streams_data);
@@ -113,10 +112,11 @@ public:
     int GetMaxOffset();
     void setConnectionsRecieveOffset(int offset);
     void setConnectionsRecieveWindow(int window_size);
-    void setClientNumber(int client_number);
-    int GetClientNumber();
+    //void setClientNumber(int client_number);
+    L3Address GetDestAddress();
     Packet* RemovePacketFromQueue(int packet_number);
     void updateFlowControl(Packet* acked_packet);
+    void updateCongestionWindow();
 
 
     void updateMaxStreamData(int stream_id, int max_stream_data_offset);
@@ -165,7 +165,9 @@ protected:
 
     QuicStreamArr *stream_arr; //the class that represent the entire data of the data that was sent
     //QuicConnectionSendQueue *send_queue; // this queue suppose to hold packets not acked yet
-    std::list<Packet*> send_queue;
+    std::list<Packet*> send_not_ACKED_queue;
+    std::list<int> receive_not_ACKED_queue;
+    L3Address destination;
 
 
     //   QuicRecieveQueue *recieve_queue;
@@ -196,6 +198,13 @@ protected:
     int max_payload;
 
     std::vector<Packet*> max_stream_data_packets_;
+
+    int rcv_next;
+    int last_rcvd_ACK;
+    int dup_ACKS;
+    int snd_cwnd; //congestion window
+    int ssthresh; // slow start threshold
+
 };
 
 //Define_Module(QuicConnection);

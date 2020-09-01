@@ -27,8 +27,4 @@ class QuicPacketHeader extends FieldsChunk {
 	int src_connectionID;
 	int packet_number;
 	int packet_type;
-	
-	
-	// simulate the sending ip address ########## ASK MICHA, CHANGE IN FUTURE
-	int client_number;
 }

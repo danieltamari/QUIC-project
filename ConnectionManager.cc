@@ -19,6 +19,11 @@
 #include "inet/networklayer/common/L3AddressResolver.h"
 #include "inet/common/ModuleAccess.h"
 
+#include "inet/networklayer/common/EcnTag_m.h"
+#include "inet/networklayer/common/IpProtocolId_m.h"
+#include "inet/networklayer/common/L3AddressTag_m.h"
+
+
 #define SENDER 1
 #define RECEIVER 2
 
@@ -46,9 +51,8 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
     switch (packet_type) {
     case HANDSHAKE: { // HANDSHAKE PACKET (in server)
 
-        QuicConnection connection = QuicConnection(); // create new connection at server's side
-        int client_number=header->getClient_number();
-        connection.setClientNumber(client_number);
+        L3Address srcAddr = packet->getTag<L3AddressInd>()->getSrcAddress();
+        QuicConnection connection = QuicConnection(srcAddr); // create new connection at server's side
         if (isIDAvailable(src_ID_from_peer)) {
             connection.SetDestID(src_ID_from_peer);
         } else {
@@ -60,7 +64,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
         this->connections.push_back(connection);
 
         Packet *handshake__response_packet = connections[index].ActivateFsm(packet);
-        sendPacket(handshake__response_packet,connection.GetClientNumber());
+        sendPacket(handshake__response_packet,connection.GetDestAddress());
         break;
     }
 
@@ -71,7 +75,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 it->SetSourceID(dest_ID_from_peer);
                 it->SetDestID(src_ID_from_peer);
                 Packet *first_data_packet = it->ActivateFsm(packet);
-                sendPacket(first_data_packet,it->GetClientNumber());
+                sendPacket(first_data_packet,it->GetDestAddress());
 
                 break;
             }
@@ -85,12 +89,12 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 this->connections.begin(); it != connections.end(); ++it) {
             if (it->GetDestID() == src_ID_from_peer) {
                 Packet *ACK_packet = it->ActivateFsm(packet);
-                sendPacket(ACK_packet,it->GetClientNumber());
+                sendPacket(ACK_packet,it->GetDestAddress());
                 std::vector<Packet*> connection_max_data_vector = it->getMaxStreamDataPackets();
                 for (std::vector<Packet*>::iterator it_packet =
                         connection_max_data_vector.begin(); it_packet != connection_max_data_vector.end(); ++it_packet) {
                 Packet* send_max_data_packet = *it_packet;
-                sendPacket(send_max_data_packet,it->GetClientNumber());
+                sendPacket(send_max_data_packet,it->GetDestAddress());
                 }
                 for (std::vector<Packet*>::iterator it_max=
                         connection_max_data_vector.begin(); it_max != connection_max_data_vector.end(); ++it_max) {
@@ -139,7 +143,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                  Packet* acked_packet=it->RemovePacketFromQueue(packet_number);
                  it->updateFlowControl(acked_packet);
                  Packet *data_packet = it->ActivateFsm(packet);
-                 sendPacket(data_packet,it->GetClientNumber());
+                 sendPacket(data_packet,it->GetDestAddress());
                  break;
              }
         }
@@ -193,15 +197,6 @@ void ConnectionManager::socketClosed(UdpSocket *socket) {
     //    startActiveOperationExtraTimeOrFinish(par("stopOperationExtraTime"));
 }
 
-L3Address ConnectionManager::chooseDestAddr(int module_number) {
-    if (destAddresses.size() == 1)
-        return destAddresses[0];
-    //int k = getRNG(destAddrRNG)->intRand(destAddresses.size());
-    //return destAddresses[k];
-    return destAddresses[module_number];
-
-}
-
 void ConnectionManager::initialize() {
     localPort = par("localPort");
     destPort = par("destPort");
@@ -225,23 +220,34 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             for (int i=0; i<connection_data_size; i++) {
                 connection_data[i] = packet_data->getConnection_data(i);
             }
-            int server_number_to_send=packet_data->getServer_number();
-            int my_client_number=packet_data->getMy_client_number();
-            int connection_index = AddNewConnection(connection_data, connection_data_size,server_number_to_send);
-            Packet* client_number_pkt = new Packet ("client_number");
-            client_number_pkt->setKind(my_client_number);
+            const char* connectAddress=packet_data->getConnectAddress();
+            //int my_client_number=packet_data->getMy_client_number();
+
+            L3Address destination;
+            L3AddressResolver().tryResolve(connectAddress, destination);
+
+            //if (destination.isUnspecified())
+            //    EV_ERROR << "Connecting to " << connectAddress << " port=" << connectPort << ": cannot resolve destination address\n";
+            //else
+            //    EV_INFO << "Connecting to " << connectAddress << "(" << destination << ") port=" << connectPort << endl;
+
+            int connection_index = AddNewConnection(connection_data, connection_data_size,destination);
+
+            //Packet* client_number_pkt = new Packet ("client_number");
+            //client_number_pkt->setKind(my_client_number);
+
             Packet *handshake_packet =
-                    connections[connection_index].ActivateFsm(client_number_pkt); //activate fsm always return a packet which type is set by the current state: handshake,data, etc....
+                    connections[connection_index].ActivateFsm(packet); //activate fsm always return a packet which type is set by the current state: handshake,data, etc....
             //handshake_packet->setKind(my_client_number);
 
             //handshake_packet->setControlInfo(client_number);
-            sendPacket(handshake_packet,server_number_to_send);
+            sendPacket(handshake_packet,destination);
         }
     }
 }
 
-int ConnectionManager::AddNewConnection(int* connection_data, int connection_data_size,int server_number_to_send) {
-    QuicConnection connection = QuicConnection(connection_data, connection_data_size,server_number_to_send);
+int ConnectionManager::AddNewConnection(int* connection_data, int connection_data_size,L3Address destination) {
+    QuicConnection connection = QuicConnection(connection_data, connection_data_size,destination);
 
     int index = connections.size();
     this->connections.push_back(connection);
@@ -251,30 +257,11 @@ int ConnectionManager::AddNewConnection(int* connection_data, int connection_dat
 void ConnectionManager::connectToUDPSocket() {
 
     socket.bind(localPort);
-    destAddrRNG = par("destAddrRNG");
-
-    const char *destAddrs = par("destAddresses");
-    cStringTokenizer tokenizer(destAddrs);
-    const char *token;
-    //bool excludeLocalDestAddresses = par("excludeLocalDestAddresses");
-
-    //IInterfaceTable *ift = getModuleFromPar<IInterfaceTable>(par("interfaceTableModule"), this);
-
-    while ((token = tokenizer.nextToken()) != nullptr) {
-        if (strstr(token, "Broadcast") != nullptr)
-            destAddresses.push_back(Ipv4Address::ALLONES_ADDRESS);
-        else {
-            L3Address addr = L3AddressResolver().resolve(token);
-            //      if (excludeLocalDestAddresses && ift && ift->isLocalAddress(addr))
-            //         continue;
-            destAddresses.push_back(addr);
-        }
-    }
 }
 
-void ConnectionManager::sendPacket(Packet *packet,int module_number) {
+void ConnectionManager::sendPacket(Packet *packet,L3Address destAddr) {
 
-    L3Address destAddr = chooseDestAddr(module_number);
+    //L3Address destAddr = chooseDestAddr(module_number);
     socket.sendTo(packet, destAddr, this->destPort);
 }
 

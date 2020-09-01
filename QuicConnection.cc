@@ -26,13 +26,14 @@
 #define Max_Connection_ReceiveWindow 24 * 1024 * 1024  // 24 MB
 #define DEAFULT_STREAM_NUM 10
 #define MAX_PAYLOAD_PACKET 2000
-#define FRAMES 3
+#define ACKTHRESH 3
+#define SSTHRESH_CHANGE_THIS 10
 
 
 namespace inet {
 
 //constructor of connection in the server
-QuicConnection::QuicConnection() {
+QuicConnection::QuicConnection(L3Address destination) {
     stream_arr = new QuicStreamArr();
   //  recieve_queue = new QuicRecieveQueue();
   //  send_queue = new QuicSendQueue();
@@ -40,6 +41,7 @@ QuicConnection::QuicConnection() {
     this->num_packets_sent = 0;
     this->num_packets_recieved = 0;
     this->total_bytes_to_send = 0;
+    this->rcv_next = 0;
     //this->total_consumed_bytes =0;
     //this->total_flow_control_recieve_offset=0;
     connection_max_flow_control_window_size=Init_Connection_FlowControl_Window;
@@ -48,6 +50,7 @@ QuicConnection::QuicConnection() {
 
     // will need to configure these for socket operations
     //this->destIPaddress = IP_address;
+    this->destination=destination;
     this->inital_stream_window = Min_FlowControl_Window;
     this->first_connection = true;
     char fsmname[24];
@@ -64,7 +67,7 @@ QuicConnection::QuicConnection() {
 //    this->curr_frames_number = FRAMES;
 }
 
-QuicConnection::QuicConnection(int* connection_data, int connection_data_size,int server_number_to_send) {
+QuicConnection::QuicConnection(int* connection_data, int connection_data_size,L3Address destination) {
     stream_arr = new QuicStreamArr(connection_data_size);
    // recieve_queue = new QuicRecieveQueue();
     //send_queue = new QuicConnectionSendQueue();
@@ -82,8 +85,9 @@ QuicConnection::QuicConnection(int* connection_data, int connection_data_size,in
     this->total_bytes_to_send = 0;
     this->first_connection = true;
     this->inital_stream_window = Min_FlowControl_Window;
-    this->module_number_to_send=server_number_to_send;
-
+    this->destination=destination;
+    this->dup_ACKS = 0;
+    this->last_rcvd_ACK = 0;
     char fsmname[24];
     //sprintf(fsmname, "fsm-%d", socketId); ### CHANGE DO THIS LATER WHEN CONFIGUE SOCKET ID
     sprintf(fsmname, "quic_fsm");
@@ -103,12 +107,12 @@ QuicConnection::~QuicConnection() {
     // TODO Auto-generated destructor stub
 }
 
-void QuicConnection::setClientNumber(int client_number){
-    this->module_number_to_send=client_number;
-}
+//void QuicConnection::setClientNumber(int client_number){
+//    this->module_number_to_send=client_number;
+//}
 
-int QuicConnection::GetClientNumber(){
-    return module_number_to_send;
+L3Address QuicConnection::GetDestAddress(){
+    return destination;
 }
 
 Packet* QuicConnection::createQuicDataPacket(StreamsData* streams_data) {
@@ -284,7 +288,7 @@ Packet* QuicConnection::ProcessInitiateHandshake(Packet* packet) {
     QuicHeader->setDest_connectionID(dest_ID);
     QuicHeader->setPacket_type(0);
     QuicHeader->setChunkLength(B(sizeof(int)*4));
-    QuicHeader->setClient_number(packet->getKind());//###### NEED TO CHANGE
+    //QuicHeader->setClient_number(packet->getKind());//###### NEED TO CHANGE
 
     packet_to_send->insertAtFront(QuicHeader);
     this->SetSourceID(src_ID);
@@ -321,6 +325,7 @@ Packet* QuicConnection::ServerProcessHandshake(Packet* packet) {
     payload->setInitial_max_data(Min_FlowControl_Window); // initial window per connection
     payload->setInitial_max_stream_data(Min_FlowControl_Window); // initial window per stream
     payload->setMax_udp_payload_size(MAX_PAYLOAD_PACKET);
+
     //payload->setMax_udp_payload_size(); find value for UDP payload
     payload->setChunkLength(B(sizeof(int)*3));
     packet_to_send->insertAtBack(payload);
@@ -342,6 +347,8 @@ Packet* QuicConnection::ProcessClientHandshakeResponse(Packet* packet) {
 
     this->stream_arr->setAllStreamsWindows(initial_stream_window);
     this->max_payload = max_payload;
+    this->snd_cwnd=max_payload*2;//initial congestion window
+    this->ssthresh=max_payload*SSTHRESH_CHANGE_THIS;// initial slow start threshold.
 
     StreamsData *send_data = this->CreateSendData(max_payload, connection_flow_control_recieve_window);
 //    int num_bytes_to_send = send_data->getTotalSize();
@@ -349,7 +356,7 @@ Packet* QuicConnection::ProcessClientHandshakeResponse(Packet* packet) {
     Packet* packet_to_send = createQuicDataPacket(send_data);
     Packet* copy_packet_to_send=createQuicDataPacket(send_data);
     packet_counter++;
-    this->send_queue.push_back(copy_packet_to_send);
+    this->send_not_ACKED_queue.push_back(copy_packet_to_send);
 
     num_packets_sent++;
     this->event->setKind(QUIC_S_SEND);
@@ -367,6 +374,10 @@ Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
     int income_packet_number = header->getPacket_number();
     int dest_connectionID  = header->getDest_connectionID();
     int source_connectionID  = header->getSrc_connectionID();
+    if (rcv_next != income_packet_number)
+        receive_not_ACKED_queue.push_back(income_packet_number);
+    else
+        rcv_next++;
 
     EV << "Packet's header info: packet number is " << income_packet_number << " dest connection ID is " <<
                 dest_connectionID << " source connection ID is " << source_connectionID << endl;
@@ -384,14 +395,27 @@ Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
     //int connection_window_size=it->GetWindowSize();
     //int max_data=total_connection_consumed_bytes+connection_window_size; // check if correct
 
+    // pop packets' numbers from Queue
+    if (receive_not_ACKED_queue.size() != 0) {
+        while (receive_not_ACKED_queue.size() != 0) {
+            int curr_number = receive_not_ACKED_queue.front();
+            if (curr_number != rcv_next) {
+               // receive_not_ACKED_queue.push_front(curr_number);
+                break;
+            }
+            receive_not_ACKED_queue.pop_front();
+            rcv_next++;
+        }
+    }
+
     // create ACK packet
     char msgName[32];
-    sprintf(msgName, "QUIC packet ACK-%d", income_packet_number);
+    sprintf(msgName, "QUIC packet ACK-%d", rcv_next);
     Packet *ack = new Packet(msgName);
     int src_ID = this->GetSourceID();
     int dest_ID = this->GetDestID();
     auto QuicHeader = makeShared<QuicPacketHeader>();
-    QuicHeader->setPacket_number(income_packet_number);
+    QuicHeader->setPacket_number(rcv_next);
     QuicHeader->setSrc_connectionID(src_ID);
     QuicHeader->setDest_connectionID(dest_ID);
     QuicHeader->setPacket_type(3);
@@ -402,23 +426,62 @@ Packet* QuicConnection::ProcessServerWaitData(Packet* packet) {
 }
 
 Packet* QuicConnection::ProcessClientSend(Packet* packet){
+    auto header = packet->popAtFront<QuicPacketHeader>();
+    int ack_number = header->getPacket_number();
+    if (last_rcvd_ACK == ack_number) {
+        dup_ACKS++;
+    }
+    else {
+        last_rcvd_ACK = ack_number;
+        dup_ACKS = 0;
+    }
+
+    updateCongestionWindow();
+
     StreamsData *send_data = this->CreateSendData(max_payload, connection_flow_control_recieve_window);
     Packet* packet_to_send = createQuicDataPacket(send_data);
     Packet* copy_packet_to_send=createQuicDataPacket(send_data);
-    this->send_queue.push_back(copy_packet_to_send);
+    this->send_not_ACKED_queue.push_back(copy_packet_to_send);
     packet_counter++;
     num_packets_sent++;
     return packet_to_send;
 }
 
+void QuicConnection::updateCongestionWindow(){
+    if (dup_ACKS==ACKTHRESH){
+        snd_cwnd=snd_cwnd/2;
+        ssthresh=snd_cwnd;
+        dup_ACKS=0;
+    }
+    else    {
+        if (snd_cwnd < ssthresh) { // slow start
+            EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by SMSS bytes to ";
+            snd_cwnd += max_payload;
+            EV_DETAIL << "cwnd=" << snd_cwnd << "\n";
+        }
+        else {
+            // perform Congestion Avoidance (RFC 2581)
+            int incr = max_payload * max_payload / snd_cwnd;
+
+            if (incr == 0)
+                incr = 1;
+
+            snd_cwnd += incr;
+
+            EV_DETAIL << "cwnd>ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << snd_cwnd << "\n";
+        }
+    }
+
+}
+
 Packet* QuicConnection::RemovePacketFromQueue(int packet_number){
     Packet* packet_to_remove;
     for (std::list<Packet*>::iterator it =
-            send_queue.begin(); it != send_queue.end(); ++it) {
+            send_not_ACKED_queue.begin(); it != send_not_ACKED_queue.end(); ++it) {
             auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
             if (current_header->getPacket_number()==packet_number){
                 packet_to_remove=*it;
-                send_queue.remove(packet_to_remove);
+                send_not_ACKED_queue.remove(packet_to_remove);
                 break;
             }
     }

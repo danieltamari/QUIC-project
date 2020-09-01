@@ -53,13 +53,12 @@ public:
     virtual void socketDataArrived(UdpSocket *socket, Packet *packet) override;
     virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
     virtual void socketClosed(UdpSocket *socket) override;
-    virtual L3Address chooseDestAddr(int module_number);
-    void sendPacket(Packet *packet,int module_number) ;
+    void sendPacket(Packet *packet,L3Address destAddr) ;
     void connectToUDPSocket();
 
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
-    int AddNewConnection(int* connection_data, int connection_data_size,int server_number_to_send);
+    int AddNewConnection(int* connection_data, int connection_data_size,L3Address destination);
     bool isIDAvailable(int src_ID);
 
 protected:

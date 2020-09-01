@@ -236,7 +236,6 @@ void QuicPacketHeader::copy(const QuicPacketHeader& other)
     this->src_connectionID = other.src_connectionID;
     this->packet_number = other.packet_number;
     this->packet_type = other.packet_type;
-    this->client_number = other.client_number;
 }
 
 void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
@@ -246,7 +245,6 @@ void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->src_connectionID);
     doParsimPacking(b,this->packet_number);
     doParsimPacking(b,this->packet_type);
-    doParsimPacking(b,this->client_number);
 }
 
 void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
@@ -256,7 +254,6 @@ void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->src_connectionID);
     doParsimUnpacking(b,this->packet_number);
     doParsimUnpacking(b,this->packet_type);
-    doParsimUnpacking(b,this->client_number);
 }
 
 int QuicPacketHeader::getDest_connectionID() const
@@ -303,17 +300,6 @@ void QuicPacketHeader::setPacket_type(int packet_type)
     this->packet_type = packet_type;
 }
 
-int QuicPacketHeader::getClient_number() const
-{
-    return this->client_number;
-}
-
-void QuicPacketHeader::setClient_number(int client_number)
-{
-    handleChange();
-    this->client_number = client_number;
-}
-
 class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
 {
   private:
@@ -323,7 +309,6 @@ class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
         FIELD_src_connectionID,
         FIELD_packet_number,
         FIELD_packet_type,
-        FIELD_client_number,
     };
   public:
     QuicPacketHeaderDescriptor();
@@ -386,7 +371,7 @@ const char *QuicPacketHeaderDescriptor::getProperty(const char *propertyname) co
 int QuicPacketHeaderDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 5+basedesc->getFieldCount() : 5;
+    return basedesc ? 4+basedesc->getFieldCount() : 4;
 }
 
 unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
@@ -402,9 +387,8 @@ unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_src_connectionID
         FD_ISEDITABLE,    // FIELD_packet_number
         FD_ISEDITABLE,    // FIELD_packet_type
-        FD_ISEDITABLE,    // FIELD_client_number
     };
-    return (field >= 0 && field < 5) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 4) ? fieldTypeFlags[field] : 0;
 }
 
 const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
@@ -420,9 +404,8 @@ const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
         "src_connectionID",
         "packet_number",
         "packet_type",
-        "client_number",
     };
-    return (field >= 0 && field < 5) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 4) ? fieldNames[field] : nullptr;
 }
 
 int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
@@ -433,7 +416,6 @@ int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
     if (fieldName[0] == 's' && strcmp(fieldName, "src_connectionID") == 0) return base+1;
     if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+2;
     if (fieldName[0] == 'p' && strcmp(fieldName, "packet_type") == 0) return base+3;
-    if (fieldName[0] == 'c' && strcmp(fieldName, "client_number") == 0) return base+4;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -450,9 +432,8 @@ const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
         "int",    // FIELD_src_connectionID
         "int",    // FIELD_packet_number
         "int",    // FIELD_packet_type
-        "int",    // FIELD_client_number
     };
-    return (field >= 0 && field < 5) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 4) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
@@ -523,7 +504,6 @@ std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int 
         case FIELD_src_connectionID: return long2string(pp->getSrc_connectionID());
         case FIELD_packet_number: return long2string(pp->getPacket_number());
         case FIELD_packet_type: return long2string(pp->getPacket_type());
-        case FIELD_client_number: return long2string(pp->getClient_number());
         default: return "";
     }
 }
@@ -542,7 +522,6 @@ bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, 
         case FIELD_src_connectionID: pp->setSrc_connectionID(string2long(value)); return true;
         case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
         case FIELD_packet_type: pp->setPacket_type(string2long(value)); return true;
-        case FIELD_client_number: pp->setClient_number(string2long(value)); return true;
         default: return false;
     }
 }
