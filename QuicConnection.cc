@@ -69,6 +69,7 @@ QuicConnection::QuicConnection(L3Address destination) {
 
 QuicConnection::QuicConnection(int* connection_data, int connection_data_size,L3Address destination) {
     stream_arr = new QuicStreamArr(connection_data_size);
+    this->congestion_alg=new QuicNewReno();
    // recieve_queue = new QuicRecieveQueue();
     //send_queue = new QuicConnectionSendQueue();
 
@@ -321,12 +322,10 @@ Packet* QuicConnection::ServerProcessHandshake(Packet* packet) {
     packet_to_send->insertAtFront(QuicHeader);
 
     const auto &payload = makeShared<QuicHandShakeData>();
-    int msgByteLength = 1;
     payload->setInitial_max_data(Min_FlowControl_Window); // initial window per connection
     payload->setInitial_max_stream_data(Min_FlowControl_Window); // initial window per stream
     payload->setMax_udp_payload_size(MAX_PAYLOAD_PACKET);
 
-    //payload->setMax_udp_payload_size(); find value for UDP payload
     payload->setChunkLength(B(sizeof(int)*3));
     packet_to_send->insertAtBack(payload);
     this->event->setKind(QUIC_S_SERVER_WAIT_FOR_DATA);
@@ -344,17 +343,17 @@ Packet* QuicConnection::ProcessClientHandshakeResponse(Packet* packet) {
     this->connection_max_flow_control_window_size = initial_connection_window;
     this->connection_flow_control_recieve_offset = initial_connection_window;
     this->connection_flow_control_recieve_window = initial_connection_window;
-
+    int sum_stream_window_size = this->stream_arr->getSumStreamsWindowSize();
     this->stream_arr->setAllStreamsWindows(initial_stream_window);
-    this->max_payload = max_payload;
-    this->snd_cwnd=max_payload*2;//initial congestion window
-    this->ssthresh=max_payload*SSTHRESH_CHANGE_THIS;// initial slow start threshold.
+    this->congestion_alg->SetSndMss(max_payload);
+    this->congestion_alg->SetSndCwnd(max_payload*2);//initial congestion window
+    this->congestion_alg->SetSsThresh(max_payload*SSTHRESH_CHANGE_THIS);// initial slow start threshold.
+    this->congestion_alg->SetSndWnd(std::min(connection_max_flow_control_window_size,sum_stream_window_size));
 
     StreamsData *send_data = this->CreateSendData(max_payload, connection_flow_control_recieve_window);
-//    int num_bytes_to_send = send_data->getTotalSize();
-//    connection_flow_control_recieve_window -= num_bytes_to_send;
     Packet* packet_to_send = createQuicDataPacket(send_data);
     Packet* copy_packet_to_send=createQuicDataPacket(send_data);
+    copy_packet_to_send->setTimestamp(simTime());
     packet_counter++;
     this->send_not_ACKED_queue.push_back(copy_packet_to_send);
 
@@ -447,32 +446,32 @@ Packet* QuicConnection::ProcessClientSend(Packet* packet){
     return packet_to_send;
 }
 
-void QuicConnection::updateCongestionWindow(){
-    if (dup_ACKS==ACKTHRESH){
-        snd_cwnd=snd_cwnd/2;
-        ssthresh=snd_cwnd;
-        dup_ACKS=0;
-    }
-    else    {
-        if (snd_cwnd < ssthresh) { // slow start
-            EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by SMSS bytes to ";
-            snd_cwnd += max_payload;
-            EV_DETAIL << "cwnd=" << snd_cwnd << "\n";
-        }
-        else {
-            // perform Congestion Avoidance (RFC 2581)
-            int incr = max_payload * max_payload / snd_cwnd;
+//void QuicConnection::updateCongestionWindow(){
+//    if (dup_ACKS==ACKTHRESH){
+//        snd_cwnd=snd_cwnd/2;
+//        ssthresh=snd_cwnd;
+//        dup_ACKS=0;
+//    }
+//    else    {
+//        if (snd_cwnd < ssthresh) { // slow start
+//            EV_DETAIL << "cwnd <= ssthresh: Slow Start: increasing cwnd by SMSS bytes to ";
+//            snd_cwnd += max_payload;
+//            EV_DETAIL << "cwnd=" << snd_cwnd << "\n";
+//        }
+//        else {
+//            // perform Congestion Avoidance (RFC 2581)
+//            int incr = max_payload * max_payload / snd_cwnd;
+//
+//            if (incr == 0)
+//                incr = 1;
+//
+//            snd_cwnd += incr;
+//
+//            EV_DETAIL << "cwnd>ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << snd_cwnd << "\n";
+//        }
+//    }
 
-            if (incr == 0)
-                incr = 1;
-
-            snd_cwnd += incr;
-
-            EV_DETAIL << "cwnd>ssthresh: Congestion Avoidance: increasing cwnd linearly, to " << snd_cwnd << "\n";
-        }
-    }
-
-}
+//}
 
 Packet* QuicConnection::RemovePacketFromQueue(int packet_number){
     Packet* packet_to_remove;
@@ -555,6 +554,9 @@ Packet* QuicConnection::ActivateFsm(Packet* packet) {
 ;
 
 }
+
+
+
 QuicEventCode QuicConnection::preanalyseAppCommandEvent(int commandCode) {
     switch (commandCode) {
     case QUIC_E_CLIENT_INITIATE_HANDSHAKE:

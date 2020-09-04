@@ -186,6 +186,15 @@ void QuicStreamArr::setAllStreamsWindows(int window_size) {
     }
 }
 
+int QuicStreamArr::getSumStreamsWindowSize() {
+    int sum = 0;
+    for (std::vector<stream*>::iterator it =
+                    this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
+        sum += (*it)->flow_control_recieve_window;
+    }
+    return sum;
+}
+
 bool QuicStreamArr::isStreamExist(int stream_id) {
     for (std::vector<stream*>::iterator it =
                     this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {

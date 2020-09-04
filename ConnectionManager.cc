@@ -141,6 +141,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
              if (it->GetDestID() == src_ID_from_peer){
                  int packet_number = header->getPacket_number();
                  Packet* acked_packet=it->RemovePacketFromQueue(packet_number);
+                 it->UpdateRtt(acked_packet->getTimestamp());//update rtt meassurment
                  it->updateFlowControl(acked_packet);
                  Packet *data_packet = it->ActivateFsm(packet);
                  sendPacket(data_packet,it->GetDestAddress());

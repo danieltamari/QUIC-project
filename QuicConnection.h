@@ -18,6 +18,7 @@
 #include "QuicReceiveQueue.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
+#include "QuicNewReno.h"
 #include "QuicData_m.h"
 #include "QuicPacketHeader_m.h"
 #include "QuicHandShakeData_m.h"
@@ -37,6 +38,7 @@ namespace inet {
 class QuicStreamArr;
 class QuicSendQueue;
 class QuicRecieveQueue;
+class QuicNewRENO;
 
 enum QuicState {
     QUIC_S_CLIENT_INITIATE_HANDSHAKE = 0,
@@ -131,6 +133,11 @@ public:
         return this->first_connection;
     }
 
+    void UpdateRtt(simtime_t acked_time){
+        uint32 acked_time_int = this->congestion_alg->convertSimtimeToTS(acked_time);
+        this->congestion_alg->rttMeasurementCompleteUsingTS(acked_time_int);
+    }
+
   //  void moveDataToSendQueue(int bytes_num);
   //  void ProcessInitialClientData(int total_bytes_to_send);
 
@@ -204,6 +211,8 @@ protected:
     int dup_ACKS;
     int snd_cwnd; //congestion window
     int ssthresh; // slow start threshold
+
+    QuicNewReno* congestion_alg;
 
 };
 

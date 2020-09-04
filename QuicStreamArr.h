@@ -73,6 +73,7 @@ public:
 
     bool isStreamExist(int stream_id);
     stream* getStream(int stream_id);
+    int getSumStreamsWindowSize();
 
     // void UpdateStremMaxBytes(int stream_id, int max_bytes); ####->connects to flow_control rfc 27 page 21 , in the future.
 
