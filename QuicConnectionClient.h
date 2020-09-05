@@ -24,6 +24,7 @@
 #include "QuicHandShakeData_m.h"
 #include "MaxStreamData_m.h"
 #include "StreamsData.h"
+#include "QuicACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>

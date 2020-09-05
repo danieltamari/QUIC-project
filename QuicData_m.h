@@ -80,7 +80,7 @@ class INET_API QuicData : public ::inet::FieldsChunk
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
-    virtual const StreamsData * getStream_frames() const;
+    virtual StreamsData * getStream_frames() const;
     virtual StreamsData * getStream_framesForUpdate() { handleChange();return const_cast<StreamsData *>(const_cast<QuicData*>(this)->getStream_frames());}
     virtual void setStream_frames(StreamsData * stream_frames);
 };

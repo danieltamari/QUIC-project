@@ -146,19 +146,25 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
         for (std::vector<QuicConnection*>::iterator it =
                  this->connections.begin(); it != connections.end(); ++it) {
              if ((*it)->GetDestID() == src_ID_from_peer){
-                 int packet_number_ACKED = header->getPacket_number();
-                 // cancel timeout
-                 Packet* copy_received_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number_ACKED);
-                 cancelEvent(copy_received_packet); //cancel RTO timeout
-
-                 dynamic_cast<QuicConnectionClient*>(*it)->updateFlowControl(copy_received_packet);
-                 simtime_t acked_time = copy_received_packet->getTimestamp();
-                 dynamic_cast<QuicConnectionClient*>(*it)->UpdateRtt(acked_time);//update rtt meassurment
-
+                 auto header = packet->popAtFront<QuicPacketHeader>();
+                 auto ACK_data = packet->peekData<QuicACKFrame>();
+                 // go over all the ACKED packets in this ACK frame
+                 int num_of_ACKED_packets = ACK_data->getFirst_ACK_range();
+                 int largest = ACK_data->getLargest_acknowledged();
+                 int smallest = largest - num_of_ACKED_packets + 1;
+                 for (int i = 0; i < num_of_ACKED_packets; i++) {
+                     int current_packet = smallest + i;
+                     // cancel timeout
+                     Packet* copy_received_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(current_packet);
+                     cancelEvent(copy_received_packet); //cancel RTO timeout
+                 }
+                 packet->eraseAll();
+                 packet->insertAtFront(header);
+                 packet->insertAtBack(ACK_data);
                  Packet *data_packet = (*it)->ActivateFsm(packet);
                  // setRTO on copy packet
-                 auto header = data_packet->peekAtFront<QuicPacketHeader>();
-                 int packet_number = header->getPacket_number();
+                 auto header_new_packet = data_packet->peekAtFront<QuicPacketHeader>();
+                 int packet_number = header_new_packet->getPacket_number();
                  Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
                  simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
                  scheduleAt(simTime()+RTO,copy_packet);

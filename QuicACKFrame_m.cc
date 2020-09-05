@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicData.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicACKFrame.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include "QuicData_m.h"
+#include "QuicACKFrame_m.h"
 
 namespace omnetpp {
 
@@ -173,223 +173,6 @@ toVoidPtr(T* t)
 
 }
 
-class StreamsDataDescriptor : public omnetpp::cClassDescriptor
-{
-  private:
-    mutable const char **propertynames;
-    enum FieldConstants {
-    };
-  public:
-    StreamsDataDescriptor();
-    virtual ~StreamsDataDescriptor();
-
-    virtual bool doesSupport(omnetpp::cObject *obj) const override;
-    virtual const char **getPropertyNames() const override;
-    virtual const char *getProperty(const char *propertyname) const override;
-    virtual int getFieldCount() const override;
-    virtual const char *getFieldName(int field) const override;
-    virtual int findField(const char *fieldName) const override;
-    virtual unsigned int getFieldTypeFlags(int field) const override;
-    virtual const char *getFieldTypeString(int field) const override;
-    virtual const char **getFieldPropertyNames(int field) const override;
-    virtual const char *getFieldProperty(int field, const char *propertyname) const override;
-    virtual int getFieldArraySize(void *object, int field) const override;
-
-    virtual const char *getFieldDynamicTypeString(void *object, int field, int i) const override;
-    virtual std::string getFieldValueAsString(void *object, int field, int i) const override;
-    virtual bool setFieldValueAsString(void *object, int field, int i, const char *value) const override;
-
-    virtual const char *getFieldStructName(int field) const override;
-    virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
-};
-
-Register_ClassDescriptor(StreamsDataDescriptor)
-
-StreamsDataDescriptor::StreamsDataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::StreamsData)), "")
-{
-    propertynames = nullptr;
-}
-
-StreamsDataDescriptor::~StreamsDataDescriptor()
-{
-    delete[] propertynames;
-}
-
-bool StreamsDataDescriptor::doesSupport(omnetpp::cObject *obj) const
-{
-    return dynamic_cast<inet::StreamsData *>(obj)!=nullptr;
-}
-
-const char **StreamsDataDescriptor::getPropertyNames() const
-{
-    if (!propertynames) {
-        static const char *names[] = { "existingClass",  nullptr };
-        omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-        const char **basenames = basedesc ? basedesc->getPropertyNames() : nullptr;
-        propertynames = mergeLists(basenames, names);
-    }
-    return propertynames;
-}
-
-const char *StreamsDataDescriptor::getProperty(const char *propertyname) const
-{
-    if (!strcmp(propertyname, "existingClass")) return "";
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->getProperty(propertyname) : nullptr;
-}
-
-int StreamsDataDescriptor::getFieldCount() const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 0+basedesc->getFieldCount() : 0;
-}
-
-unsigned int StreamsDataDescriptor::getFieldTypeFlags(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldTypeFlags(field);
-        field -= basedesc->getFieldCount();
-    }
-    return 0;
-}
-
-const char *StreamsDataDescriptor::getFieldName(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldName(field);
-        field -= basedesc->getFieldCount();
-    }
-    return nullptr;
-}
-
-int StreamsDataDescriptor::findField(const char *fieldName) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? basedesc->findField(fieldName) : -1;
-}
-
-const char *StreamsDataDescriptor::getFieldTypeString(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldTypeString(field);
-        field -= basedesc->getFieldCount();
-    }
-    return nullptr;
-}
-
-const char **StreamsDataDescriptor::getFieldPropertyNames(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldPropertyNames(field);
-        field -= basedesc->getFieldCount();
-    }
-    switch (field) {
-        default: return nullptr;
-    }
-}
-
-const char *StreamsDataDescriptor::getFieldProperty(int field, const char *propertyname) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldProperty(field, propertyname);
-        field -= basedesc->getFieldCount();
-    }
-    switch (field) {
-        default: return nullptr;
-    }
-}
-
-int StreamsDataDescriptor::getFieldArraySize(void *object, int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldArraySize(object, field);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return 0;
-    }
-}
-
-const char *StreamsDataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldDynamicTypeString(object,field,i);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return nullptr;
-    }
-}
-
-std::string StreamsDataDescriptor::getFieldValueAsString(void *object, int field, int i) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldValueAsString(object,field,i);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return "";
-    }
-}
-
-bool StreamsDataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->setFieldValueAsString(object,field,i,value);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return false;
-    }
-}
-
-const char *StreamsDataDescriptor::getFieldStructName(int field) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldStructName(field);
-        field -= basedesc->getFieldCount();
-    }
-    return nullptr;
-}
-
-void *StreamsDataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
-{
-    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    if (basedesc) {
-        if (field < basedesc->getFieldCount())
-            return basedesc->getFieldStructValuePointer(object, field, i);
-        field -= basedesc->getFieldCount();
-    }
-    inet::StreamsData *pp = (inet::StreamsData *)object; (void)pp;
-    switch (field) {
-        default: return nullptr;
-    }
-}
-
 namespace inet {
 
 // forward
@@ -424,22 +207,22 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(QuicData)
+Register_Class(QuicACKFrame)
 
-QuicData::QuicData() : ::inet::FieldsChunk()
+QuicACKFrame::QuicACKFrame() : ::inet::FieldsChunk()
 {
 }
 
-QuicData::QuicData(const QuicData& other) : ::inet::FieldsChunk(other)
+QuicACKFrame::QuicACKFrame(const QuicACKFrame& other) : ::inet::FieldsChunk(other)
 {
     copy(other);
 }
 
-QuicData::~QuicData()
+QuicACKFrame::~QuicACKFrame()
 {
 }
 
-QuicData& QuicData::operator=(const QuicData& other)
+QuicACKFrame& QuicACKFrame::operator=(const QuicACKFrame& other)
 {
     if (this == &other) return *this;
     ::inet::FieldsChunk::operator=(other);
@@ -447,44 +230,74 @@ QuicData& QuicData::operator=(const QuicData& other)
     return *this;
 }
 
-void QuicData::copy(const QuicData& other)
+void QuicACKFrame::copy(const QuicACKFrame& other)
 {
-    this->stream_frames = other.stream_frames;
+    this->largest_acknowledged = other.largest_acknowledged;
+    this->ACK_delay = other.ACK_delay;
+    this->first_ACK_range = other.first_ACK_range;
 }
 
-void QuicData::parsimPack(omnetpp::cCommBuffer *b) const
+void QuicACKFrame::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
-    doParsimPacking(b,this->stream_frames);
+    doParsimPacking(b,this->largest_acknowledged);
+    doParsimPacking(b,this->ACK_delay);
+    doParsimPacking(b,this->first_ACK_range);
 }
 
-void QuicData::parsimUnpack(omnetpp::cCommBuffer *b)
+void QuicACKFrame::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
-    doParsimUnpacking(b,this->stream_frames);
+    doParsimUnpacking(b,this->largest_acknowledged);
+    doParsimUnpacking(b,this->ACK_delay);
+    doParsimUnpacking(b,this->first_ACK_range);
 }
 
-StreamsData * QuicData::getStream_frames() const
+int QuicACKFrame::getLargest_acknowledged() const
 {
-    return this->stream_frames;
+    return this->largest_acknowledged;
 }
 
-void QuicData::setStream_frames(StreamsData * stream_frames)
+void QuicACKFrame::setLargest_acknowledged(int largest_acknowledged)
 {
     handleChange();
-    this->stream_frames = stream_frames;
+    this->largest_acknowledged = largest_acknowledged;
 }
 
-class QuicDataDescriptor : public omnetpp::cClassDescriptor
+int QuicACKFrame::getACK_delay() const
+{
+    return this->ACK_delay;
+}
+
+void QuicACKFrame::setACK_delay(int ACK_delay)
+{
+    handleChange();
+    this->ACK_delay = ACK_delay;
+}
+
+int QuicACKFrame::getFirst_ACK_range() const
+{
+    return this->first_ACK_range;
+}
+
+void QuicACKFrame::setFirst_ACK_range(int first_ACK_range)
+{
+    handleChange();
+    this->first_ACK_range = first_ACK_range;
+}
+
+class QuicACKFrameDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_stream_frames,
+        FIELD_largest_acknowledged,
+        FIELD_ACK_delay,
+        FIELD_first_ACK_range,
     };
   public:
-    QuicDataDescriptor();
-    virtual ~QuicDataDescriptor();
+    QuicACKFrameDescriptor();
+    virtual ~QuicACKFrameDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -506,24 +319,24 @@ class QuicDataDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(QuicDataDescriptor)
+Register_ClassDescriptor(QuicACKFrameDescriptor)
 
-QuicDataDescriptor::QuicDataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicData)), "inet::FieldsChunk")
+QuicACKFrameDescriptor::QuicACKFrameDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicACKFrame)), "inet::FieldsChunk")
 {
     propertynames = nullptr;
 }
 
-QuicDataDescriptor::~QuicDataDescriptor()
+QuicACKFrameDescriptor::~QuicACKFrameDescriptor()
 {
     delete[] propertynames;
 }
 
-bool QuicDataDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool QuicACKFrameDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<QuicData *>(obj)!=nullptr;
+    return dynamic_cast<QuicACKFrame *>(obj)!=nullptr;
 }
 
-const char **QuicDataDescriptor::getPropertyNames() const
+const char **QuicACKFrameDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -534,19 +347,19 @@ const char **QuicDataDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *QuicDataDescriptor::getProperty(const char *propertyname) const
+const char *QuicACKFrameDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int QuicDataDescriptor::getFieldCount() const
+int QuicACKFrameDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 1+basedesc->getFieldCount() : 1;
+    return basedesc ? 3+basedesc->getFieldCount() : 3;
 }
 
-unsigned int QuicDataDescriptor::getFieldTypeFlags(int field) const
+unsigned int QuicACKFrameDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -555,12 +368,14 @@ unsigned int QuicDataDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISCOMPOUND | FD_ISPOINTER,    // FIELD_stream_frames
+        FD_ISEDITABLE,    // FIELD_largest_acknowledged
+        FD_ISEDITABLE,    // FIELD_ACK_delay
+        FD_ISEDITABLE,    // FIELD_first_ACK_range
     };
-    return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
 }
 
-const char *QuicDataDescriptor::getFieldName(int field) const
+const char *QuicACKFrameDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -569,20 +384,24 @@ const char *QuicDataDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "stream_frames",
+        "largest_acknowledged",
+        "ACK_delay",
+        "first_ACK_range",
     };
-    return (field >= 0 && field < 1) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
 }
 
-int QuicDataDescriptor::findField(const char *fieldName) const
+int QuicACKFrameDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 's' && strcmp(fieldName, "stream_frames") == 0) return base+0;
+    if (fieldName[0] == 'l' && strcmp(fieldName, "largest_acknowledged") == 0) return base+0;
+    if (fieldName[0] == 'A' && strcmp(fieldName, "ACK_delay") == 0) return base+1;
+    if (fieldName[0] == 'f' && strcmp(fieldName, "first_ACK_range") == 0) return base+2;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *QuicDataDescriptor::getFieldTypeString(int field) const
+const char *QuicACKFrameDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -591,12 +410,14 @@ const char *QuicDataDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "StreamsData",    // FIELD_stream_frames
+        "int",    // FIELD_largest_acknowledged
+        "int",    // FIELD_ACK_delay
+        "int",    // FIELD_first_ACK_range
     };
-    return (field >= 0 && field < 1) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **QuicDataDescriptor::getFieldPropertyNames(int field) const
+const char **QuicACKFrameDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -609,7 +430,7 @@ const char **QuicDataDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *QuicDataDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *QuicACKFrameDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -622,7 +443,7 @@ const char *QuicDataDescriptor::getFieldProperty(int field, const char *property
     }
 }
 
-int QuicDataDescriptor::getFieldArraySize(void *object, int field) const
+int QuicACKFrameDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -630,13 +451,13 @@ int QuicDataDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicACKFrame *pp = (QuicACKFrame *)object; (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-const char *QuicDataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *QuicACKFrameDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -644,14 +465,13 @@ const char *QuicDataDescriptor::getFieldDynamicTypeString(void *object, int fiel
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicACKFrame *pp = (QuicACKFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_stream_frames: { const StreamsData * value = pp->getStream_frames(); return omnetpp::opp_typename(typeid(*value)); }
         default: return nullptr;
     }
 }
 
-std::string QuicDataDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string QuicACKFrameDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -659,14 +479,16 @@ std::string QuicDataDescriptor::getFieldValueAsString(void *object, int field, i
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicACKFrame *pp = (QuicACKFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_stream_frames: {std::stringstream out; out << pp->getStream_frames(); return out.str();}
+        case FIELD_largest_acknowledged: return long2string(pp->getLargest_acknowledged());
+        case FIELD_ACK_delay: return long2string(pp->getACK_delay());
+        case FIELD_first_ACK_range: return long2string(pp->getFirst_ACK_range());
         default: return "";
     }
 }
 
-bool QuicDataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool QuicACKFrameDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -674,13 +496,16 @@ bool QuicDataDescriptor::setFieldValueAsString(void *object, int field, int i, c
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicACKFrame *pp = (QuicACKFrame *)object; (void)pp;
     switch (field) {
+        case FIELD_largest_acknowledged: pp->setLargest_acknowledged(string2long(value)); return true;
+        case FIELD_ACK_delay: pp->setACK_delay(string2long(value)); return true;
+        case FIELD_first_ACK_range: pp->setFirst_ACK_range(string2long(value)); return true;
         default: return false;
     }
 }
 
-const char *QuicDataDescriptor::getFieldStructName(int field) const
+const char *QuicACKFrameDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -689,12 +514,11 @@ const char *QuicDataDescriptor::getFieldStructName(int field) const
         field -= basedesc->getFieldCount();
     }
     switch (field) {
-        case FIELD_stream_frames: return omnetpp::opp_typename(typeid(StreamsData));
         default: return nullptr;
     };
 }
 
-void *QuicDataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *QuicACKFrameDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -702,9 +526,8 @@ void *QuicDataDescriptor::getFieldStructValuePointer(void *object, int field, in
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    QuicData *pp = (QuicData *)object; (void)pp;
+    QuicACKFrame *pp = (QuicACKFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_stream_frames: return toVoidPtr(pp->getStream_frames()); break;
         default: return nullptr;
     }
 }

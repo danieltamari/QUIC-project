@@ -175,7 +175,6 @@ Packet* QuicConnectionServer::ProcessServerWaitData(Packet* packet) {
     // process data
     const StreamsData* streams_data = data->getStream_frames();
     std::vector<stream_frame*> accepted_frames = streams_data->getFramesArray();
-  //  int received_data_size = streams_data->getTotalSize();
     recievePacket(accepted_frames);
 
     // update flow control
@@ -204,12 +203,17 @@ Packet* QuicConnectionServer::ProcessServerWaitData(Packet* packet) {
     int src_ID = this->GetSourceID();
     int dest_ID = this->GetDestID();
     auto QuicHeader = makeShared<QuicPacketHeader>();
-    QuicHeader->setPacket_number(income_packet_number); // which packet is currently ACKED
+    QuicHeader->setPacket_number(rcv_next); // which packet we expect to receive next
     QuicHeader->setSrc_connectionID(src_ID);
     QuicHeader->setDest_connectionID(dest_ID);
     QuicHeader->setPacket_type(3);
     QuicHeader->setChunkLength(B(sizeof(int)*4));
     ack->insertAtFront(QuicHeader);
+    auto ACK_frame = makeShared<QuicACKFrame>();
+    ACK_frame->setLargest_acknowledged(income_packet_number);
+    ACK_frame->setFirst_ACK_range(1); // foe now, until generating foe a range of packets
+    ACK_frame->setChunkLength(B(sizeof(int)*4));
+    ack->insertAtBack(ACK_frame);
     //this->event->setKind(QUIC_S_SEND);
     return ack;
 }
