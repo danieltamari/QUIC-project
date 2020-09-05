@@ -14,6 +14,8 @@
 // 
 
 package inet.applications.quicapp;
+import inet.node.bgp.BgpRouter;
+import inet.node.inet.Router;
 import inet.node.inet.StandardHost;
 import ned.DatarateChannel;
 
@@ -23,39 +25,6 @@ import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 //
 // TODO auto-generated type
 //
-
-
-
-
-
-
-//simple SimV1_server
-//{
-//    gates:
-//        input in;
-//        output out;
-//}
-
-//simple QuicConnection
-//{
-//    gates:
-//        input tic_in;
-//        input toc_in;
-//        output tic_out;
-//        output toc_out;
-//}
-        //ticConnection: QuicConnection;
-
-
-//        client1: StandardHost {
-//            parameters:
-//                @display("p=250,100;i=device/pc3");
-//        }
-//        tic.out --> {  delay = 100ms; } --> ticConnection.tic_in;
-//        ticConnection.toc_out --> {  delay = 100ms; } --> toc.in;
-//        tic.in <-- {  delay = 100ms; } <-- ticConnection.tic_out;
-//        ticConnection.toc_in <-- {  delay = 100ms; } <-- toc.out;
-
 
 network QuicV1
 {
@@ -70,32 +39,40 @@ network QuicV1
         }
 
     submodules:
-        //    tic: SimV1_client {
-        //         @display("p=30,158");
-        //     }
-        //     toc: SimV1_server {
-        //        @display("p=209,44");
-        //    }
         client1: QuicClient {
             parameters:
                 @display("p=199,100;i=device/pc3");
         }
-
+        client2: QuicClient {
+            parameters:
+                @display("p=199,175;i=device/pc3");
+        }
         server: QuicServer {
             parameters:
                 @display("p=331,100;i=device/pc2");
+        }
+        server2: QuicServer {
+            parameters:
+                @display("p=341,168;i=device/pc2");
         }
 
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,100;is=s");
         }
+        router: Router {
+            @display("p=254,127");
+        }
     connections allowunconnected:
 
+        //client1.pppg++ <--> C <--> server.pppg++;
+        client1.pppg++ <--> C <--> router.pppg++;
+        client2.pppg++ <--> C <--> router.pppg++;
+        server.pppg++ <--> C <--> router.pppg++;
+        server2.pppg++ <--> C <--> router.pppg++;
 
-        //     tic.out --> client1.ClientIn;
-        // tic.in <-- {  delay = 100ms; } <-- client1.ClientOut;
-        //      toc.out --> {  delay = 100ms; } --> server.ClientIn;
-        //toc.in <-- {  delay = 100ms; } <-- server.ClientOut;
-        client1.pppg++ <--> C <--> server.pppg++;
+
+
+
+
 }

@@ -22,12 +22,14 @@
 #include "QuicStreamArr.h"
 #include "QuicData_m.h"
 #include "QuicPacketHeader_m.h"
+#include "MaxData_m.h"
 #include "StreamsData.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
 #include "inet/common/ModuleAccess.h"
-#include "QuicConnection.h"
+#include "QuicConnectionClient.h"
+#include "QuicConnectionServer.h"
 #include "connection_config_data_m.h"
 
 #ifndef INET_APPLICATIONS_QUICAPP_CONNECTIONMANAGER_H_
@@ -37,7 +39,9 @@
 enum Packet_type {HANDSHAKE =0,
                   HANDSHAKE_RESPONSE,
                   FIRST_STREAMS_DATA,
-                  ACK_PACKET
+                  ACK_PACKET,
+                  MAX_STREAM_DATA,
+                  MAX_DATA
                     };
 
 namespace inet {
@@ -50,14 +54,14 @@ public:
     virtual void socketDataArrived(UdpSocket *socket, Packet *packet) override;
     virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
     virtual void socketClosed(UdpSocket *socket) override;
-    virtual L3Address chooseDestAddr();
-    void sendPacket(Packet *packet) ;
+    void sendPacket(Packet *packet,L3Address destAddr) ;
     void connectToUDPSocket();
 
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
-    int AddNewConnection(int* connection_data, int connection_data_size);
+    int AddNewConnection(int* connection_data, int connection_data_size,L3Address destination);
     bool isIDAvailable(int src_ID);
+
 
 protected:
     // state
@@ -66,7 +70,7 @@ protected:
      int localPort = -1, destPort = -1;
      std::vector<L3Address> destAddresses;
      int destAddrRNG = -1;
-     std::vector<QuicConnection>connections;
+     std::vector<QuicConnection*>connections;
 
 };
 Define_Module(ConnectionManager);

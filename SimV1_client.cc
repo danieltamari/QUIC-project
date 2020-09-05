@@ -97,6 +97,9 @@ void SimV1_client::connect() {
 void SimV1_client::sendData() {
     int number_of_streams = par("number_of_streams");
     int stream_size=par("stream_size");
+    //int server_number_to_send=par("server_number_to_send");
+    //int my_client_number=par("my_client_number");
+    const char *connectAddress = par("connectAddress");
 
 
     Packet *msg = new Packet("connection_data");
@@ -105,6 +108,8 @@ void SimV1_client::sendData() {
     for (int i=0; i<number_of_streams; i++){
         payload->setConnection_data(i, stream_size);
     }
+    payload->setConnectAddress(connectAddress);
+    //payload->setMy_client_number(my_client_number);
     payload->setChunkLength(B(sizeof(int)*1));
     msg->insertAtBack(payload);
     msg->setKind(SENDER);

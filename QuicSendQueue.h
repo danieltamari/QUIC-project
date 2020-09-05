@@ -27,11 +27,9 @@ class QuicSendQueue {
 public:
     QuicSendQueue();
     virtual ~QuicSendQueue();
- //   void addAllData(int total_bytes_to_send);
-  //  void removeDataSent(int msgByteLength);
     bool isQueueEmpty();
     void addStreamFrame(stream_frame* frame);
-  //  void removeACKEDFrame();
+
 
 protected:
   //  ChunkQueue send_queue; // stores application data

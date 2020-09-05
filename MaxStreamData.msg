@@ -12,31 +12,15 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
+import inet.common.INETDefs;
+import inet.applications.base.ApplicationPacket;
+import inet.common.packet.chunk.Chunk;
+namespace inet;
 
-#include "QuicSendQueue.h"
-
-namespace inet {
-
-QuicSendQueue::QuicSendQueue() {
-    // TODO Auto-generated constructor stub
-    // send_queue = new ChunkQueue();
-}
-
-
-bool QuicSendQueue ::isQueueEmpty(){
-//    B bytes_left=send_queue.getLength();
-//    if (bytes_left==B(0))
-//        return true;
-//    else
-//        return false;
-}
-
-QuicSendQueue::~QuicSendQueue() {
-    // TODO Auto-generated destructor stub
-}
-
-void QuicSendQueue::addStreamFrame(stream_frame* frame) {
-    this->sent_without_ACK_frames.push_back(frame);
-}
-
-} /* namespace inet */
+//
+// TODO generated message class
+//
+class MaxStreamData extends FieldsChunk  {
+    int Stream_ID;
+    int Maximum_Stream_Data; 
+    }

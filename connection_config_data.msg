@@ -24,4 +24,7 @@ namespace inet;
 //
 class connection_config_data extends FieldsChunk {
 	int connection_data[];
+	//int server_number;
+	//int my_client_number;
+	string connectAddress;
 }
