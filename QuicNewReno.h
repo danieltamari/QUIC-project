@@ -43,7 +43,7 @@ public:
   void receivedDataAck(uint32 old_send_una);
 
   /** Redefine what should happen when dupAck was received, to add congestion window management */
-  void receivedDuplicateAck();
+  void receivedDuplicateAck(int packet_gap);
 
 
   void rttMeasurementCompleteUsingTS(uint32 echoedTS);

@@ -78,6 +78,9 @@ QuicEventCode QuicConnection::preanalyseAppCommandEvent(int commandCode) {
     case QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
         return QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE;
 
+    case QUIC_E_CLIENT_PROCESS_ACK:
+        return QUIC_E_CLIENT_PROCESS_ACK;
+
     case QUIC_E_SEND:
         return QUIC_E_SEND;
 

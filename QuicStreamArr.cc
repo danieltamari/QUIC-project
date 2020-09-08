@@ -104,10 +104,9 @@ bool QuicStreamArr::IsAvilableStreamExist() {
 }
 
 
-StreamsData* QuicStreamArr::DataToSend(int max_payload, int connection_flow_control_recieve_window) {
+StreamsData* QuicStreamArr::DataToSend(int max_payload) {
     int checked_streams = 0;
-    //int index_in_frame_array = 0;
-    int connection_window_size = connection_flow_control_recieve_window;
+  //  int connection_window_size = connection_flow_control_recieve_window;
     bool packet_full = false;
     int bytes_left_to_send_in_packet = max_payload;
     StreamsData* new_data = new StreamsData();
@@ -118,15 +117,18 @@ StreamsData* QuicStreamArr::DataToSend(int max_payload, int connection_flow_cont
         stream* curr_stream = stream_arr_[last_stream_index_checked];
         checked_streams++;
 
+        if(!curr_stream->valid) // stream is blocked -> move to the next one
+            continue;
+
         // check stream window (flow control)
         if (bytes_left_to_send_in_packet > curr_stream->flow_control_recieve_window)
             bytes_to_send_in_frame = curr_stream->flow_control_recieve_window;
         else
             bytes_to_send_in_frame = bytes_left_to_send_in_packet;
 
-        // check connection window
-        if (bytes_to_send_in_frame > connection_window_size)
-            bytes_to_send_in_frame = connection_window_size;
+//        // check connection window
+//        if (bytes_to_send_in_frame > connection_window_size)
+//            bytes_to_send_in_frame = connection_window_size;
 
         if (curr_stream->bytes_left_to_send_in_stream < bytes_to_send_in_frame)
             bytes_to_send_in_frame = curr_stream->bytes_left_to_send_in_stream;
@@ -137,16 +139,16 @@ StreamsData* QuicStreamArr::DataToSend(int max_payload, int connection_flow_cont
                 last_stream_index_checked = 0;
             continue;
         }
-        if (connection_window_size==0){//end DATA_BLOCKING FRAME IN FUTURE(??) ASK MICHA
-            break;
-        }
+//        if (connection_window_size==0){//end DATA_BLOCKING FRAME IN FUTURE(??) ASK MICHA
+//            break;
+//        }
 
         // update stream flow control
         curr_stream->bytes_left_to_send_in_stream -= bytes_to_send_in_frame;
 //        curr_stream->highest_recieved_byte_offset+=bytes_to_send_in_frame;
 //        curr_stream->flow_control_recieve_window=curr_stream->flow_control_recieve_offset-curr_stream->highest_recieved_byte_offset;
 
-        connection_window_size -= bytes_to_send_in_frame;
+       // connection_window_size -= bytes_to_send_in_frame;
 
         int stream_id = curr_stream->stream_id;
         int offset = curr_stream->current_offset_in_stream;

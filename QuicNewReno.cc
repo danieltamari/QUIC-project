@@ -15,7 +15,7 @@
 
 #include "QuicNewReno.h"
 
-#define DUPTHRESH 3
+#define kPacketThreshold 3
 
 namespace inet {
 
@@ -304,10 +304,10 @@ void QuicNewReno::receivedDataAck(uint32 old_send_una)
     //sendData(false);
 }
 
-void QuicNewReno::receivedDuplicateAck()
+void QuicNewReno::receivedDuplicateAck(int packet_gap)
 {
 
-    if (dupacks == DUPTHRESH) {    // DUPTHRESH = 3, remember where to update it #######
+    if (packet_gap == kPacketThreshold) {    // DUPTHRESH = 3, remember where to update it #######
         if (!lossRecovery) {
             // RFC 3782, page 4:
             // "1) Three duplicate ACKs:
@@ -372,7 +372,7 @@ void QuicNewReno::receivedDuplicateAck()
         }
         EV_INFO << "NewReno on dupAcks == DUPTHRESH(=3): TCP is already in Fast Recovery procedure\n";
     }
-    else if (dupacks > DUPTHRESH) {    // DUPTHRESH = 3
+    else if (packet_gap > kPacketThreshold) {    // DUPTHRESH = 3
         if (lossRecovery) {
             // RFC 3782, page 4:
             // "3) Fast Recovery:

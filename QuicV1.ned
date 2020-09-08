@@ -43,33 +43,33 @@ network QuicV1
             parameters:
                 @display("p=199,100;i=device/pc3");
         }
-        client2: QuicClient {
-            parameters:
-                @display("p=199,175;i=device/pc3");
-        }
+//        client2: QuicClient {
+//            parameters:
+//                @display("p=199,175;i=device/pc3");
+//        }
         server: QuicServer {
             parameters:
                 @display("p=331,100;i=device/pc2");
         }
-        server2: QuicServer {
-            parameters:
-                @display("p=341,168;i=device/pc2");
-        }
+//        server2: QuicServer {
+//            parameters:
+//                @display("p=341,168;i=device/pc2");
+//        }
 
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=100,100;is=s");
         }
-        router: Router {
-            @display("p=254,127");
-        }
+//        router: Router {
+//            @display("p=254,127");
+//        }
     connections allowunconnected:
 
-        //client1.pppg++ <--> C <--> server.pppg++;
-        client1.pppg++ <--> C <--> router.pppg++;
-        client2.pppg++ <--> C <--> router.pppg++;
-        server.pppg++ <--> C <--> router.pppg++;
-        server2.pppg++ <--> C <--> router.pppg++;
+        client1.pppg++ <--> C <--> server.pppg++;
+        //client1.pppg++ <--> C <--> router.pppg++;
+        //client2.pppg++ <--> C <--> router.pppg++;
+        //server.pppg++ <--> C <--> router.pppg++;
+        //server2.pppg++ <--> C <--> router.pppg++;
 
 
 

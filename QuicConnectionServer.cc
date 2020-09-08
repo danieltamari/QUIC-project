@@ -163,7 +163,7 @@ Packet* QuicConnectionServer::ProcessServerWaitData(Packet* packet) {
     int income_packet_number = header->getPacket_number();
     int dest_connectionID  = header->getDest_connectionID();
     int source_connectionID  = header->getSrc_connectionID();
-    if (rcv_next != income_packet_number)
+    if (rcv_next != income_packet_number) // OOO packet
         receive_not_ACKED_queue.push_back(income_packet_number);
     else
         rcv_next++;

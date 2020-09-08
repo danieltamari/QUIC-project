@@ -32,6 +32,9 @@ Packet* QuicConnectionClient::ProcessEvent(const QuicEventCode &event,
     case QUIC_E_SEND:
         conn_packet = ProcessClientSend(packet); //add function
         break;
+    case QUIC_E_CLIENT_PROCESS_ACK:
+        conn_packet = ProcessClientACK(packet);
+        break;
 
     default:
         //  throw cRuntimeError(tcpMain, "wrong event code");
@@ -57,8 +60,8 @@ void QuicConnectionClient::performStateTransition(const QuicEventCode &event) {
 
     case QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE:
         switch (event) {
-        case QUIC_E_SEND:
-            FSM_Goto(fsm, QUIC_S_SEND);
+        case QUIC_E_CLIENT_PROCESS_ACK:
+            FSM_Goto(fsm, QUIC_S_CLIENT_PROCESS_ACK);
             break;
             //case QUIC_E_CONNECTION_TERM:
             //   FSM_Goto(fsm, QUIC_S_CONNECTION_TERM);
@@ -70,12 +73,22 @@ void QuicConnectionClient::performStateTransition(const QuicEventCode &event) {
 
     case QUIC_S_SEND:
         switch (event) {
-        //case QUIC_E_CONNECTION_TERM:
-        //    FSM_Goto(fsm, QUIC_S_CONNECTION_TERM);
-        break;
-    default:
-        break;
+        case QUIC_E_CLIENT_PROCESS_ACK:
+            FSM_Goto(fsm, QUIC_S_CLIENT_PROCESS_ACK);
+            break;
+        default:
+            break;
         }
+
+    case QUIC_S_CLIENT_PROCESS_ACK:
+        switch (event) {
+        case QUIC_E_SEND:
+            FSM_Goto(fsm, QUIC_S_SEND);
+            break;
+        default:
+            break;
+        }
+
         break;
 
     }

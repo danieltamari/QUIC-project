@@ -74,15 +74,21 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
             if ((*it)->GetDestID() == src_ID_from_peer) {
                 (*it)->SetSourceID(dest_ID_from_peer);
                 (*it)->SetDestID(src_ID_from_peer);
-                Packet *first_data_packet = (*it)->ActivateFsm(packet);
-                // setRTO on copy packet
-                auto header = first_data_packet->peekAtFront<QuicPacketHeader>();
-                int packet_number = header->getPacket_number();
-                Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
-                simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
-                scheduleAt(simTime()+RTO,copy_packet);
-                sendPacket(first_data_packet,(*it)->GetDestAddress());
-
+                Packet *dummy_packet = (*it)->ActivateFsm(packet);
+                Packet *first_data_packet = (*it)->ActivateFsm(dummy_packet);
+                std::list<Packet*>* packets_to_send = (dynamic_cast<QuicConnectionClient*>(*it))->getPacketsToSend();
+                for (std::list<Packet*>::iterator it_packet = packets_to_send->begin();
+                        it_packet != packets_to_send->end(); ++it_packet) {
+                    Packet* curr_packet_to_send=*it_packet;
+                    // setRTO on copy packet
+                    auto header = curr_packet_to_send->peekAtFront<QuicPacketHeader>();
+                    int packet_number = header->getPacket_number();
+                    Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
+                    simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
+                    scheduleAt(simTime()+RTO,copy_packet);
+                    sendPacket(curr_packet_to_send,(*it)->GetDestAddress());
+                }
+                packets_to_send->clear();
                 break;
             }
         }
@@ -154,21 +160,38 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                  int smallest = largest - num_of_ACKED_packets + 1;
                  for (int i = 0; i < num_of_ACKED_packets; i++) {
                      int current_packet = smallest + i;
-                     // cancel timeout
+                     // cancel timeout on acked packets
                      Packet* copy_received_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(current_packet);
                      cancelEvent(copy_received_packet); //cancel RTO timeout
                  }
                  packet->eraseAll();
                  packet->insertAtFront(header);
                  packet->insertAtBack(ACK_data);
-                 Packet *data_packet = (*it)->ActivateFsm(packet);
-                 // setRTO on copy packet
-                 auto header_new_packet = data_packet->peekAtFront<QuicPacketHeader>();
-                 int packet_number = header_new_packet->getPacket_number();
-                 Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
-                 simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
-                 scheduleAt(simTime()+RTO,copy_packet);
-                 sendPacket(data_packet,(*it)->GetDestAddress());
+                 Packet *dummy_packet = (*it)->ActivateFsm(packet);
+
+                 // cancel timeout on lost packets
+                 std::list<Packet*>* lost_packets = (dynamic_cast<QuicConnectionClient*>(*it))->getLostPackets(largest);
+                 for (std::list<Packet*>::iterator it_remove =
+                         lost_packets->begin(); it_remove != lost_packets->end(); ++it_remove) {
+                     cancelEvent(*it_remove);
+                 }
+
+
+                 Packet *data_packet = (*it)->ActivateFsm(dummy_packet);
+
+                 std::list<Packet*>* packets_to_send = (dynamic_cast<QuicConnectionClient*>(*it))->getPacketsToSend();
+                 for (std::list<Packet*>::iterator it_packet = packets_to_send->begin();
+                         it_packet != packets_to_send->end(); ++it_packet) {
+                     Packet* curr_packet_to_send=*it_packet;
+                     // setRTO on copy packet
+                     auto header = curr_packet_to_send->peekAtFront<QuicPacketHeader>();
+                     int packet_number = header->getPacket_number();
+                     Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
+                     simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
+                     scheduleAt(simTime()+RTO,copy_packet);
+                     sendPacket(curr_packet_to_send,(*it)->GetDestAddress());
+                 }
+                 packets_to_send->clear();
                  break;
              }
         }

@@ -31,8 +31,6 @@ namespace inet {
 
 struct stream {
     int stream_id;
-   // int max_bytes_to_send; // total data size that stream can send simultansiolsley
-   // int bytes_in_stream; // total bytes currently in this stream
     int current_offset_in_stream; // stream send frame from this current offset
     bool valid;
     int stream_size; // how many bytes stream have to send
@@ -44,16 +42,11 @@ struct stream {
     int flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
     int consumed_bytes; // how many bytes moved to application layer
 
+    int bytes_left_to_send_in_stream; // how many bytes we are left to send in this stream
+
     // send queue
     QuicSendQueue* send_queue;
     QuicRecieveQueue* receive_queue;
-
-//    int sent_bytes_num; // the number of bytes that was sent/recived in this stream
-//    bool valid; // is the stream open or close, if close we can open a new stream in this cell with new stream_id
-//    int max_bytes;// the maximum number of bytes that can be sent in this stream;
-//    int curr_quanta; // the quanta we can send through this stream
-//    int total_bytes_to_send; // total data size we want to transfer in this stream
-      int bytes_left_to_send_in_stream; // how many bytes we are left to send in this stream
 };
 
 class QuicStreamArr {
@@ -66,7 +59,7 @@ public:
     bool CloseStream(int stream_id);
     bool IsAvilableStreamExist();
     int FreeBytesAvilable() {return total_free_bytes_;}
-    StreamsData* DataToSend(int max_payload, int connection_flow_control_recieve_window);//make a streamData to send
+    StreamsData* DataToSend(int max_payload);//make a streamData to send
     void setAllStreamsWindows(int window_size);
     int getTotalConsumedBytes();
     int getTotalMaxOffset();

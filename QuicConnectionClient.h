@@ -51,7 +51,7 @@ public:
 
 
     Packet* createQuicDataPacket(StreamsData* streams_data);
-    StreamsData* CreateSendData(int max_payload, int connection_window);
+    StreamsData* CreateSendData(int max_payload);
     void AddNewStream(int stream_size,int index);
     Packet* findPacket(int packet_number);
 
@@ -61,8 +61,13 @@ public:
     Packet* ProcessInitiateHandshake(Packet* packet);
     Packet* ProcessClientHandshakeResponse(Packet* packet);
     Packet* ProcessClientSend(Packet* packet);
+    Packet* ProcessClientACK(Packet* ack_packet);
+
 
     Packet* RemovePacketFromQueue(int packet_number);
+    std::list<Packet*>* getLostPackets(int largest);
+    std::list<Packet*>* getPacketsToSend();
+
     void updateFlowControl(Packet* acked_packet);
     void updateMaxStreamData(int stream_id, int max_stream_data_offset);
 
@@ -77,8 +82,10 @@ protected:
     int packet_counter; // counter to assign each packet header a unique packet number
     int num_packets_sent;
     int send_una; // sent and unacknowledged bytes so far
-    std::list<Packet*> send_not_ACKED_queue;
-
+    int old_send_una;
+    std::list<Packet*>* send_not_ACKED_queue; // need to only contain meta data
+    std::list<Packet*>* waiting_retransmission; // need to only contain meta data
+    std::list<Packet*>* packets_to_send;
 
     //flow control client side parameters
     int max_payload;
