@@ -464,7 +464,7 @@ void QuicData::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->stream_frames);
 }
 
-const StreamsData * QuicData::getStream_frames() const
+StreamsData * QuicData::getStream_frames() const
 {
     return this->stream_frames;
 }

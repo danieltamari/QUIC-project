@@ -18,7 +18,7 @@
 
 #include "inet/common/INETDefs.h"
 #include <omnetpp.h>
-#include "QuicConnection.h"
+#include "QuicConnectionServer.h"
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/common/lifecycle/LifecycleOperation.h"
 

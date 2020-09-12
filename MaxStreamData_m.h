@@ -1,9 +1,9 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/QuicData.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/MaxStreamData.msg.
 //
 
-#ifndef __INET_QUICDATA_M_H
-#define __INET_QUICDATA_M_H
+#ifndef __INET_MAXSTREAMDATA_M_H
+#define __INET_MAXSTREAMDATA_M_H
 
 #if defined(__clang__)
 #  pragma clang diagnostic ignored "-Wreserved-id-macro"
@@ -30,7 +30,7 @@
 
 namespace inet {
 
-class QuicData;
+class MaxStreamData;
 } // namespace inet
 
 #include "inet/common/INETDefs_m.h" // import inet.common.INETDefs
@@ -39,56 +39,55 @@ class QuicData;
 
 #include "inet/common/packet/chunk/Chunk_m.h" // import inet.common.packet.chunk.Chunk
 
-// cplusplus {{
-#include "StreamsData.h"
-// }}
-
 
 namespace inet {
 
 /**
- * Class generated from <tt>inet/applications/quicapp/QuicData.msg:33</tt> by nedtool.
+ * Class generated from <tt>inet/applications/quicapp/MaxStreamData.msg:23</tt> by nedtool.
  * <pre>
  * //
  * // TODO generated message class
  * //
- * class QuicData extends FieldsChunk
+ * class MaxStreamData extends FieldsChunk
  * {
- *     StreamsData *stream_frames;
+ *     int Stream_ID;
+ *     int Maximum_Stream_Data;
  * }
  * </pre>
  */
-class INET_API QuicData : public ::inet::FieldsChunk
+class INET_API MaxStreamData : public ::inet::FieldsChunk
 {
   protected:
-    StreamsData * stream_frames = nullptr;
+    int Stream_ID = 0;
+    int Maximum_Stream_Data = 0;
 
   private:
-    void copy(const QuicData& other);
+    void copy(const MaxStreamData& other);
 
   protected:
     // protected and unimplemented operator==(), to prevent accidental usage
-    bool operator==(const QuicData&);
+    bool operator==(const MaxStreamData&);
 
   public:
-    QuicData();
-    QuicData(const QuicData& other);
-    virtual ~QuicData();
-    QuicData& operator=(const QuicData& other);
-    virtual QuicData *dup() const override {return new QuicData(*this);}
+    MaxStreamData();
+    MaxStreamData(const MaxStreamData& other);
+    virtual ~MaxStreamData();
+    MaxStreamData& operator=(const MaxStreamData& other);
+    virtual MaxStreamData *dup() const override {return new MaxStreamData(*this);}
     virtual void parsimPack(omnetpp::cCommBuffer *b) const override;
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
-    virtual StreamsData * getStream_frames() const;
-    virtual StreamsData * getStream_framesForUpdate() { handleChange();return const_cast<StreamsData *>(const_cast<QuicData*>(this)->getStream_frames());}
-    virtual void setStream_frames(StreamsData * stream_frames);
+    virtual int getStream_ID() const;
+    virtual void setStream_ID(int Stream_ID);
+    virtual int getMaximum_Stream_Data() const;
+    virtual void setMaximum_Stream_Data(int Maximum_Stream_Data);
 };
 
-inline void doParsimPacking(omnetpp::cCommBuffer *b, const QuicData& obj) {obj.parsimPack(b);}
-inline void doParsimUnpacking(omnetpp::cCommBuffer *b, QuicData& obj) {obj.parsimUnpack(b);}
+inline void doParsimPacking(omnetpp::cCommBuffer *b, const MaxStreamData& obj) {obj.parsimPack(b);}
+inline void doParsimUnpacking(omnetpp::cCommBuffer *b, MaxStreamData& obj) {obj.parsimUnpack(b);}
 
 } // namespace inet
 
-#endif // ifndef __INET_QUICDATA_M_H
+#endif // ifndef __INET_MAXSTREAMDATA_M_H
 

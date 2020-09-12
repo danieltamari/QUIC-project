@@ -51,6 +51,9 @@ namespace inet {
  * class connection_config_data extends FieldsChunk
  * {
  *     int connection_data[];
+ *     //int server_number;
+ *     //int my_client_number;
+ *     string connectAddress;
  * }
  * </pre>
  */
@@ -59,6 +62,7 @@ class INET_API connection_config_data : public ::inet::FieldsChunk
   protected:
     int *connection_data = nullptr;
     size_t connection_data_arraysize = 0;
+    omnetpp::opp_string connectAddress;
 
   private:
     void copy(const connection_config_data& other);
@@ -84,6 +88,8 @@ class INET_API connection_config_data : public ::inet::FieldsChunk
     virtual void insertConnection_data(int connection_data);
     virtual void insertConnection_data(size_t k, int connection_data);
     virtual void eraseConnection_data(size_t k);
+    virtual const char * getConnectAddress() const;
+    virtual void setConnectAddress(const char * connectAddress);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const connection_config_data& obj) {obj.parsimPack(b);}
