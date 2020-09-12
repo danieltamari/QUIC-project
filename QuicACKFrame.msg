@@ -13,30 +13,17 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "QuicSendQueue.h"
+import inet.common.INETDefs;
+import inet.applications.base.ApplicationPacket;
+import inet.common.packet.chunk.Chunk;
+namespace inet;
 
-namespace inet {
 
-QuicSendQueue::QuicSendQueue() {
-    // TODO Auto-generated constructor stub
-    // send_queue = new ChunkQueue();
+//
+// TODO generated message class
+//
+class QuicACKFrame extends FieldsChunk {
+	int largest_acknowledged; //  largest packet number the peer is acknowledging- the largest packet number that the peer has received prior to generating the ACK frame.
+	int ACK_delay; // acknowledgement delay in microseconds
+	int first_ACK_range; // number of contiguous packets preceding the Largest Acknowledged that are being acknowledged
 }
-
-
-bool QuicSendQueue ::isQueueEmpty(){
-//    B bytes_left=send_queue.getLength();
-//    if (bytes_left==B(0))
-//        return true;
-//    else
-//        return false;
-}
-
-QuicSendQueue::~QuicSendQueue() {
-    // TODO Auto-generated destructor stub
-}
-
-void QuicSendQueue::addStreamFrame(stream_frame* frame) {
-    this->sent_without_ACK_frames.push_back(frame);
-}
-
-} /* namespace inet */

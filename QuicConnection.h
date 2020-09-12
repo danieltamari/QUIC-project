@@ -13,161 +13,86 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
+
+
 #include "inet/common/INETDefs.h"
-#include "QuicSendQueue.h"
-#include "QuicReceiveQueue.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
 #include "QuicData_m.h"
 #include "QuicPacketHeader_m.h"
 #include "QuicHandShakeData_m.h"
+#include "MaxStreamData_m.h"
 #include "StreamsData.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
 #include "inet/common/ModuleAccess.h"
 
-
-#ifndef INET_APPLICATIONS_QUICAPP_QuicConnection_H_
-#define INET_APPLICATIONS_QUICAPP_QuicConnection_H_
+#ifndef INET_APPLICATIONS_QUICAPP_QUICCONNECTION_H_
+#define INET_APPLICATIONS_QUICAPP_QUICCONNECTION_H_
 
 namespace inet {
 
-class QuicStreamArr;
-class QuicSendQueue;
-class QuicRecieveQueue;
-
 enum QuicState {
     QUIC_S_CLIENT_INITIATE_HANDSHAKE = 0,
-    QUIC_S_SERVER_PROCESS_HANDSHAKE = FSM_Steady(1),
-    QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE = FSM_Steady(2),
-    QUIC_S_SERVER_WAIT_FOR_DATA =FSM_Steady(3),
-    QUIC_S_NEW_CONNECTION = FSM_Steady(4),
-    QUIC_S_RECONNECTION = FSM_Steady(5),
-    QUIC_S_SEND = FSM_Steady(6),
-    QUIC_S_LISTEN = FSM_Steady(7),
-    QUIC_S_CONNECTION_TERM = FSM_Steady(8),
+    QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE = FSM_Steady(1),
+    QUIC_S_CLIENT_PROCESS_ACK = FSM_Steady(2),
+    QUIC_S_SEND = FSM_Steady(3),
+    QUIC_S_SERVER_PROCESS_HANDSHAKE = FSM_Steady(4),
+    QUIC_S_SERVER_WAIT_FOR_DATA =FSM_Steady(5),
+//    QUIC_S_CONNECTION_TERM = FSM_Steady(8),
 };
 
 enum QuicEventCode {
     QUIC_E_CLIENT_INITIATE_HANDSHAKE = 0,
-    QUIC_E_SERVER_PROCESS_HANDSHAKE,
     QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE,
-    QUIC_E_SERVER_WAIT_FOR_DATA,
-    QUIC_E_NEW_CONNECTION,
-    QUIC_E_RECONNECTION,
+    QUIC_E_CLIENT_PROCESS_ACK,
     QUIC_E_SEND,
-    QUIC_E_LISTEN,
-    QUIC_E_CONNECTION_TERM,
+    QUIC_E_SERVER_PROCESS_HANDSHAKE,
+    QUIC_E_SERVER_WAIT_FOR_DATA,
+//    QUIC_E_CONNECTION_TERM,
 };
 
-/*
- * things to add:
- * - receive queue because the reciver need to get the bytes in order.
- * -
- *
- */
 
-class QuicConnection { //public cSimpleModule, public UdpSocket::ICallback{
+class QuicConnection {
 public:
     QuicConnection();
-    QuicConnection(int* connection_data, int connection_data_size);
-
     virtual ~QuicConnection();
-    Packet* createQuicDataPacket(StreamsData* streams_data);
-    void sendPacket(Packet *packet);
-    StreamsData* CreateSendData(int max_payload);
-    void recievePacket(std::vector<stream_frame*> accepted_frames);
-    void AddNewStream(int stream_size,int index);
-    bool CloseStream(int stream_id);
 
-    void performStateTransition(const QuicEventCode &event);
-    Packet* ProcessEvent(const QuicEventCode &event,Packet* packet);
-    Packet* ActivateFsm(Packet* packet);
-    Packet* ProcessInitiateHandshake(Packet* packet);
-    Packet* ServerProcessHandshake(Packet* packet);
-    Packet* ProcessClientHandshakeResponse(Packet* packet);
-    Packet* ProcessServerWaitData(Packet* packet);
-
-    //void ProcessNewConnection(cMessage *msg);
-    //void ProcessReconnection(cMessage *msg);
-    //Packet* ProcessConnectionSend(cMessage *msg);
-    //void ProcessConnectionListen(cMessage *msg);
-    //void processConnectionTerm(cMessage *msg);
-    int GetFramesNumber();
-    int GetDataSize();
-    void SetFramesNumber(int frames_number);
-    void SetDataSize(int data_size);
     int GetSourceID();
     void SetSourceID(int source_ID);
     int GetDestID();
     void SetDestID(int dest_ID);
+    int GetMaxOffset();
+    L3Address GetDestAddress();
+    void setConnectionsRecieveOffset(int offset);
+    void setConnectionsRecieveWindow(int window_size);
 
-    //virtual void initialize() override;
-    //virtual void handleMessage(cMessage *msg) override;
+    //virtual void performStateTransition(const QuicEventCode &event) = 0;
+    //virtual Packet* ProcessEvent(const QuicEventCode &event,Packet* packet) = 0;
 
-    QuicEventCode preanalyseAppCommandEvent(int commandCode);
-    int GetEventKind();
-    bool GetFirstConnection() {
-        return this->first_connection;
-    }
+    //Packet* ActivateFsm(Packet* packet);
+    //QuicEventCode preanalyseAppCommandEvent(int commandCode);
 
-  //  void moveDataToSendQueue(int bytes_num);
-  //  void ProcessInitialClientData(int total_bytes_to_send);
-
-//    virtual void socketDataArrived(UdpSocket *socket, Packet *packet) override;
-//    virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
-//    virtual void socketClosed(UdpSocket *socket) override;
-//    virtual L3Address chooseDestAddr();
-
-
-
-
-//    void SetToFirstConnection(){this->first_connection=true;
-//        this->event->setKind(QUIC_E_NEW_CONNECTION);
-//    }
-//    void SetToReConnection(){this->first_connection=false;
-//        this->event->setKind(QUIC_E_RECONNECTION);
-//    }
 protected:
     int connection_source_ID;
     int connection_dest_ID;
+    L3Address destination;
 
-    // state
-//     UdpSocket socket;
-//     L3Address destAddr;
-
-//     int localPort = -1, destPort = -1;
-//    std::vector<L3Address> destAddresses;
-//    int destAddrRNG = -1;
-
-// std::vector<std::string> destAddressStr;
-
-
-    QuicStreamArr *stream_arr; //the class that represent the entire data of the data that was sent
- //   QuicSendQueue *send_queue; // this queue suppose to hold bytes when all the streams are full
- //   QuicRecieveQueue *recieve_queue;
-    int packet_counter; // counter to assign each packet header a unique packet number
-    int num_packets_sent;
-    int num_packets_recieved;
-    uint32 total_bytes_to_send; // how many bytes in total we want to transfer in this connection
+    QuicStreamArr *stream_arr;
 
     cFSM fsm; // QUIC state machine
-    //for start we have a flag for first connection which changes in the first time of the connection.
-    // maybe in the future we will change it and really connect between client and server. (pass some flag about first connection between them)
-    bool first_connection;
-
-    int curr_frames_number; // the number of frames in each stream that the connection can currently send in a single packet.
-    int curr_data_size; // the number of bytes that can currently be sent in a single packet
     cMessage *event = nullptr;
     cMessage *start_fsm;
 
-    int connection_window; // flow control
-    int max_payload;
-};
 
-//Define_Module(QuicConnection);
+    // both server and client flow control side parameters, only server update them
+    int connection_max_flow_control_window_size; // constant
+    int connection_flow_control_recieve_offset; //
+    int connection_flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
+
+};
 
 } /* namespace inet */
 
-#endif /* INET_APPLICATIONS_QUICAPP_QuicConnection_H_ */
+#endif /* INET_APPLICATIONS_QUICAPP_QUICCONNECTION_H_ */

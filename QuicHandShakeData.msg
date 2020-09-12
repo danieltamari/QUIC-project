@@ -22,6 +22,7 @@ namespace inet;
 //
 // TODO generated message class
 //
+
 class QuicHandShakeData extends FieldsChunk {
     // Transport parameters exchanged during Handshake
     
@@ -48,5 +49,7 @@ class QuicHandShakeData extends FieldsChunk {
 	
 	// specifying the initial flow control limit for locally-initiated bidirectional streams. 
 	int initial_max_stream_data;
+	
+
     
 }

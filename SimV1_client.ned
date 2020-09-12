@@ -21,6 +21,8 @@ simple SimV1_client
     parameters:
         int number_of_streams;
         int stream_size;
+        string connectAddress;
+        //int my_client_number;
     gates:
         input in;
         output out;

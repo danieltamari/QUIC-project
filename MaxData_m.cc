@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/connection_config_data.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/MaxData.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include "connection_config_data_m.h"
+#include "MaxData_m.h"
 
 namespace omnetpp {
 
@@ -207,23 +207,22 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(connection_config_data)
+Register_Class(MaxData)
 
-connection_config_data::connection_config_data() : ::inet::FieldsChunk()
+MaxData::MaxData() : ::inet::FieldsChunk()
 {
 }
 
-connection_config_data::connection_config_data(const connection_config_data& other) : ::inet::FieldsChunk(other)
+MaxData::MaxData(const MaxData& other) : ::inet::FieldsChunk(other)
 {
     copy(other);
 }
 
-connection_config_data::~connection_config_data()
+MaxData::~MaxData()
 {
-    delete [] this->connection_data;
 }
 
-connection_config_data& connection_config_data::operator=(const connection_config_data& other)
+MaxData& MaxData::operator=(const MaxData& other)
 {
     if (this == &other) return *this;
     ::inet::FieldsChunk::operator=(other);
@@ -231,131 +230,44 @@ connection_config_data& connection_config_data::operator=(const connection_confi
     return *this;
 }
 
-void connection_config_data::copy(const connection_config_data& other)
+void MaxData::copy(const MaxData& other)
 {
-    delete [] this->connection_data;
-    this->connection_data = (other.connection_data_arraysize==0) ? nullptr : new int[other.connection_data_arraysize];
-    connection_data_arraysize = other.connection_data_arraysize;
-    for (size_t i = 0; i < connection_data_arraysize; i++) {
-        this->connection_data[i] = other.connection_data[i];
-    }
-    this->connectAddress = other.connectAddress;
+    this->Maximum_Data = other.Maximum_Data;
 }
 
-void connection_config_data::parsimPack(omnetpp::cCommBuffer *b) const
+void MaxData::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
-    b->pack(connection_data_arraysize);
-    doParsimArrayPacking(b,this->connection_data,connection_data_arraysize);
-    doParsimPacking(b,this->connectAddress);
+    doParsimPacking(b,this->Maximum_Data);
 }
 
-void connection_config_data::parsimUnpack(omnetpp::cCommBuffer *b)
+void MaxData::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
-    delete [] this->connection_data;
-    b->unpack(connection_data_arraysize);
-    if (connection_data_arraysize == 0) {
-        this->connection_data = nullptr;
-    } else {
-        this->connection_data = new int[connection_data_arraysize];
-        doParsimArrayUnpacking(b,this->connection_data,connection_data_arraysize);
-    }
-    doParsimUnpacking(b,this->connectAddress);
+    doParsimUnpacking(b,this->Maximum_Data);
 }
 
-size_t connection_config_data::getConnection_dataArraySize() const
+int MaxData::getMaximum_Data() const
 {
-    return connection_data_arraysize;
+    return this->Maximum_Data;
 }
 
-int connection_config_data::getConnection_data(size_t k) const
-{
-    if (k >= connection_data_arraysize) throw omnetpp::cRuntimeError("Array of size connection_data_arraysize indexed by %lu", (unsigned long)k);
-    return this->connection_data[k];
-}
-
-void connection_config_data::setConnection_dataArraySize(size_t newSize)
+void MaxData::setMaximum_Data(int Maximum_Data)
 {
     handleChange();
-    int *connection_data2 = (newSize==0) ? nullptr : new int[newSize];
-    size_t minSize = connection_data_arraysize < newSize ? connection_data_arraysize : newSize;
-    for (size_t i = 0; i < minSize; i++)
-        connection_data2[i] = this->connection_data[i];
-    for (size_t i = minSize; i < newSize; i++)
-        connection_data2[i] = 0;
-    delete [] this->connection_data;
-    this->connection_data = connection_data2;
-    connection_data_arraysize = newSize;
+    this->Maximum_Data = Maximum_Data;
 }
 
-void connection_config_data::setConnection_data(size_t k, int connection_data)
-{
-    if (k >= connection_data_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
-    handleChange();
-    this->connection_data[k] = connection_data;
-}
-
-void connection_config_data::insertConnection_data(size_t k, int connection_data)
-{
-    handleChange();
-    if (k > connection_data_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
-    size_t newSize = connection_data_arraysize + 1;
-    int *connection_data2 = new int[newSize];
-    size_t i;
-    for (i = 0; i < k; i++)
-        connection_data2[i] = this->connection_data[i];
-    connection_data2[k] = connection_data;
-    for (i = k + 1; i < newSize; i++)
-        connection_data2[i] = this->connection_data[i-1];
-    delete [] this->connection_data;
-    this->connection_data = connection_data2;
-    connection_data_arraysize = newSize;
-}
-
-void connection_config_data::insertConnection_data(int connection_data)
-{
-    insertConnection_data(connection_data_arraysize, connection_data);
-}
-
-void connection_config_data::eraseConnection_data(size_t k)
-{
-    if (k >= connection_data_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
-    handleChange();
-    size_t newSize = connection_data_arraysize - 1;
-    int *connection_data2 = (newSize == 0) ? nullptr : new int[newSize];
-    size_t i;
-    for (i = 0; i < k; i++)
-        connection_data2[i] = this->connection_data[i];
-    for (i = k; i < newSize; i++)
-        connection_data2[i] = this->connection_data[i+1];
-    delete [] this->connection_data;
-    this->connection_data = connection_data2;
-    connection_data_arraysize = newSize;
-}
-
-const char * connection_config_data::getConnectAddress() const
-{
-    return this->connectAddress.c_str();
-}
-
-void connection_config_data::setConnectAddress(const char * connectAddress)
-{
-    handleChange();
-    this->connectAddress = connectAddress;
-}
-
-class connection_config_dataDescriptor : public omnetpp::cClassDescriptor
+class MaxDataDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_connection_data,
-        FIELD_connectAddress,
+        FIELD_Maximum_Data,
     };
   public:
-    connection_config_dataDescriptor();
-    virtual ~connection_config_dataDescriptor();
+    MaxDataDescriptor();
+    virtual ~MaxDataDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -377,24 +289,24 @@ class connection_config_dataDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(connection_config_dataDescriptor)
+Register_ClassDescriptor(MaxDataDescriptor)
 
-connection_config_dataDescriptor::connection_config_dataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::connection_config_data)), "inet::FieldsChunk")
+MaxDataDescriptor::MaxDataDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::MaxData)), "inet::FieldsChunk")
 {
     propertynames = nullptr;
 }
 
-connection_config_dataDescriptor::~connection_config_dataDescriptor()
+MaxDataDescriptor::~MaxDataDescriptor()
 {
     delete[] propertynames;
 }
 
-bool connection_config_dataDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool MaxDataDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<connection_config_data *>(obj)!=nullptr;
+    return dynamic_cast<MaxData *>(obj)!=nullptr;
 }
 
-const char **connection_config_dataDescriptor::getPropertyNames() const
+const char **MaxDataDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -405,19 +317,19 @@ const char **connection_config_dataDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *connection_config_dataDescriptor::getProperty(const char *propertyname) const
+const char *MaxDataDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int connection_config_dataDescriptor::getFieldCount() const
+int MaxDataDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 2+basedesc->getFieldCount() : 2;
+    return basedesc ? 1+basedesc->getFieldCount() : 1;
 }
 
-unsigned int connection_config_dataDescriptor::getFieldTypeFlags(int field) const
+unsigned int MaxDataDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -426,13 +338,12 @@ unsigned int connection_config_dataDescriptor::getFieldTypeFlags(int field) cons
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISARRAY | FD_ISEDITABLE,    // FIELD_connection_data
-        FD_ISEDITABLE,    // FIELD_connectAddress
+        FD_ISEDITABLE,    // FIELD_Maximum_Data
     };
-    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 1) ? fieldTypeFlags[field] : 0;
 }
 
-const char *connection_config_dataDescriptor::getFieldName(int field) const
+const char *MaxDataDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -441,22 +352,20 @@ const char *connection_config_dataDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "connection_data",
-        "connectAddress",
+        "Maximum_Data",
     };
-    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 1) ? fieldNames[field] : nullptr;
 }
 
-int connection_config_dataDescriptor::findField(const char *fieldName) const
+int MaxDataDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'c' && strcmp(fieldName, "connection_data") == 0) return base+0;
-    if (fieldName[0] == 'c' && strcmp(fieldName, "connectAddress") == 0) return base+1;
+    if (fieldName[0] == 'M' && strcmp(fieldName, "Maximum_Data") == 0) return base+0;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *connection_config_dataDescriptor::getFieldTypeString(int field) const
+const char *MaxDataDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -465,13 +374,12 @@ const char *connection_config_dataDescriptor::getFieldTypeString(int field) cons
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_connection_data
-        "string",    // FIELD_connectAddress
+        "int",    // FIELD_Maximum_Data
     };
-    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 1) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **connection_config_dataDescriptor::getFieldPropertyNames(int field) const
+const char **MaxDataDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -484,7 +392,7 @@ const char **connection_config_dataDescriptor::getFieldPropertyNames(int field) 
     }
 }
 
-const char *connection_config_dataDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *MaxDataDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -497,7 +405,7 @@ const char *connection_config_dataDescriptor::getFieldProperty(int field, const 
     }
 }
 
-int connection_config_dataDescriptor::getFieldArraySize(void *object, int field) const
+int MaxDataDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -505,14 +413,13 @@ int connection_config_dataDescriptor::getFieldArraySize(void *object, int field)
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    connection_config_data *pp = (connection_config_data *)object; (void)pp;
+    MaxData *pp = (MaxData *)object; (void)pp;
     switch (field) {
-        case FIELD_connection_data: return pp->getConnection_dataArraySize();
         default: return 0;
     }
 }
 
-const char *connection_config_dataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *MaxDataDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -520,13 +427,13 @@ const char *connection_config_dataDescriptor::getFieldDynamicTypeString(void *ob
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    connection_config_data *pp = (connection_config_data *)object; (void)pp;
+    MaxData *pp = (MaxData *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string connection_config_dataDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string MaxDataDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -534,15 +441,14 @@ std::string connection_config_dataDescriptor::getFieldValueAsString(void *object
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    connection_config_data *pp = (connection_config_data *)object; (void)pp;
+    MaxData *pp = (MaxData *)object; (void)pp;
     switch (field) {
-        case FIELD_connection_data: return long2string(pp->getConnection_data(i));
-        case FIELD_connectAddress: return oppstring2string(pp->getConnectAddress());
+        case FIELD_Maximum_Data: return long2string(pp->getMaximum_Data());
         default: return "";
     }
 }
 
-bool connection_config_dataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool MaxDataDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -550,15 +456,14 @@ bool connection_config_dataDescriptor::setFieldValueAsString(void *object, int f
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    connection_config_data *pp = (connection_config_data *)object; (void)pp;
+    MaxData *pp = (MaxData *)object; (void)pp;
     switch (field) {
-        case FIELD_connection_data: pp->setConnection_data(i,string2long(value)); return true;
-        case FIELD_connectAddress: pp->setConnectAddress((value)); return true;
+        case FIELD_Maximum_Data: pp->setMaximum_Data(string2long(value)); return true;
         default: return false;
     }
 }
 
-const char *connection_config_dataDescriptor::getFieldStructName(int field) const
+const char *MaxDataDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -571,7 +476,7 @@ const char *connection_config_dataDescriptor::getFieldStructName(int field) cons
     };
 }
 
-void *connection_config_dataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *MaxDataDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -579,7 +484,7 @@ void *connection_config_dataDescriptor::getFieldStructValuePointer(void *object,
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    connection_config_data *pp = (connection_config_data *)object; (void)pp;
+    MaxData *pp = (MaxData *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
