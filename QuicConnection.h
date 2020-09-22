@@ -18,11 +18,17 @@
 #include "inet/common/INETDefs.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
-#include "QuicData_m.h"
-#include "QuicPacketHeader_m.h"
-#include "QuicHandShakeData_m.h"
-#include "MaxStreamData_m.h"
+#include "headers_and_frames/QuicData_m.h"
+#include "headers_and_frames/QuicPacketHeader_m.h"
+#include "headers_and_frames/QuicLongHeader_m.h"
+#include "headers_and_frames/QuicShortHeader_m.h"
+#include "headers_and_frames/QuicHandShakeData_m.h"
+#include "headers_and_frames/MaxStreamData_m.h"
+#include "headers_and_frames/QuicFramesArray_m.h"
+#include "headers_and_frames/QuicFrame_m.h"
+#include "headers_and_frames/PaddingFrame_m.h"
 #include "StreamsData.h"
+#include "retransmission_info_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
@@ -30,6 +36,21 @@
 
 #ifndef INET_APPLICATIONS_QUICAPP_QUICCONNECTION_H_
 #define INET_APPLICATIONS_QUICAPP_QUICCONNECTION_H_
+
+
+#define DEAFULT_STREAM_NUM 10
+// flow control parameters
+#define Init_Connection_FlowControl_Window 16 * 1024  // 64 KB
+#define Init_Stream_ReceiveWindow 16 * 1024   // 16 KB
+// congestion control parameters
+#define ACKTHRESH 3
+#define SSTHRESH_CHANGE_THIS 10
+#define kPacketThreshold 3
+// packets and headers sizes
+#define QUIC_ALLOWED_PACKET_SIZE 1200 // from RFC 14.1
+#define LONG_HEADER_BASE_LENGTH 11
+#define QUIC_SHORT_HEADER_LENGTH 16
+
 
 namespace inet {
 
@@ -53,6 +74,17 @@ enum QuicEventCode {
 //    QUIC_E_CONNECTION_TERM,
 };
 
+struct range {
+    int gap;
+    int ACK_range_length;
+};
+
+struct packet_rcv_type {
+    int packet_number;
+    bool in_order;
+};
+
+
 
 class QuicConnection {
 public:
@@ -63,10 +95,11 @@ public:
     void SetSourceID(int source_ID);
     int GetDestID();
     void SetDestID(int dest_ID);
-    int GetMaxOffset();
+    //int GetMaxOffset();
     L3Address GetDestAddress();
-    void setConnectionsRecieveOffset(int offset);
-    void setConnectionsRecieveWindow(int window_size);
+    unsigned int calcSizeInBytes(int number);
+   // void setConnectionsRecieveOffset(int offset);
+   // void setConnectionsRecieveWindow(int window_size);
 
     //virtual void performStateTransition(const QuicEventCode &event) = 0;
     //virtual Packet* ProcessEvent(const QuicEventCode &event,Packet* packet) = 0;
@@ -87,9 +120,9 @@ protected:
 
 
     // both server and client flow control side parameters, only server update them
-    int connection_max_flow_control_window_size; // constant
-    int connection_flow_control_recieve_offset; //
-    int connection_flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
+   // int connection_max_flow_control_window_size; // constant
+  //  int connection_flow_control_recieve_offset; //
+   // int connection_flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
 
 };
 

@@ -45,23 +45,16 @@ QuicStreamArr::QuicStreamArr(int streams_num) {
 }
 
 void QuicStreamArr::AddNewStream(int stream_size, int stream_id) {
-   // this->stream_arr_[index].bytes_in_stream = 0;
-   // this->stream_arr_[index].max_bytes_to_send = max_bytes;
     stream* stream_to_add=new stream;
     stream_to_add->stream_id = stream_id;
     stream_to_add->valid = true;
     stream_to_add->current_offset_in_stream = 0;
     stream_to_add->stream_size = stream_size;
     stream_to_add->max_flow_control_window_size = 0;
-    stream_to_add->highest_recieved_byte_offset = 0;
-    stream_to_add->flow_control_recieve_offset = 0;
     stream_to_add->flow_control_recieve_window = 0;
-    stream_to_add->consumed_bytes = 0;
     stream_to_add->bytes_left_to_send_in_stream=stream_size;
     stream_to_add->send_queue = new QuicSendQueue();
     this->stream_arr_.push_back(stream_to_add);
-
-  //  EV << "stream_id2 is " << this->stream_arr_[stream_id]->stream_id << " stream_size2 is " << this->stream_arr_[stream_id]->stream_size << endl;
 }
 
 void QuicStreamArr::AddNewStreamServer(int stream_id, int inital_stream_window) {
@@ -72,10 +65,10 @@ void QuicStreamArr::AddNewStreamServer(int stream_id, int inital_stream_window) 
     stream_to_add->valid = true;
     stream_to_add->current_offset_in_stream = 0;
     stream_to_add->max_flow_control_window_size = inital_stream_window;
-    stream_to_add->highest_recieved_byte_offset = 0;
-    stream_to_add->flow_control_recieve_offset = inital_stream_window;
+  //  stream_to_add->highest_recieved_byte_offset = 0;
+  //  stream_to_add->flow_control_recieve_offset = inital_stream_window;
     stream_to_add->flow_control_recieve_window = inital_stream_window;
-    stream_to_add->consumed_bytes = 0;
+  //  stream_to_add->consumed_bytes = 0;
 
    // stream_to_add->bytes_left_to_send_in_stream=stream_size;
     stream_to_add->receive_queue = new QuicRecieveQueue(stream_id);
@@ -113,6 +106,7 @@ void QuicStreamArr::blockStream(int stream_id) {
             break;
         }
     }
+    EV << "############## blocked stream: " << stream_id << " ##############" << endl;
 }
 
 void QuicStreamArr::freeStream(int stream_id) {
@@ -123,15 +117,28 @@ void QuicStreamArr::freeStream(int stream_id) {
             break;
         }
     }
+    EV << "############## free stream: " << stream_id << " ##############" << endl;
 }
 
 
 StreamsData* QuicStreamArr::DataToSend(int max_payload) {
+    StreamsData* new_data = new StreamsData();
+    int counter = 0;
+    for (std::vector<stream*>::iterator it =
+            this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
+        if (!(*it)->valid) {
+            counter++;
+        }
+    }
+
+    if (counter == number_of_streams)
+        return NULL;
+
     int checked_streams = 0;
   //  int connection_window_size = connection_flow_control_recieve_window;
     bool packet_full = false;
     int bytes_left_to_send_in_packet = max_payload;
-    StreamsData* new_data = new StreamsData();
+
     while (!packet_full && checked_streams != this->number_of_streams) {
         bool isFin = false;
         int bytes_to_send_in_frame;
@@ -168,7 +175,7 @@ StreamsData* QuicStreamArr::DataToSend(int max_payload) {
         // update stream flow control
         curr_stream->bytes_left_to_send_in_stream -= bytes_to_send_in_frame;
 //        curr_stream->highest_recieved_byte_offset+=bytes_to_send_in_frame;
-//        curr_stream->flow_control_recieve_window=curr_stream->flow_control_recieve_offset-curr_stream->highest_recieved_byte_offset;
+        curr_stream->flow_control_recieve_window -= bytes_to_send_in_frame;
 
        // connection_window_size -= bytes_to_send_in_frame;
 
@@ -196,6 +203,10 @@ StreamsData* QuicStreamArr::DataToSend(int max_payload) {
             last_stream_index_checked = 0;
 
     }
+    // there is nothing to send (all streams are full ?)
+    if (bytes_left_to_send_in_packet == max_payload)
+        return NULL;
+
     return new_data;
 }
 
@@ -204,8 +215,19 @@ void QuicStreamArr::setAllStreamsWindows(int window_size) {
     for (std::vector<stream*>::iterator it =
                     this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
         (*it)->max_flow_control_window_size = window_size;
-        (*it)->flow_control_recieve_offset = window_size;
+      //  (*it)->flow_control_recieve_offset = window_size;
         (*it)->flow_control_recieve_window = window_size;
+    }
+}
+
+
+void QuicStreamArr::updateStreamFlowWindow(int stream_id, int acked_data_size) {
+    for (std::vector<stream*>::iterator it =
+                    this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
+        if ((*it)->stream_id == stream_id) {
+            (*it)->flow_control_recieve_window += acked_data_size;
+            break;
+        }
     }
 }
 
@@ -235,23 +257,23 @@ stream* QuicStreamArr::getStream(int stream_id) {
     }
 }
 
-int QuicStreamArr::getTotalConsumedBytes(){
-    int total_consumed_bytes=0;
-    for (std::vector<stream*>::iterator it =
-                    this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
-        total_consumed_bytes+=(*it)->consumed_bytes;
-    }
-    return total_consumed_bytes;
-}
-
-int QuicStreamArr::getTotalMaxOffset(){
-    int max_offset=0;
-    for (std::vector<stream*>::iterator it =
-                    this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
-        max_offset+=(*it)->highest_recieved_byte_offset;
-    }
-    return max_offset;
-}
+//int QuicStreamArr::getTotalConsumedBytes(){
+//    int total_consumed_bytes=0;
+//    for (std::vector<stream*>::iterator it =
+//                    this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
+//        total_consumed_bytes+=(*it)->consumed_bytes;
+//    }
+//    return total_consumed_bytes;
+//}
+//
+//int QuicStreamArr::getTotalMaxOffset(){
+//    int max_offset=0;
+//    for (std::vector<stream*>::iterator it =
+//                    this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
+//        max_offset+=(*it)->highest_recieved_byte_offset;
+//    }
+//    return max_offset;
+//}
 
 
 QuicStreamArr::~QuicStreamArr() {

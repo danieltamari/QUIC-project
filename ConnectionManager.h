@@ -13,39 +13,58 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-
-
 #include "inet/common/INETDefs.h"
-#include "QuicSendQueue.h"
-#include "QuicReceiveQueue.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
-#include "QuicData_m.h"
-#include "QuicPacketHeader_m.h"
-#include "MaxData_m.h"
+#include "headers_and_frames/QuicData_m.h"
+#include "headers_and_frames/QuicPacketHeader_m.h"
+#include "headers_and_frames/QuicLongHeader_m.h"
+#include "headers_and_frames/QuicShortHeader_m.h"
+#include "headers_and_frames/MaxData_m.h"
 #include "StreamsData.h"
-#include "QuicACKFrame_m.h"
+#include "headers_and_frames/QuicACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
 #include "inet/common/ModuleAccess.h"
 #include "QuicConnectionClient.h"
 #include "QuicConnectionServer.h"
-#include "connection_config_data_m.h"
+#include "headers_and_frames/connection_config_data_m.h"
 
 #ifndef INET_APPLICATIONS_QUICAPP_CONNECTIONMANAGER_H_
 #define INET_APPLICATIONS_QUICAPP_CONNECTIONMANAGER_H_
 
+#define SENDER 1
+#define RECEIVER 2
 
-enum Packet_type {HANDSHAKE =0,
-                  HANDSHAKE_RESPONSE,
+//enum Packet_type {HANDSHAKE =0,
+//                  HANDSHAKE_RESPONSE,
+//                  FIRST_STREAMS_DATA,
+//                  ACK_PACKET,
+//                 // MAX_STREAM_DATA,
+//                 // MAX_DATA
+//                    };
+
+enum Packet_type {INITIAL = 0,
+                  ZERO_RTT,
+                  HANDSHAKE,
+                  RETRY,
                   FIRST_STREAMS_DATA,
-                  ACK_PACKET,
-                  MAX_STREAM_DATA,
-                  MAX_DATA
-                    };
+                  ACK_PACKET
 
+                 // MAX_STREAM_DATA,
+                 // MAX_DATA
+                    };
 namespace inet {
+
+struct ack_range_info {
+    std::vector<range*>* ack_range_arr;
+    int arr_size;
+    int ACK_range_count;
+    int first_ack_range;
+};
+
+
 
 class ConnectionManager:  public cSimpleModule, public UdpSocket::ICallback{
 public:
@@ -62,6 +81,8 @@ public:
     virtual void handleMessage(cMessage *msg) override;
     QuicConnectionClient* AddNewConnection(int* connection_data, int connection_data_size,L3Address destination);
     bool isIDAvailable(int src_ID);
+    ack_range_info* createAckRange(int arr[],int N,int smallest,int largest,int rcv_next);
+
 
 
 protected:
@@ -73,6 +94,8 @@ protected:
      int destAddrRNG = -1;
      std::list<QuicConnection*>* connections;
      std::map<int,cMessage*> ACK_timer_msg_map;
+     int type = RECEIVER;
+
 
 
 };

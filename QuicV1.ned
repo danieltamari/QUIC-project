@@ -30,6 +30,7 @@ network QuicV1
 {
     parameters:
         double per = default(0);
+        @display("bgb=553,289");
     types:
         channel C extends DatarateChannel
         {
@@ -38,43 +39,51 @@ network QuicV1
             per = per;
         }
 
+        channel C2 extends DatarateChannel
+        {
+            datarate = 2Mbps;
+            delay = 0.1us;
+            per = per;
+        }
+        
     submodules:
         client1: QuicClient {
             parameters:
                 @display("p=130,69;i=device/pc3");
         }
-        //        client2: QuicClient {
-        //            parameters:
-        //                @display("p=199,175;i=device/pc3");
-        //        }
+                client2: QuicClient {
+                    parameters:
+                        @display("p=199,175;i=device/pc3");
+                }
         server: QuicServer {
             parameters:
-                @display("p=331,100;i=device/pc2");
+                @display("p=445,100;i=device/pc2");
         }
-//        server2: QuicServer {
-//            parameters:
-//                @display("p=341,168;i=device/pc2");
-//        }
+        server2: QuicServer {
+            parameters:
+                @display("p=341,168;i=device/pc2");
+        }
 
         configurator: Ipv4NetworkConfigurator {
             parameters:
                 @display("p=29,100;is=s");
         }
-   //     router: Router {
-   //         @display("p=134,211");
-   //     }
-   //     router1: Router {
-   //         @display("p=277,180");
-   //     }
+        router: Router {
+            @display("p=282,114");
+        }
+    //     router1: Router {
+    //         @display("p=277,180");
+    //     }
+
     connections allowunconnected:
 
-        client1.pppg++ <--> C <--> server.pppg++;
-     //   client1.pppg++ <--> C <--> router.pppg++;
-     //   router.pppg++ <--> C <--> router1.pppg++;
-        //client2.pppg++ <--> C <--> router.pppg++;
-     //   server.pppg++ <--> C <--> router1.pppg++;
-        //server2.pppg++ <--> C <--> router.pppg++;
+        //client1.pppg++ <--> C <--> server.pppg++;
+        client1.pppg++ <--> C <--> router.pppg++;
+        server.pppg++ <--> C2 <--> router.pppg++;
 
+        server2.pppg++ <--> C2 <--> router.pppg++;
+        //   router.pppg++ <--> C <--> router1.pppg++;
+        client2.pppg++ <--> C <--> router.pppg++;
 
 
 
