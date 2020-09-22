@@ -37,10 +37,10 @@ struct stream {
 
     // flow control parameters
     int max_flow_control_window_size; // constant max window size
-    int highest_recieved_byte_offset; // how many bytes currently received to receive queue
-    int flow_control_recieve_offset; //
+  //  int highest_recieved_byte_offset; // how many bytes currently received to receive queue
+  //  int flow_control_recieve_offset; //
     int flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
-    int consumed_bytes; // how many bytes moved to application layer
+   // int consumed_bytes; // how many bytes moved to application layer
 
     int bytes_left_to_send_in_stream; // how many bytes we are left to send in this stream
 
@@ -61,6 +61,7 @@ public:
     int FreeBytesAvilable() {return total_free_bytes_;}
     StreamsData* DataToSend(int max_payload);//make a streamData to send
     void setAllStreamsWindows(int window_size);
+    void updateStreamFlowWindow(int stream_id, int acked_data_size);
     int getTotalConsumedBytes();
     int getTotalMaxOffset();
     void blockStream(int stream_id);

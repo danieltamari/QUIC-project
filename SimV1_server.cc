@@ -20,7 +20,7 @@ namespace inet {
 
 #define MSGKIND_CONNECT        1
 #define MSGKIND_CLOSE      2
-#define SENDER 1 //take out to golbal or something
+#define SENDER 1
 #define RECEIVER 2
 
 

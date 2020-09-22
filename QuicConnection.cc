@@ -45,21 +45,35 @@ void QuicConnection::SetDestID(int dest_ID) {
 }
 
 
-int QuicConnection::GetMaxOffset(){
-    return this->stream_arr->getTotalMaxOffset();
-}
+//int QuicConnection::GetMaxOffset(){
+//    return this->stream_arr->getTotalMaxOffset();
+//}
 
 L3Address QuicConnection::GetDestAddress(){
     return destination;
 }
 
-void QuicConnection::setConnectionsRecieveOffset(int offset){
-    this->connection_flow_control_recieve_offset = offset;
+unsigned int QuicConnection::calcSizeInBytes(int number) {
+    //int binaryNum[64];
+    int i = 0;
+    int counter = 0;
+    while (number > 0) {
+       // binaryNum[i] = number % 2;
+        number = number / 2;
+        i++;
+    }
+    for (int j = i - 1; j >= 0; j--)
+        counter++;
+    return std::ceil(counter/8.0); // return in bytes
 }
 
-void QuicConnection::setConnectionsRecieveWindow(int window_size) {
-    this->connection_flow_control_recieve_window = window_size;
-}
+//void QuicConnection::setConnectionsRecieveOffset(int offset){
+//    this->connection_flow_control_recieve_offset = offset;
+//}
+//
+//void QuicConnection::setConnectionsRecieveWindow(int window_size) {
+//    this->connection_flow_control_recieve_window = window_size;
+//}
 
 
 //Packet* QuicConnection::ActivateFsm(Packet* packet) {

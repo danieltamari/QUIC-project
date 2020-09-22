@@ -22,7 +22,7 @@
 #include "QuicConnectionClient.h"
 #include "inet/applications/base/ApplicationBase.h"
 #include "inet/common/lifecycle/LifecycleOperation.h"
-#include "connection_config_data_m.h"
+#include "headers_and_frames/connection_config_data_m.h"
 
 
 

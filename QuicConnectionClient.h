@@ -19,12 +19,14 @@
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
 #include "QuicNewReno.h"
-#include "QuicData_m.h"
-#include "QuicPacketHeader_m.h"
-#include "QuicHandShakeData_m.h"
-#include "MaxStreamData_m.h"
+#include "headers_and_frames/QuicData_m.h"
+#include "headers_and_frames/QuicPacketHeader_m.h"
+#include "headers_and_frames/QuicLongHeader_m.h"
+#include "headers_and_frames/QuicShortHeader_m.h"
+#include "headers_and_frames/QuicHandShakeData_m.h"
+#include "headers_and_frames/MaxStreamData_m.h"
 #include "StreamsData.h"
-#include "QuicACKFrame_m.h"
+#include "headers_and_frames/QuicACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
@@ -61,20 +63,23 @@ public:
     Packet* ProcessInitiateHandshake(Packet* packet);
     void ProcessClientHandshakeResponse(Packet* packet);
     void ProcessClientSend();
-    void ProcessClientACK(Packet* ack_packet);
+    void ProcessClientACK(Packet* ack_packet, packet_rcv_type* acked_packet_arr, int total_acked);
 
-
+    void createCopyPacket(Packet* original_packet);
     Packet* RemovePacketFromQueue(int packet_number);
     std::list<Packet*>* getLostPackets(int largest);
     std::list<Packet*>* getPacketsToSend();
 
 
     void updateFlowControl(Packet* acked_packet);
+    void updateCongestionControl (Packet* copy_of_ACKED_packet);
     void updateMaxStreamData(int stream_id, int max_stream_data_offset);
     Packet* updatePacketNumber(Packet* old_packet);
     void createRetransmitPacket(Packet* packet_to_remove);
 
     void UpdateRtt(simtime_t acked_time);
+    void updateBytesInFlight();
+    void freeBlockedStreams(Packet* copy_of_ACKED_packet);
 
     simtime_t GetRto();
     void processRexmitTimer();
@@ -85,11 +90,15 @@ protected:
     int send_una; // sent and unacknowledged bytes so far
     int old_send_una;
     std::list<Packet*>* send_not_ACKED_queue; // need to only contain meta data
+    std::list<Packet*>* ACKED_out_of_order; // need to only contain meta data
     std::list<Packet*>* waiting_retransmission; // need to only contain meta data
     std::list<Packet*>* packets_to_send;
 
     //flow control client side parameters
     int max_payload;
+    int Bytes_in_flight;
+    int connection_max_flow_control_window_size; // constant
+    int connection_flow_control_recieve_window; //
 
     // ACK control parameters
     int last_rcvd_ACK;
