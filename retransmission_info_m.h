@@ -42,15 +42,20 @@ class retransmission_info;
 
 namespace inet {
 
+// cplusplus {{
+#include <vector>
+typedef std::vector<int> IntVector;
+// }}
+
 /**
- * Class generated from <tt>inet/applications/quicapp/retransmission_info.msg:25</tt> by nedtool.
+ * Class generated from <tt>inet/applications/quicapp/retransmission_info.msg:34</tt> by nedtool.
  * <pre>
  * //
  * // TODO generated message class
  * //
  * class retransmission_info extends cNamedObject
  * {
- *     int original_packet_number;
+ *     IntVector packets_numbers;
  *     bool is_retransmit;
  * 
  * }
@@ -59,7 +64,7 @@ namespace inet {
 class INET_API retransmission_info : public ::omnetpp::cNamedObject
 {
   protected:
-    int original_packet_number = 0;
+    IntVector packets_numbers;
     bool is_retransmit = false;
 
   private:
@@ -79,8 +84,9 @@ class INET_API retransmission_info : public ::omnetpp::cNamedObject
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
-    virtual int getOriginal_packet_number() const;
-    virtual void setOriginal_packet_number(int original_packet_number);
+    virtual const IntVector& getPackets_numbers() const;
+    virtual IntVector& getPackets_numbersForUpdate() { return const_cast<IntVector&>(const_cast<retransmission_info*>(this)->getPackets_numbers());}
+    virtual void setPackets_numbers(const IntVector& packets_numbers);
     virtual bool getIs_retransmit() const;
     virtual void setIs_retransmit(bool is_retransmit);
 };

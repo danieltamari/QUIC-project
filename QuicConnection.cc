@@ -57,6 +57,8 @@ unsigned int QuicConnection::calcSizeInBytes(int number) {
     //int binaryNum[64];
     int i = 0;
     int counter = 0;
+    if (number == 0)
+        return 1;
     while (number > 0) {
        // binaryNum[i] = number % 2;
         number = number / 2;

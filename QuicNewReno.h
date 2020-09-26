@@ -58,6 +58,7 @@ public:
   void SetSndMax(uint32 bytes_sent);
   void SetSndUnA(uint32 snd_una);
   void SetDupACKS(int dup_acks);
+  void SetFlightSize(int flight_size);
   simtime_t GetRto();
 
 
@@ -82,6 +83,8 @@ protected:
 
   int rexmit_count;    ///< number of retransmissions (=1 after first rexmit)
   simtime_t rexmit_timeout;    ///< current retransmission timeout (aka RTO)
+
+  uint32 flight_size;
 
 };
 

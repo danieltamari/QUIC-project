@@ -20,9 +20,9 @@
 #include "headers_and_frames/QuicPacketHeader_m.h"
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
-#include "headers_and_frames/MaxData_m.h"
 #include "StreamsData.h"
-#include "headers_and_frames/QuicACKFrame_m.h"
+#include "ack_timer_msg_m.h"
+#include "headers_and_frames/ACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
@@ -93,8 +93,9 @@ protected:
      std::vector<L3Address> destAddresses;
      int destAddrRNG = -1;
      std::list<QuicConnection*>* connections;
-     std::map<int,cMessage*> ACK_timer_msg_map;
+     std::map<int,ack_timer_msg*> ACK_timer_msg_map;
      int type = RECEIVER;
+     bool connected;
 
 
 

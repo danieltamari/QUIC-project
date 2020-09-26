@@ -20,6 +20,8 @@
 #include <omnetpp.h>
 #include "QuicSendQueue.h"
 #include "QuicReceiveQueue.h"
+#include "headers_and_frames/QuicFrame_m.h"
+#include "headers_and_frames/StreamFrame_m.h"
 
 /*
  * this class represent the stream data array in the connection.
@@ -60,6 +62,7 @@ public:
     bool IsAvilableStreamExist();
     int FreeBytesAvilable() {return total_free_bytes_;}
     StreamsData* DataToSend(int max_payload);//make a streamData to send
+    std::vector<IntrusivePtr<StreamFrame>>* framesToSend(int max_payload);
     void setAllStreamsWindows(int window_size);
     void updateStreamFlowWindow(int stream_id, int acked_data_size);
     int getTotalConsumedBytes();
@@ -69,8 +72,6 @@ public:
     bool isStreamExist(int stream_id);
     stream* getStream(int stream_id);
     int getSumStreamsWindowSize();
-
-    // void UpdateStremMaxBytes(int stream_id, int max_bytes); ####->connects to flow_control rfc 27 page 21 , in the future.
 
 
 private:

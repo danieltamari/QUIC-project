@@ -121,31 +121,118 @@ void QuicStreamArr::freeStream(int stream_id) {
 }
 
 
-StreamsData* QuicStreamArr::DataToSend(int max_payload) {
-    StreamsData* new_data = new StreamsData();
+//StreamsData* QuicStreamArr::DataToSend(int max_payload) {
+//    StreamsData* new_data = new StreamsData();
+//    int counter = 0;
+//    for (std::vector<stream*>::iterator it =
+//            this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
+//        if (!(*it)->valid) {
+//            counter++;
+//        }
+//    }
+//
+//    if (counter == number_of_streams)
+//        return NULL;
+//
+//    int checked_streams = 0;
+//  //  int connection_window_size = connection_flow_control_recieve_window;
+//    bool packet_full = false;
+//    int bytes_left_to_send_in_packet = max_payload;
+//
+//    while (!packet_full && checked_streams != this->number_of_streams) {
+//        bool isFin = false;
+//        int bytes_to_send_in_frame;
+//
+//        stream* curr_stream = stream_arr_[last_stream_index_checked];
+//        checked_streams++;
+//
+//        if(!curr_stream->valid) // stream is blocked -> move to the next one
+//            continue;
+//
+//        // check stream window (flow control)
+//        if (bytes_left_to_send_in_packet > curr_stream->flow_control_recieve_window)
+//            bytes_to_send_in_frame = curr_stream->flow_control_recieve_window;
+//        else
+//            bytes_to_send_in_frame = bytes_left_to_send_in_packet;
+//
+////        // check connection window
+////        if (bytes_to_send_in_frame > connection_window_size)
+////            bytes_to_send_in_frame = connection_window_size;
+//
+//        if (curr_stream->bytes_left_to_send_in_stream < bytes_to_send_in_frame)
+//            bytes_to_send_in_frame = curr_stream->bytes_left_to_send_in_stream;
+//
+//        if (bytes_to_send_in_frame == 0) {//send BLOCKING FRAME IN FUTURE(??) ASK MICHA
+//            last_stream_index_checked++;
+//            if (last_stream_index_checked == number_of_streams)
+//                last_stream_index_checked = 0;
+//            continue;
+//        }
+////        if (connection_window_size==0){//end DATA_BLOCKING FRAME IN FUTURE(??) ASK MICHA
+////            break;
+////        }
+//
+//        // update stream flow control
+//        curr_stream->bytes_left_to_send_in_stream -= bytes_to_send_in_frame;
+////        curr_stream->highest_recieved_byte_offset+=bytes_to_send_in_frame;
+//        curr_stream->flow_control_recieve_window -= bytes_to_send_in_frame;
+//
+//       // connection_window_size -= bytes_to_send_in_frame;
+//
+//        int stream_id = curr_stream->stream_id;
+//        int offset = curr_stream->current_offset_in_stream;
+//        int stream_size = curr_stream->stream_size;
+//
+//        if (bytes_to_send_in_frame + offset == stream_size) {
+//            isFin = true;
+//        }
+//
+//        stream_frame* new_frame = new_data->AddNewFrame(stream_id, offset, bytes_to_send_in_frame, isFin);
+//        curr_stream->current_offset_in_stream += bytes_to_send_in_frame;
+//        bytes_left_to_send_in_packet -= bytes_to_send_in_frame;
+//
+//      //  this->avilable_streams_queue_.insert(current_stream_node);
+//        if (bytes_left_to_send_in_packet == 0) {
+//            packet_full = true;
+//        }
+//
+//        curr_stream->send_queue->addStreamFrame(new_frame);
+//
+//        last_stream_index_checked++;
+//        if (last_stream_index_checked == number_of_streams)
+//            last_stream_index_checked = 0;
+//
+//    }
+//    // there is nothing to send (all streams are full ?)
+//    if (bytes_left_to_send_in_packet == max_payload)
+//        return NULL;
+//
+//    return new_data;
+//}
+
+
+std::vector<IntrusivePtr<StreamFrame>>* QuicStreamArr::framesToSend(int max_payload) {
+    std::vector<IntrusivePtr<StreamFrame>>* frames_vector = new std::vector<IntrusivePtr<StreamFrame>>();
     int counter = 0;
-    for (std::vector<stream*>::iterator it =
-            this->stream_arr_.begin(); it != stream_arr_.end(); ++it) {
+    // if all streams are blocked -> return empty vector
+    for (std::vector<stream*>::iterator it = stream_arr_.begin(); it != stream_arr_.end(); ++it) {
         if (!(*it)->valid) {
             counter++;
         }
     }
-
     if (counter == number_of_streams)
-        return NULL;
+        return frames_vector;
 
     int checked_streams = 0;
-  //  int connection_window_size = connection_flow_control_recieve_window;
     bool packet_full = false;
     int bytes_left_to_send_in_packet = max_payload;
 
+    // fill the given payload with data from streams
     while (!packet_full && checked_streams != this->number_of_streams) {
         bool isFin = false;
         int bytes_to_send_in_frame;
-
         stream* curr_stream = stream_arr_[last_stream_index_checked];
         checked_streams++;
-
         if(!curr_stream->valid) // stream is blocked -> move to the next one
             continue;
 
@@ -155,30 +242,34 @@ StreamsData* QuicStreamArr::DataToSend(int max_payload) {
         else
             bytes_to_send_in_frame = bytes_left_to_send_in_packet;
 
-//        // check connection window
-//        if (bytes_to_send_in_frame > connection_window_size)
-//            bytes_to_send_in_frame = connection_window_size;
-
+        // check if there are less bytes left to send on this stream than the total bytes given
         if (curr_stream->bytes_left_to_send_in_stream < bytes_to_send_in_frame)
             bytes_to_send_in_frame = curr_stream->bytes_left_to_send_in_stream;
 
-        if (bytes_to_send_in_frame == 0) {//send BLOCKING FRAME IN FUTURE(??) ASK MICHA
+
+        // ##### TO DO: check if client should send streamBlocked / dataBlocked ?
+
+        if (bytes_to_send_in_frame == 0) {
             last_stream_index_checked++;
-            if (last_stream_index_checked == number_of_streams)
+            if (last_stream_index_checked == number_of_streams) // finished to go over all the streams
                 last_stream_index_checked = 0;
             continue;
         }
-//        if (connection_window_size==0){//end DATA_BLOCKING FRAME IN FUTURE(??) ASK MICHA
-//            break;
-//        }
 
         // update stream flow control
         curr_stream->bytes_left_to_send_in_stream -= bytes_to_send_in_frame;
-//        curr_stream->highest_recieved_byte_offset+=bytes_to_send_in_frame;
         curr_stream->flow_control_recieve_window -= bytes_to_send_in_frame;
+        curr_stream->current_offset_in_stream += bytes_to_send_in_frame;
+        bytes_left_to_send_in_packet -= bytes_to_send_in_frame;
 
-       // connection_window_size -= bytes_to_send_in_frame;
+        if (bytes_left_to_send_in_packet == 0) {
+            packet_full = true;
+        }
+        last_stream_index_checked++;
+        if (last_stream_index_checked == number_of_streams)
+            last_stream_index_checked = 0;
 
+        // create new stream frame
         int stream_id = curr_stream->stream_id;
         int offset = curr_stream->current_offset_in_stream;
         int stream_size = curr_stream->stream_size;
@@ -187,29 +278,25 @@ StreamsData* QuicStreamArr::DataToSend(int max_payload) {
             isFin = true;
         }
 
-        stream_frame* new_frame = new_data->AddNewFrame(stream_id, offset, bytes_to_send_in_frame, isFin);
-        curr_stream->current_offset_in_stream += bytes_to_send_in_frame;
-        bytes_left_to_send_in_packet -= bytes_to_send_in_frame;
+        const auto &new_frame = makeShared<StreamFrame>();
+        new_frame->setStream_id(stream_id);
+        new_frame->setOffset(offset);
+        new_frame->setLength(bytes_to_send_in_frame);
+        new_frame->setIs_FIN(isFin);
+        new_frame->setFrame_type(8);
+        new_frame->setChunkLength(B(bytes_to_send_in_frame));
+        frames_vector->push_back(new_frame);
 
-      //  this->avilable_streams_queue_.insert(current_stream_node);
-        if (bytes_left_to_send_in_packet == 0) {
-            packet_full = true;
-        }
 
-        curr_stream->send_queue->addStreamFrame(new_frame);
-
-        last_stream_index_checked++;
-        if (last_stream_index_checked == number_of_streams)
-            last_stream_index_checked = 0;
-
+       // curr_stream->send_queue->addStreamFrame(new_frame);
     }
+
     // there is nothing to send (all streams are full ?)
-    if (bytes_left_to_send_in_packet == max_payload)
-        return NULL;
+   // if (bytes_left_to_send_in_packet == max_payload)
+   //     return NULL;
 
-    return new_data;
+    return frames_vector;
 }
-
 
 void QuicStreamArr::setAllStreamsWindows(int window_size) {
     for (std::vector<stream*>::iterator it =

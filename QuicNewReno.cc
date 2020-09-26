@@ -40,6 +40,7 @@ QuicNewReno::QuicNewReno() {
 
     rexmit_count = 0;
     rexmit_timeout = 3.0;
+    flight_size = 0;
 }
 
 QuicNewReno::~QuicNewReno() {
@@ -71,6 +72,10 @@ void QuicNewReno::SetSndUnA(uint32 snd_una){
     this->snd_una=snd_una;
 }
 
+void QuicNewReno::SetFlightSize(int flight_size) {
+    this->flight_size = flight_size;
+}
+
 simtime_t QuicNewReno::GetRto(){
     return rexmit_timeout;
 }
@@ -93,7 +98,7 @@ void QuicNewReno::recalculateSlowStartThreshold()
 
     // set ssthresh to flight size / 2, but at least 2 SMSS
     // (the formula below practically amounts to ssthresh = cwnd / 2 most of the time)
-    uint32 flight_size = std::min(snd_cwnd, snd_wnd);    // FIXME TODO - Does this formula computes the amount of outstanding data?
+   // uint32 flight_size = std::min(snd_cwnd, snd_wnd);    // FIXME TODO - Does this formula computes the amount of outstanding data?
     ssthresh = std::max(flight_size / 2, 2 * snd_mss);
 
 
