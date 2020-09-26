@@ -31,10 +31,11 @@ simple ConnectionManager like IQuicapp
         int destAddrRNG = default(0); // random generator ID for selecting a destination address
         int localPort = default(-1);  // local UDP port number (-1: use ephemeral port)
         int destPort; // remote UDP port number
+     //   int numApps = default(1);
     gates:
         input socketIn @labels(UdpControlInfo/up);
         output socketOut @labels(UdpControlInfo/down);
-        input quicIn;
+        input quicIn[];
         //input toc_in;
         //output tic_out;
         //output toc_out;

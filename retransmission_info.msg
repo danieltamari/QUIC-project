@@ -18,12 +18,21 @@ import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
 namespace inet;
 
+cplusplus {{
+#include <vector>
+typedef std::vector<int> IntVector;
+}}
+
+class IntVector {
+    @existingClass;
+}
+
 
 //
 // TODO generated message class
 //
 class retransmission_info extends cNamedObject {
-	int original_packet_number;
+	IntVector packets_numbers;
 	bool is_retransmit;
 
 }

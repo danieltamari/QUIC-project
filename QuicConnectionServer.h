@@ -23,9 +23,8 @@
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
 #include "headers_and_frames/QuicHandShakeData_m.h"
-#include "headers_and_frames/MaxStreamData_m.h"
 #include "StreamsData.h"
-#include "headers_and_frames/QuicACKFrame_m.h"
+#include "headers_and_frames/ACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
@@ -47,25 +46,15 @@ public:
     QuicConnectionServer(L3Address destination);
     virtual ~QuicConnectionServer();
 
-    void recievePacket(std::vector<stream_frame*> accepted_frames);
-  //  int GetTotalConsumedBytes();
-   // int GetConnectionsRecieveOffset();
-  //  int GetConnectionMaxWindow();
+    void recievePacket(Packet* packet);
     bool GetIsOutOfOrder();
     std::list<Packet*>* getMaxStreamDataPackets();
-    IntrusivePtr<inet::QuicACKFrame> getCurrentAckFrame();
+    IntrusivePtr<inet::ACKFrame> getCurrentAckFrame();
     std::list<int> GetNotAckedList();
     int getLargestInOrder();
     int GetRcvNext();
     int GetRcvInOrderAndRst();
     void  RcvInOrdedRst();
-    bool  GetListFlushed();
-    void  SetListFlushed(bool set);
-
-
-
-    void performStateTransition(const QuicEventCode &event);
-    Packet* ProcessEvent(const QuicEventCode &event,Packet* packet);
 
     Packet* ServerProcessHandshake(Packet* packet);
     void ProcessServerReceivedPacket(Packet* packet);
@@ -87,8 +76,7 @@ protected:
     int rcv_next;
     int rcv_in_order;
     bool is_out_of_order;
-    bool out_of_order_list_flushed;
-    IntrusivePtr<inet::QuicACKFrame> current_Ack_frame;
+    IntrusivePtr<inet::ACKFrame> current_Ack_frame;
 };
 
 } /* namespace inet */

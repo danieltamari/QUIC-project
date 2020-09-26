@@ -13,8 +13,6 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-
-
 #include "inet/common/INETDefs.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
@@ -23,8 +21,6 @@
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
 #include "headers_and_frames/QuicHandShakeData_m.h"
-#include "headers_and_frames/MaxStreamData_m.h"
-#include "headers_and_frames/QuicFramesArray_m.h"
 #include "headers_and_frames/QuicFrame_m.h"
 #include "headers_and_frames/PaddingFrame_m.h"
 #include "StreamsData.h"
@@ -33,6 +29,9 @@
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
 #include "inet/common/ModuleAccess.h"
+#include "inet/transportlayer/contract/udp/UdpControlInfo_m.h"
+#include "inet/networklayer/common/L3AddressResolver.h"
+#include "stdlib.h"
 
 #ifndef INET_APPLICATIONS_QUICAPP_QUICCONNECTION_H_
 #define INET_APPLICATIONS_QUICAPP_QUICCONNECTION_H_
@@ -49,6 +48,8 @@
 // packets and headers sizes
 #define QUIC_ALLOWED_PACKET_SIZE 1200 // from RFC 14.1
 #define LONG_HEADER_BASE_LENGTH 11
+#define SHORT_HEADER_BASE_LENGTH 2
+
 #define QUIC_SHORT_HEADER_LENGTH 16
 
 

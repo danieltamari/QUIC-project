@@ -41,7 +41,7 @@ module QuicServer extends TransportLayerNodeBase
                 @display("p=750,146;b=1000,5,,,,1");
         }
     connections allowunconnected:
-        toc.out --> connection_manager.quicIn;
+        toc.out --> connection_manager.quicIn++;
         connection_manager.socketOut --> at.in++;
         connection_manager.socketIn <-- at.out++;
         

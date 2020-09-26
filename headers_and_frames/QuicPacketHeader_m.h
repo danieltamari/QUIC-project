@@ -50,10 +50,10 @@ namespace inet {
  * //
  * class QuicPacketHeader extends FieldsChunk
  * {
- *     int dest_connectionID;
- *     int src_connectionID;
+ *     //int dest_connectionID;
+ *     //int src_connectionID;
  *     int packet_number;
- *     int packet_type;
+ *     //int packet_type;
  *     b header_form;
  * }
  * </pre>
@@ -61,10 +61,7 @@ namespace inet {
 class INET_API QuicPacketHeader : public ::inet::FieldsChunk
 {
   protected:
-    int dest_connectionID = 0;
-    int src_connectionID = 0;
     int packet_number = 0;
-    int packet_type = 0;
     b header_form = b(-1);
 
   private:
@@ -84,14 +81,8 @@ class INET_API QuicPacketHeader : public ::inet::FieldsChunk
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
-    virtual int getDest_connectionID() const;
-    virtual void setDest_connectionID(int dest_connectionID);
-    virtual int getSrc_connectionID() const;
-    virtual void setSrc_connectionID(int src_connectionID);
     virtual int getPacket_number() const;
     virtual void setPacket_number(int packet_number);
-    virtual int getPacket_type() const;
-    virtual void setPacket_type(int packet_type);
     virtual b getHeader_form() const;
     virtual void setHeader_form(b header_form);
 };

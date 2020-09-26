@@ -207,6 +207,223 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
+class IntVectorDescriptor : public omnetpp::cClassDescriptor
+{
+  private:
+    mutable const char **propertynames;
+    enum FieldConstants {
+    };
+  public:
+    IntVectorDescriptor();
+    virtual ~IntVectorDescriptor();
+
+    virtual bool doesSupport(omnetpp::cObject *obj) const override;
+    virtual const char **getPropertyNames() const override;
+    virtual const char *getProperty(const char *propertyname) const override;
+    virtual int getFieldCount() const override;
+    virtual const char *getFieldName(int field) const override;
+    virtual int findField(const char *fieldName) const override;
+    virtual unsigned int getFieldTypeFlags(int field) const override;
+    virtual const char *getFieldTypeString(int field) const override;
+    virtual const char **getFieldPropertyNames(int field) const override;
+    virtual const char *getFieldProperty(int field, const char *propertyname) const override;
+    virtual int getFieldArraySize(void *object, int field) const override;
+
+    virtual const char *getFieldDynamicTypeString(void *object, int field, int i) const override;
+    virtual std::string getFieldValueAsString(void *object, int field, int i) const override;
+    virtual bool setFieldValueAsString(void *object, int field, int i, const char *value) const override;
+
+    virtual const char *getFieldStructName(int field) const override;
+    virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
+};
+
+Register_ClassDescriptor(IntVectorDescriptor)
+
+IntVectorDescriptor::IntVectorDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::IntVector)), "")
+{
+    propertynames = nullptr;
+}
+
+IntVectorDescriptor::~IntVectorDescriptor()
+{
+    delete[] propertynames;
+}
+
+bool IntVectorDescriptor::doesSupport(omnetpp::cObject *obj) const
+{
+    return dynamic_cast<IntVector *>(obj)!=nullptr;
+}
+
+const char **IntVectorDescriptor::getPropertyNames() const
+{
+    if (!propertynames) {
+        static const char *names[] = { "existingClass",  nullptr };
+        omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+        const char **basenames = basedesc ? basedesc->getPropertyNames() : nullptr;
+        propertynames = mergeLists(basenames, names);
+    }
+    return propertynames;
+}
+
+const char *IntVectorDescriptor::getProperty(const char *propertyname) const
+{
+    if (!strcmp(propertyname, "existingClass")) return "";
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->getProperty(propertyname) : nullptr;
+}
+
+int IntVectorDescriptor::getFieldCount() const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? 0+basedesc->getFieldCount() : 0;
+}
+
+unsigned int IntVectorDescriptor::getFieldTypeFlags(int field) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldTypeFlags(field);
+        field -= basedesc->getFieldCount();
+    }
+    return 0;
+}
+
+const char *IntVectorDescriptor::getFieldName(int field) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldName(field);
+        field -= basedesc->getFieldCount();
+    }
+    return nullptr;
+}
+
+int IntVectorDescriptor::findField(const char *fieldName) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    return basedesc ? basedesc->findField(fieldName) : -1;
+}
+
+const char *IntVectorDescriptor::getFieldTypeString(int field) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldTypeString(field);
+        field -= basedesc->getFieldCount();
+    }
+    return nullptr;
+}
+
+const char **IntVectorDescriptor::getFieldPropertyNames(int field) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldPropertyNames(field);
+        field -= basedesc->getFieldCount();
+    }
+    switch (field) {
+        default: return nullptr;
+    }
+}
+
+const char *IntVectorDescriptor::getFieldProperty(int field, const char *propertyname) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldProperty(field, propertyname);
+        field -= basedesc->getFieldCount();
+    }
+    switch (field) {
+        default: return nullptr;
+    }
+}
+
+int IntVectorDescriptor::getFieldArraySize(void *object, int field) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldArraySize(object, field);
+        field -= basedesc->getFieldCount();
+    }
+    IntVector *pp = (IntVector *)object; (void)pp;
+    switch (field) {
+        default: return 0;
+    }
+}
+
+const char *IntVectorDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldDynamicTypeString(object,field,i);
+        field -= basedesc->getFieldCount();
+    }
+    IntVector *pp = (IntVector *)object; (void)pp;
+    switch (field) {
+        default: return nullptr;
+    }
+}
+
+std::string IntVectorDescriptor::getFieldValueAsString(void *object, int field, int i) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldValueAsString(object,field,i);
+        field -= basedesc->getFieldCount();
+    }
+    IntVector *pp = (IntVector *)object; (void)pp;
+    switch (field) {
+        default: return "";
+    }
+}
+
+bool IntVectorDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->setFieldValueAsString(object,field,i,value);
+        field -= basedesc->getFieldCount();
+    }
+    IntVector *pp = (IntVector *)object; (void)pp;
+    switch (field) {
+        default: return false;
+    }
+}
+
+const char *IntVectorDescriptor::getFieldStructName(int field) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldStructName(field);
+        field -= basedesc->getFieldCount();
+    }
+    return nullptr;
+}
+
+void *IntVectorDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+{
+    omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
+    if (basedesc) {
+        if (field < basedesc->getFieldCount())
+            return basedesc->getFieldStructValuePointer(object, field, i);
+        field -= basedesc->getFieldCount();
+    }
+    IntVector *pp = (IntVector *)object; (void)pp;
+    switch (field) {
+        default: return nullptr;
+    }
+}
+
 Register_Class(retransmission_info)
 
 retransmission_info::retransmission_info(const char *name) : ::omnetpp::cNamedObject(name)
@@ -232,32 +449,32 @@ retransmission_info& retransmission_info::operator=(const retransmission_info& o
 
 void retransmission_info::copy(const retransmission_info& other)
 {
-    this->original_packet_number = other.original_packet_number;
+    this->packets_numbers = other.packets_numbers;
     this->is_retransmit = other.is_retransmit;
 }
 
 void retransmission_info::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::omnetpp::cNamedObject::parsimPack(b);
-    doParsimPacking(b,this->original_packet_number);
+    doParsimPacking(b,this->packets_numbers);
     doParsimPacking(b,this->is_retransmit);
 }
 
 void retransmission_info::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::omnetpp::cNamedObject::parsimUnpack(b);
-    doParsimUnpacking(b,this->original_packet_number);
+    doParsimUnpacking(b,this->packets_numbers);
     doParsimUnpacking(b,this->is_retransmit);
 }
 
-int retransmission_info::getOriginal_packet_number() const
+const IntVector& retransmission_info::getPackets_numbers() const
 {
-    return this->original_packet_number;
+    return this->packets_numbers;
 }
 
-void retransmission_info::setOriginal_packet_number(int original_packet_number)
+void retransmission_info::setPackets_numbers(const IntVector& packets_numbers)
 {
-    this->original_packet_number = original_packet_number;
+    this->packets_numbers = packets_numbers;
 }
 
 bool retransmission_info::getIs_retransmit() const
@@ -275,7 +492,7 @@ class retransmission_infoDescriptor : public omnetpp::cClassDescriptor
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_original_packet_number,
+        FIELD_packets_numbers,
         FIELD_is_retransmit,
     };
   public:
@@ -351,7 +568,7 @@ unsigned int retransmission_infoDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_original_packet_number
+        FD_ISCOMPOUND,    // FIELD_packets_numbers
         FD_ISEDITABLE,    // FIELD_is_retransmit
     };
     return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
@@ -366,7 +583,7 @@ const char *retransmission_infoDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "original_packet_number",
+        "packets_numbers",
         "is_retransmit",
     };
     return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
@@ -376,7 +593,7 @@ int retransmission_infoDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'o' && strcmp(fieldName, "original_packet_number") == 0) return base+0;
+    if (fieldName[0] == 'p' && strcmp(fieldName, "packets_numbers") == 0) return base+0;
     if (fieldName[0] == 'i' && strcmp(fieldName, "is_retransmit") == 0) return base+1;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
@@ -390,7 +607,7 @@ const char *retransmission_infoDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_original_packet_number
+        "inet::IntVector",    // FIELD_packets_numbers
         "bool",    // FIELD_is_retransmit
     };
     return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
@@ -460,7 +677,7 @@ std::string retransmission_infoDescriptor::getFieldValueAsString(void *object, i
     }
     retransmission_info *pp = (retransmission_info *)object; (void)pp;
     switch (field) {
-        case FIELD_original_packet_number: return long2string(pp->getOriginal_packet_number());
+        case FIELD_packets_numbers: {std::stringstream out; out << pp->getPackets_numbers(); return out.str();}
         case FIELD_is_retransmit: return bool2string(pp->getIs_retransmit());
         default: return "";
     }
@@ -476,7 +693,6 @@ bool retransmission_infoDescriptor::setFieldValueAsString(void *object, int fiel
     }
     retransmission_info *pp = (retransmission_info *)object; (void)pp;
     switch (field) {
-        case FIELD_original_packet_number: pp->setOriginal_packet_number(string2long(value)); return true;
         case FIELD_is_retransmit: pp->setIs_retransmit(string2bool(value)); return true;
         default: return false;
     }
@@ -491,6 +707,7 @@ const char *retransmission_infoDescriptor::getFieldStructName(int field) const
         field -= basedesc->getFieldCount();
     }
     switch (field) {
+        case FIELD_packets_numbers: return omnetpp::opp_typename(typeid(IntVector));
         default: return nullptr;
     };
 }
@@ -505,6 +722,7 @@ void *retransmission_infoDescriptor::getFieldStructValuePointer(void *object, in
     }
     retransmission_info *pp = (retransmission_info *)object; (void)pp;
     switch (field) {
+        case FIELD_packets_numbers: return toVoidPtr(&pp->getPackets_numbers()); break;
         default: return nullptr;
     }
 }

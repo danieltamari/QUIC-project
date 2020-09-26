@@ -22,6 +22,6 @@ moduleinterface IQuicapp extends IApp
     parameters:
         @display("i=block/app");
     gates:
-        input quicIn;
+        input quicIn[];
         
 }

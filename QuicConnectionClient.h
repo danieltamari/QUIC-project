@@ -24,9 +24,8 @@
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
 #include "headers_and_frames/QuicHandShakeData_m.h"
-#include "headers_and_frames/MaxStreamData_m.h"
 #include "StreamsData.h"
-#include "headers_and_frames/QuicACKFrame_m.h"
+#include "headers_and_frames/ACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
 #include <omnetpp.h>
@@ -53,18 +52,20 @@ public:
 
 
     Packet* createQuicDataPacket(StreamsData* streams_data);
-    StreamsData* CreateSendData(int max_payload);
+   // StreamsData* CreateSendData(int max_payload, int short_header_size);
+    Packet* createQuicDataPacket(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send, int total_size);
     void AddNewStream(int stream_size,int index);
     Packet* findPacket(int packet_number);
 
     void performStateTransition(const QuicEventCode &event);
     Packet* ProcessEvent(const QuicEventCode &event,Packet* packet);
 
-    Packet* ProcessInitiateHandshake(Packet* packet);
+    Packet* ProcessInitiateHandshake(Packet* packet, int src_ID_);
     void ProcessClientHandshakeResponse(Packet* packet);
     void ProcessClientSend();
     void ProcessClientACK(Packet* ack_packet, packet_rcv_type* acked_packet_arr, int total_acked);
 
+    int calcTotalSize(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send);
     void createCopyPacket(Packet* original_packet);
     Packet* RemovePacketFromQueue(int packet_number);
     std::list<Packet*>* getLostPackets(int largest);
@@ -78,7 +79,7 @@ public:
     void createRetransmitPacket(Packet* packet_to_remove);
 
     void UpdateRtt(simtime_t acked_time);
-    void updateBytesInFlight();
+    int calcHeaderSize();
     void freeBlockedStreams(Packet* copy_of_ACKED_packet);
 
     simtime_t GetRto();
@@ -93,7 +94,6 @@ protected:
     std::list<Packet*>* ACKED_out_of_order; // need to only contain meta data
     std::list<Packet*>* waiting_retransmission; // need to only contain meta data
     std::list<Packet*>* packets_to_send;
-
     //flow control client side parameters
     int max_payload;
     int Bytes_in_flight;

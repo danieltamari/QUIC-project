@@ -45,23 +45,23 @@ network QuicV1
             delay = 0.1us;
             per = per;
         }
-        
+
     submodules:
         client1: QuicClient {
             parameters:
-                @display("p=130,69;i=device/pc3");
+                @display("p=103,69;i=device/pc3");
         }
-                client2: QuicClient {
-                    parameters:
-                        @display("p=199,175;i=device/pc3");
-                }
+        client2: QuicClient {
+            parameters:
+                @display("p=103,168;i=device/pc3");
+        }
         server: QuicServer {
             parameters:
-                @display("p=445,100;i=device/pc2");
+                @display("p=458,69;i=device/pc2");
         }
         server2: QuicServer {
             parameters:
-                @display("p=341,168;i=device/pc2");
+                @display("p=458,168;i=device/pc2");
         }
 
         configurator: Ipv4NetworkConfigurator {
@@ -69,20 +69,21 @@ network QuicV1
                 @display("p=29,100;is=s");
         }
         router: Router {
-            @display("p=282,114");
+            @display("p=221,127");
         }
-    //     router1: Router {
-    //         @display("p=277,180");
-    //     }
+        router1: Router {
+            @display("p=346,127");
+        }
 
     connections allowunconnected:
 
-        //client1.pppg++ <--> C <--> server.pppg++;
-        client1.pppg++ <--> C <--> router.pppg++;
-        server.pppg++ <--> C2 <--> router.pppg++;
+    //    client1.pppg++ <--> C <--> server.pppg++;
 
-        server2.pppg++ <--> C2 <--> router.pppg++;
-        //   router.pppg++ <--> C <--> router1.pppg++;
+        client1.pppg++ <--> C <--> router.pppg++;
+        server.pppg++ <--> C <--> router1.pppg++;
+
+        server2.pppg++ <--> C <--> router1.pppg++;
+        router.pppg++ <--> C <--> router1.pppg++;
         client2.pppg++ <--> C <--> router.pppg++;
 
 

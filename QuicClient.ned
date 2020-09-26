@@ -38,17 +38,25 @@ module QuicClient extends TransportLayerNodeBase
         tic: SimV1_client {
             @display("p=974.925,50.399998");
         }
+
+        tic2: SimV1_client {
+            @display("p=960.74994,127.575");
+        }
+
         at: MessageDispatcher {
             parameters:
                 @display("p=750,146;b=1000,5,,,,1");
-       }
+        }
 
 
     connections allowunconnected:
-        tic.out --> connection_manager.quicIn;
+        tic.out --> connection_manager.quicIn++;
+        tic2.out --> connection_manager.quicIn++;
+
+
         connection_manager.socketOut --> at.in++;
         connection_manager.socketIn <-- at.out++;
-        
+
         at.out++ --> udp.appIn if hasUdp;
         at.in++ <-- udp.appOut if hasUdp;
 
