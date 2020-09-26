@@ -16,16 +16,18 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
+class ResetStreamFrame extends QuicFrame {
+//An endpoint uses a RESET_STREAM frame (type=0x04) to abruptly terminate the sending part of a stream.
+//After sending a RESET_STREAM, an endpoint ceases transmission and retransmission of STREAM frames on
+//the identified stream. A receiver of RESET_STREAM can discard any data that it already received on that 
+//stream. (RFC 19.4)
+    int stream_id; // stream being terminated
+    int final_size; // final size of the stream by the RESET_STREAM sender, in unit of bytes
+    int error_code; // application protocol error code that indicates why the stream is being closed
 }

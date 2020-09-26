@@ -16,16 +16,33 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+
+
+cplusplus {{
+#include "QuicConnection.h"
+
+}}
+
+//struct range;
+
+struct range {
+    int gap;
+    int ACK_range_length;
+};
+
 namespace inet;
 
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
+class ACKFrame extends FieldsChunk {
+//    Receivers send ACK frames (types 0x02 and 0x03) to inform senders of packets they have received and
+//    processed. The ACK frame contains one or more ACK Ranges. ACK Ranges identify acknowledged packets.
+//	  (RFC 19.3)
+	int largest_acknowledged; //  largest packet number the peer is acknowledging- the largest packet number that the peer has received prior to generating the ACK frame.
+	int ACK_delay; // acknowledgement delay in microseconds
+	int ACK_range_count;
+	int first_ACK_range; // number of contiguous packets preceding the Largest Acknowledged that are being acknowledged
+	range ACK_ranges[];
 }

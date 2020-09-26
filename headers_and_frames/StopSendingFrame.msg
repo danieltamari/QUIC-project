@@ -16,16 +16,15 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
+class StopSendingFrame extends QuicFrame {
+//An endpoint uses a STOP_SENDING frame (type=0x05) to communicate that incoming data is being discarded on
+//receipt at application request. STOP_SENDING requests that a peer cease transmission on a stream.(RFC 19.5)
+    int stream_id; // stream being ignored
+    int error_code; // application protocol error code that indicates the reason the sender is ignoring the stream
 }

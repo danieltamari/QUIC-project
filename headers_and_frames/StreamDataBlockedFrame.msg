@@ -16,16 +16,15 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
-}
+class StreamDataBlockedFrame extends QuicFrame  {
+//A sender SHOULD send a STREAM_DATA_BLOCKED frame (type=0x15) when it wishes to send data, but is unable to 
+//do so due to stream-level flow control. This frame is analogous to DATA_BLOCKED. (RFC 19.13)
+	int stream_id; // the stream that is blocked due to flow control
+	int maximum_stream_data; // the offset of the stream at which the blocking occurred
+    }

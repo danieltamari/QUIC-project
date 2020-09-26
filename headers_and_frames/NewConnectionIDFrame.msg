@@ -16,16 +16,16 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
-}
+class NewConnectionIDFrame extends QuicFrame  {
+//An endpoint sends a NEW_CONNECTION_ID frame (type=0x18) to provide its peer with alternative connection IDs
+//that can be used to break linkability when migrating connections. (RFC 19.15)
+	int retire_prior_to; // indicating which connection IDs should be retired
+	unsigned int length; // containing the length of the connection ID in Bytes
+	int connection_ID; // A connection ID of the specified length
+    }

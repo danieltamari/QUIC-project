@@ -16,16 +16,14 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
-}
+class StreamsBlockedFrame extends QuicFrame  {
+//A sender SHOULD send a STREAMS_BLOCKED frame (type=0x16 or 0x17) when it wishes to open a stream, but is 
+//unable to due to the maximum stream limit set by its peer. (RFC 19.14)
+	int maximum_streams; // maximum number of streams allowed at the time the frame was sent. This value cannot exceed 2^60
+    }

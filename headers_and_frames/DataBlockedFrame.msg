@@ -16,16 +16,15 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
-}
+class DataBlockedFrame extends QuicFrame  {
+//A sender SHOULD send a DATA_BLOCKED frame (type=0x14) when it wishes to send data, but is unable to do so
+//due to connection-level flow control; DATA_BLOCKED frames can be used as input to tuning of flow control 
+//algorithms; (RFC 19.12)	
+	int maximum_data; // the connection-level limit at which blocking occurred
+    }

@@ -16,16 +16,14 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
+class PingFrame extends QuicFrame {
+//Endpoints can use PING frames (type=0x01) to verify that their peers are still alive or to check
+//reachability to the peer. PING frames have no content and receiver of a PING frame simply needs to 
+//acknowledge the packet containing this frame. (RFC 19.2)
 }

@@ -12,20 +12,18 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
-
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
-}
+class MaxStreamDataFrame extends QuicFrame  {
+//MAX_STREAM_DATA frame (type=0x11) is used in flow control to inform a peer of the maximum amount of data
+//that can be sent on a stream. (RFC 19.10)
+    int stream_id; // stream ID of the stream that is affected
+    int maximum_stream_data; // maximum amount of data that can be sent on the identified stream, in units of bytes.
+    }

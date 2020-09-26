@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/headers_and_frames/QuicPacketHeader.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/headers_and_frames/HandshakeDoneFrame.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include "QuicPacketHeader_m.h"
+#include "HandshakeDoneFrame_m.h"
 
 namespace omnetpp {
 
@@ -207,82 +207,52 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(QuicPacketHeader)
+Register_Class(HandshakeDoneFrame)
 
-QuicPacketHeader::QuicPacketHeader() : ::inet::FieldsChunk()
+HandshakeDoneFrame::HandshakeDoneFrame() : ::inet::QuicFrame()
 {
 }
 
-QuicPacketHeader::QuicPacketHeader(const QuicPacketHeader& other) : ::inet::FieldsChunk(other)
+HandshakeDoneFrame::HandshakeDoneFrame(const HandshakeDoneFrame& other) : ::inet::QuicFrame(other)
 {
     copy(other);
 }
 
-QuicPacketHeader::~QuicPacketHeader()
+HandshakeDoneFrame::~HandshakeDoneFrame()
 {
 }
 
-QuicPacketHeader& QuicPacketHeader::operator=(const QuicPacketHeader& other)
+HandshakeDoneFrame& HandshakeDoneFrame::operator=(const HandshakeDoneFrame& other)
 {
     if (this == &other) return *this;
-    ::inet::FieldsChunk::operator=(other);
+    ::inet::QuicFrame::operator=(other);
     copy(other);
     return *this;
 }
 
-void QuicPacketHeader::copy(const QuicPacketHeader& other)
+void HandshakeDoneFrame::copy(const HandshakeDoneFrame& other)
 {
-    this->packet_number = other.packet_number;
-    this->header_form = other.header_form;
 }
 
-void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
+void HandshakeDoneFrame::parsimPack(omnetpp::cCommBuffer *b) const
 {
-    ::inet::FieldsChunk::parsimPack(b);
-    doParsimPacking(b,this->packet_number);
-    doParsimPacking(b,this->header_form);
+    ::inet::QuicFrame::parsimPack(b);
 }
 
-void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
+void HandshakeDoneFrame::parsimUnpack(omnetpp::cCommBuffer *b)
 {
-    ::inet::FieldsChunk::parsimUnpack(b);
-    doParsimUnpacking(b,this->packet_number);
-    doParsimUnpacking(b,this->header_form);
+    ::inet::QuicFrame::parsimUnpack(b);
 }
 
-int QuicPacketHeader::getPacket_number() const
-{
-    return this->packet_number;
-}
-
-void QuicPacketHeader::setPacket_number(int packet_number)
-{
-    handleChange();
-    this->packet_number = packet_number;
-}
-
-b QuicPacketHeader::getHeader_form() const
-{
-    return this->header_form;
-}
-
-void QuicPacketHeader::setHeader_form(b header_form)
-{
-    handleChange();
-    this->header_form = header_form;
-}
-
-class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
+class HandshakeDoneFrameDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_packet_number,
-        FIELD_header_form,
     };
   public:
-    QuicPacketHeaderDescriptor();
-    virtual ~QuicPacketHeaderDescriptor();
+    HandshakeDoneFrameDescriptor();
+    virtual ~HandshakeDoneFrameDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -304,24 +274,24 @@ class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(QuicPacketHeaderDescriptor)
+Register_ClassDescriptor(HandshakeDoneFrameDescriptor)
 
-QuicPacketHeaderDescriptor::QuicPacketHeaderDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicPacketHeader)), "inet::FieldsChunk")
+HandshakeDoneFrameDescriptor::HandshakeDoneFrameDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::HandshakeDoneFrame)), "inet::QuicFrame")
 {
     propertynames = nullptr;
 }
 
-QuicPacketHeaderDescriptor::~QuicPacketHeaderDescriptor()
+HandshakeDoneFrameDescriptor::~HandshakeDoneFrameDescriptor()
 {
     delete[] propertynames;
 }
 
-bool QuicPacketHeaderDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool HandshakeDoneFrameDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<QuicPacketHeader *>(obj)!=nullptr;
+    return dynamic_cast<HandshakeDoneFrame *>(obj)!=nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getPropertyNames() const
+const char **HandshakeDoneFrameDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -332,19 +302,19 @@ const char **QuicPacketHeaderDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *QuicPacketHeaderDescriptor::getProperty(const char *propertyname) const
+const char *HandshakeDoneFrameDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::getFieldCount() const
+int HandshakeDoneFrameDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 2+basedesc->getFieldCount() : 2;
+    return basedesc ? 0+basedesc->getFieldCount() : 0;
 }
 
-unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
+unsigned int HandshakeDoneFrameDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -352,14 +322,10 @@ unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
             return basedesc->getFieldTypeFlags(field);
         field -= basedesc->getFieldCount();
     }
-    static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_packet_number
-        FD_ISEDITABLE,    // FIELD_header_form
-    };
-    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
+    return 0;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
+const char *HandshakeDoneFrameDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -367,23 +333,16 @@ const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
             return basedesc->getFieldName(field);
         field -= basedesc->getFieldCount();
     }
-    static const char *fieldNames[] = {
-        "packet_number",
-        "header_form",
-    };
-    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
+    return nullptr;
 }
 
-int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
+int HandshakeDoneFrameDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+0;
-    if (fieldName[0] == 'h' && strcmp(fieldName, "header_form") == 0) return base+1;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
+const char *HandshakeDoneFrameDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -391,14 +350,10 @@ const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
             return basedesc->getFieldTypeString(field);
         field -= basedesc->getFieldCount();
     }
-    static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_packet_number
-        "inet::b",    // FIELD_header_form
-    };
-    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
+    return nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
+const char **HandshakeDoneFrameDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -411,7 +366,7 @@ const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *HandshakeDoneFrameDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -424,7 +379,7 @@ const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *
     }
 }
 
-int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
+int HandshakeDoneFrameDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -432,13 +387,13 @@ int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    HandshakeDoneFrame *pp = (HandshakeDoneFrame *)object; (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *HandshakeDoneFrameDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -446,13 +401,13 @@ const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, 
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    HandshakeDoneFrame *pp = (HandshakeDoneFrame *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string HandshakeDoneFrameDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -460,15 +415,13 @@ std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int 
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    HandshakeDoneFrame *pp = (HandshakeDoneFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_packet_number: return long2string(pp->getPacket_number());
-        case FIELD_header_form: return unit2string(pp->getHeader_form());
         default: return "";
     }
 }
 
-bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool HandshakeDoneFrameDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -476,15 +429,13 @@ bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, 
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    HandshakeDoneFrame *pp = (HandshakeDoneFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
-        case FIELD_header_form: pp->setHeader_form(b(string2long(value))); return true;
         default: return false;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
+const char *HandshakeDoneFrameDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -492,12 +443,10 @@ const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
             return basedesc->getFieldStructName(field);
         field -= basedesc->getFieldCount();
     }
-    switch (field) {
-        default: return nullptr;
-    };
+    return nullptr;
 }
 
-void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *HandshakeDoneFrameDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -505,7 +454,7 @@ void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int f
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    HandshakeDoneFrame *pp = (HandshakeDoneFrame *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }

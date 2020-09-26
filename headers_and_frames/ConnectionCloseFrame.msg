@@ -16,16 +16,19 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 namespace inet;
-
 
 //
 // TODO generated message class
 //
-class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
-	//int src_connectionID;
-	int packet_number;
-	//int packet_type;
-	b header_form;
-}
+class ConnectionCloseFrame extends QuicFrame  {
+//An endpoint sends a CONNECTION_CLOSE frame (type=0x1c or 0x1d) to notify its peer that the connection is
+//being closed. The CONNECTION_CLOSE with a frame type of 0x1c is used to signal errors at only the QUIC 
+//layer, or the absence of errors (with the NO_ERROR code). The CONNECTION_CLOSE frame with a type of 0x1d 
+//is used to signal an error with the application that uses QUIC.(RFC 19.19)
+	int error_code; // indicates the reason for closing this connection
+	int frame_type; // frame that triggered the error. A value of 0 is used when the frame type is unknown
+	char reason_pharse[]; // A human-readable explanation for why the connection was closed
+	int reason_pharse_length; // length of the reason phrase in bytes
+    }

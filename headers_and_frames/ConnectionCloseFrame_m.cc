@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/headers_and_frames/QuicPacketHeader.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/headers_and_frames/ConnectionCloseFrame.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include "QuicPacketHeader_m.h"
+#include "ConnectionCloseFrame_m.h"
 
 namespace omnetpp {
 
@@ -207,82 +207,185 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(QuicPacketHeader)
+Register_Class(ConnectionCloseFrame)
 
-QuicPacketHeader::QuicPacketHeader() : ::inet::FieldsChunk()
+ConnectionCloseFrame::ConnectionCloseFrame() : ::inet::QuicFrame()
 {
 }
 
-QuicPacketHeader::QuicPacketHeader(const QuicPacketHeader& other) : ::inet::FieldsChunk(other)
+ConnectionCloseFrame::ConnectionCloseFrame(const ConnectionCloseFrame& other) : ::inet::QuicFrame(other)
 {
     copy(other);
 }
 
-QuicPacketHeader::~QuicPacketHeader()
+ConnectionCloseFrame::~ConnectionCloseFrame()
 {
+    delete [] this->reason_pharse;
 }
 
-QuicPacketHeader& QuicPacketHeader::operator=(const QuicPacketHeader& other)
+ConnectionCloseFrame& ConnectionCloseFrame::operator=(const ConnectionCloseFrame& other)
 {
     if (this == &other) return *this;
-    ::inet::FieldsChunk::operator=(other);
+    ::inet::QuicFrame::operator=(other);
     copy(other);
     return *this;
 }
 
-void QuicPacketHeader::copy(const QuicPacketHeader& other)
+void ConnectionCloseFrame::copy(const ConnectionCloseFrame& other)
 {
-    this->packet_number = other.packet_number;
-    this->header_form = other.header_form;
+    this->error_code = other.error_code;
+    this->frame_type = other.frame_type;
+    delete [] this->reason_pharse;
+    this->reason_pharse = (other.reason_pharse_arraysize==0) ? nullptr : new char[other.reason_pharse_arraysize];
+    reason_pharse_arraysize = other.reason_pharse_arraysize;
+    for (size_t i = 0; i < reason_pharse_arraysize; i++) {
+        this->reason_pharse[i] = other.reason_pharse[i];
+    }
+    this->reason_pharse_length = other.reason_pharse_length;
 }
 
-void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
+void ConnectionCloseFrame::parsimPack(omnetpp::cCommBuffer *b) const
 {
-    ::inet::FieldsChunk::parsimPack(b);
-    doParsimPacking(b,this->packet_number);
-    doParsimPacking(b,this->header_form);
+    ::inet::QuicFrame::parsimPack(b);
+    doParsimPacking(b,this->error_code);
+    doParsimPacking(b,this->frame_type);
+    b->pack(reason_pharse_arraysize);
+    doParsimArrayPacking(b,this->reason_pharse,reason_pharse_arraysize);
+    doParsimPacking(b,this->reason_pharse_length);
 }
 
-void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
+void ConnectionCloseFrame::parsimUnpack(omnetpp::cCommBuffer *b)
 {
-    ::inet::FieldsChunk::parsimUnpack(b);
-    doParsimUnpacking(b,this->packet_number);
-    doParsimUnpacking(b,this->header_form);
+    ::inet::QuicFrame::parsimUnpack(b);
+    doParsimUnpacking(b,this->error_code);
+    doParsimUnpacking(b,this->frame_type);
+    delete [] this->reason_pharse;
+    b->unpack(reason_pharse_arraysize);
+    if (reason_pharse_arraysize == 0) {
+        this->reason_pharse = nullptr;
+    } else {
+        this->reason_pharse = new char[reason_pharse_arraysize];
+        doParsimArrayUnpacking(b,this->reason_pharse,reason_pharse_arraysize);
+    }
+    doParsimUnpacking(b,this->reason_pharse_length);
 }
 
-int QuicPacketHeader::getPacket_number() const
+int ConnectionCloseFrame::getError_code() const
 {
-    return this->packet_number;
+    return this->error_code;
 }
 
-void QuicPacketHeader::setPacket_number(int packet_number)
+void ConnectionCloseFrame::setError_code(int error_code)
 {
     handleChange();
-    this->packet_number = packet_number;
+    this->error_code = error_code;
 }
 
-b QuicPacketHeader::getHeader_form() const
+int ConnectionCloseFrame::getFrame_type() const
 {
-    return this->header_form;
+    return this->frame_type;
 }
 
-void QuicPacketHeader::setHeader_form(b header_form)
+void ConnectionCloseFrame::setFrame_type(int frame_type)
 {
     handleChange();
-    this->header_form = header_form;
+    this->frame_type = frame_type;
 }
 
-class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
+size_t ConnectionCloseFrame::getReason_pharseArraySize() const
+{
+    return reason_pharse_arraysize;
+}
+
+char ConnectionCloseFrame::getReason_pharse(size_t k) const
+{
+    if (k >= reason_pharse_arraysize) throw omnetpp::cRuntimeError("Array of size reason_pharse_arraysize indexed by %lu", (unsigned long)k);
+    return this->reason_pharse[k];
+}
+
+void ConnectionCloseFrame::setReason_pharseArraySize(size_t newSize)
+{
+    handleChange();
+    char *reason_pharse2 = (newSize==0) ? nullptr : new char[newSize];
+    size_t minSize = reason_pharse_arraysize < newSize ? reason_pharse_arraysize : newSize;
+    for (size_t i = 0; i < minSize; i++)
+        reason_pharse2[i] = this->reason_pharse[i];
+    for (size_t i = minSize; i < newSize; i++)
+        reason_pharse2[i] = 0;
+    delete [] this->reason_pharse;
+    this->reason_pharse = reason_pharse2;
+    reason_pharse_arraysize = newSize;
+}
+
+void ConnectionCloseFrame::setReason_pharse(size_t k, char reason_pharse)
+{
+    if (k >= reason_pharse_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
+    handleChange();
+    this->reason_pharse[k] = reason_pharse;
+}
+
+void ConnectionCloseFrame::insertReason_pharse(size_t k, char reason_pharse)
+{
+    handleChange();
+    if (k > reason_pharse_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
+    size_t newSize = reason_pharse_arraysize + 1;
+    char *reason_pharse2 = new char[newSize];
+    size_t i;
+    for (i = 0; i < k; i++)
+        reason_pharse2[i] = this->reason_pharse[i];
+    reason_pharse2[k] = reason_pharse;
+    for (i = k + 1; i < newSize; i++)
+        reason_pharse2[i] = this->reason_pharse[i-1];
+    delete [] this->reason_pharse;
+    this->reason_pharse = reason_pharse2;
+    reason_pharse_arraysize = newSize;
+}
+
+void ConnectionCloseFrame::insertReason_pharse(char reason_pharse)
+{
+    insertReason_pharse(reason_pharse_arraysize, reason_pharse);
+}
+
+void ConnectionCloseFrame::eraseReason_pharse(size_t k)
+{
+    if (k >= reason_pharse_arraysize) throw omnetpp::cRuntimeError("Array of size  indexed by %lu", (unsigned long)k);
+    handleChange();
+    size_t newSize = reason_pharse_arraysize - 1;
+    char *reason_pharse2 = (newSize == 0) ? nullptr : new char[newSize];
+    size_t i;
+    for (i = 0; i < k; i++)
+        reason_pharse2[i] = this->reason_pharse[i];
+    for (i = k; i < newSize; i++)
+        reason_pharse2[i] = this->reason_pharse[i+1];
+    delete [] this->reason_pharse;
+    this->reason_pharse = reason_pharse2;
+    reason_pharse_arraysize = newSize;
+}
+
+int ConnectionCloseFrame::getReason_pharse_length() const
+{
+    return this->reason_pharse_length;
+}
+
+void ConnectionCloseFrame::setReason_pharse_length(int reason_pharse_length)
+{
+    handleChange();
+    this->reason_pharse_length = reason_pharse_length;
+}
+
+class ConnectionCloseFrameDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_packet_number,
-        FIELD_header_form,
+        FIELD_error_code,
+        FIELD_frame_type,
+        FIELD_reason_pharse,
+        FIELD_reason_pharse_length,
     };
   public:
-    QuicPacketHeaderDescriptor();
-    virtual ~QuicPacketHeaderDescriptor();
+    ConnectionCloseFrameDescriptor();
+    virtual ~ConnectionCloseFrameDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -304,24 +407,24 @@ class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(QuicPacketHeaderDescriptor)
+Register_ClassDescriptor(ConnectionCloseFrameDescriptor)
 
-QuicPacketHeaderDescriptor::QuicPacketHeaderDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicPacketHeader)), "inet::FieldsChunk")
+ConnectionCloseFrameDescriptor::ConnectionCloseFrameDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::ConnectionCloseFrame)), "inet::QuicFrame")
 {
     propertynames = nullptr;
 }
 
-QuicPacketHeaderDescriptor::~QuicPacketHeaderDescriptor()
+ConnectionCloseFrameDescriptor::~ConnectionCloseFrameDescriptor()
 {
     delete[] propertynames;
 }
 
-bool QuicPacketHeaderDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool ConnectionCloseFrameDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<QuicPacketHeader *>(obj)!=nullptr;
+    return dynamic_cast<ConnectionCloseFrame *>(obj)!=nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getPropertyNames() const
+const char **ConnectionCloseFrameDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -332,19 +435,19 @@ const char **QuicPacketHeaderDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *QuicPacketHeaderDescriptor::getProperty(const char *propertyname) const
+const char *ConnectionCloseFrameDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::getFieldCount() const
+int ConnectionCloseFrameDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 2+basedesc->getFieldCount() : 2;
+    return basedesc ? 4+basedesc->getFieldCount() : 4;
 }
 
-unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
+unsigned int ConnectionCloseFrameDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -353,13 +456,15 @@ unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_packet_number
-        FD_ISEDITABLE,    // FIELD_header_form
+        FD_ISEDITABLE,    // FIELD_error_code
+        FD_ISEDITABLE,    // FIELD_frame_type
+        FD_ISARRAY | FD_ISEDITABLE,    // FIELD_reason_pharse
+        FD_ISEDITABLE,    // FIELD_reason_pharse_length
     };
-    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 4) ? fieldTypeFlags[field] : 0;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
+const char *ConnectionCloseFrameDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -368,22 +473,26 @@ const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "packet_number",
-        "header_form",
+        "error_code",
+        "frame_type",
+        "reason_pharse",
+        "reason_pharse_length",
     };
-    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 4) ? fieldNames[field] : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
+int ConnectionCloseFrameDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+0;
-    if (fieldName[0] == 'h' && strcmp(fieldName, "header_form") == 0) return base+1;
+    if (fieldName[0] == 'e' && strcmp(fieldName, "error_code") == 0) return base+0;
+    if (fieldName[0] == 'f' && strcmp(fieldName, "frame_type") == 0) return base+1;
+    if (fieldName[0] == 'r' && strcmp(fieldName, "reason_pharse") == 0) return base+2;
+    if (fieldName[0] == 'r' && strcmp(fieldName, "reason_pharse_length") == 0) return base+3;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
+const char *ConnectionCloseFrameDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -392,13 +501,15 @@ const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_packet_number
-        "inet::b",    // FIELD_header_form
+        "int",    // FIELD_error_code
+        "int",    // FIELD_frame_type
+        "char",    // FIELD_reason_pharse
+        "int",    // FIELD_reason_pharse_length
     };
-    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 4) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
+const char **ConnectionCloseFrameDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -411,7 +522,7 @@ const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *ConnectionCloseFrameDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -424,7 +535,7 @@ const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *
     }
 }
 
-int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
+int ConnectionCloseFrameDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -432,13 +543,14 @@ int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    ConnectionCloseFrame *pp = (ConnectionCloseFrame *)object; (void)pp;
     switch (field) {
+        case FIELD_reason_pharse: return pp->getReason_pharseArraySize();
         default: return 0;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *ConnectionCloseFrameDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -446,13 +558,13 @@ const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, 
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    ConnectionCloseFrame *pp = (ConnectionCloseFrame *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string ConnectionCloseFrameDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -460,15 +572,17 @@ std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int 
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    ConnectionCloseFrame *pp = (ConnectionCloseFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_packet_number: return long2string(pp->getPacket_number());
-        case FIELD_header_form: return unit2string(pp->getHeader_form());
+        case FIELD_error_code: return long2string(pp->getError_code());
+        case FIELD_frame_type: return long2string(pp->getFrame_type());
+        case FIELD_reason_pharse: return long2string(pp->getReason_pharse(i));
+        case FIELD_reason_pharse_length: return long2string(pp->getReason_pharse_length());
         default: return "";
     }
 }
 
-bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool ConnectionCloseFrameDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -476,15 +590,17 @@ bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, 
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    ConnectionCloseFrame *pp = (ConnectionCloseFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
-        case FIELD_header_form: pp->setHeader_form(b(string2long(value))); return true;
+        case FIELD_error_code: pp->setError_code(string2long(value)); return true;
+        case FIELD_frame_type: pp->setFrame_type(string2long(value)); return true;
+        case FIELD_reason_pharse: pp->setReason_pharse(i,string2long(value)); return true;
+        case FIELD_reason_pharse_length: pp->setReason_pharse_length(string2long(value)); return true;
         default: return false;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
+const char *ConnectionCloseFrameDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -497,7 +613,7 @@ const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
     };
 }
 
-void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *ConnectionCloseFrameDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -505,7 +621,7 @@ void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int f
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    ConnectionCloseFrame *pp = (ConnectionCloseFrame *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }

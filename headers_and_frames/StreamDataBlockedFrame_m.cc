@@ -1,5 +1,5 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/headers_and_frames/QuicPacketHeader.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/headers_and_frames/StreamDataBlockedFrame.msg.
 //
 
 // Disable warnings about unused variables, empty switch stmts, etc:
@@ -27,7 +27,7 @@
 #include <iostream>
 #include <sstream>
 #include <memory>
-#include "QuicPacketHeader_m.h"
+#include "StreamDataBlockedFrame_m.h"
 
 namespace omnetpp {
 
@@ -207,82 +207,82 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
     return out;
 }
 
-Register_Class(QuicPacketHeader)
+Register_Class(StreamDataBlockedFrame)
 
-QuicPacketHeader::QuicPacketHeader() : ::inet::FieldsChunk()
+StreamDataBlockedFrame::StreamDataBlockedFrame() : ::inet::QuicFrame()
 {
 }
 
-QuicPacketHeader::QuicPacketHeader(const QuicPacketHeader& other) : ::inet::FieldsChunk(other)
+StreamDataBlockedFrame::StreamDataBlockedFrame(const StreamDataBlockedFrame& other) : ::inet::QuicFrame(other)
 {
     copy(other);
 }
 
-QuicPacketHeader::~QuicPacketHeader()
+StreamDataBlockedFrame::~StreamDataBlockedFrame()
 {
 }
 
-QuicPacketHeader& QuicPacketHeader::operator=(const QuicPacketHeader& other)
+StreamDataBlockedFrame& StreamDataBlockedFrame::operator=(const StreamDataBlockedFrame& other)
 {
     if (this == &other) return *this;
-    ::inet::FieldsChunk::operator=(other);
+    ::inet::QuicFrame::operator=(other);
     copy(other);
     return *this;
 }
 
-void QuicPacketHeader::copy(const QuicPacketHeader& other)
+void StreamDataBlockedFrame::copy(const StreamDataBlockedFrame& other)
 {
-    this->packet_number = other.packet_number;
-    this->header_form = other.header_form;
+    this->stream_id = other.stream_id;
+    this->maximum_stream_data = other.maximum_stream_data;
 }
 
-void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
+void StreamDataBlockedFrame::parsimPack(omnetpp::cCommBuffer *b) const
 {
-    ::inet::FieldsChunk::parsimPack(b);
-    doParsimPacking(b,this->packet_number);
-    doParsimPacking(b,this->header_form);
+    ::inet::QuicFrame::parsimPack(b);
+    doParsimPacking(b,this->stream_id);
+    doParsimPacking(b,this->maximum_stream_data);
 }
 
-void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
+void StreamDataBlockedFrame::parsimUnpack(omnetpp::cCommBuffer *b)
 {
-    ::inet::FieldsChunk::parsimUnpack(b);
-    doParsimUnpacking(b,this->packet_number);
-    doParsimUnpacking(b,this->header_form);
+    ::inet::QuicFrame::parsimUnpack(b);
+    doParsimUnpacking(b,this->stream_id);
+    doParsimUnpacking(b,this->maximum_stream_data);
 }
 
-int QuicPacketHeader::getPacket_number() const
+int StreamDataBlockedFrame::getStream_id() const
 {
-    return this->packet_number;
+    return this->stream_id;
 }
 
-void QuicPacketHeader::setPacket_number(int packet_number)
-{
-    handleChange();
-    this->packet_number = packet_number;
-}
-
-b QuicPacketHeader::getHeader_form() const
-{
-    return this->header_form;
-}
-
-void QuicPacketHeader::setHeader_form(b header_form)
+void StreamDataBlockedFrame::setStream_id(int stream_id)
 {
     handleChange();
-    this->header_form = header_form;
+    this->stream_id = stream_id;
 }
 
-class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
+int StreamDataBlockedFrame::getMaximum_stream_data() const
+{
+    return this->maximum_stream_data;
+}
+
+void StreamDataBlockedFrame::setMaximum_stream_data(int maximum_stream_data)
+{
+    handleChange();
+    this->maximum_stream_data = maximum_stream_data;
+}
+
+class StreamDataBlockedFrameDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_packet_number,
-        FIELD_header_form,
+        FIELD_stream_id,
+        FIELD_maximum_stream_data,
     };
   public:
-    QuicPacketHeaderDescriptor();
-    virtual ~QuicPacketHeaderDescriptor();
+    StreamDataBlockedFrameDescriptor();
+    virtual ~StreamDataBlockedFrameDescriptor();
 
     virtual bool doesSupport(omnetpp::cObject *obj) const override;
     virtual const char **getPropertyNames() const override;
@@ -304,24 +304,24 @@ class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
     virtual void *getFieldStructValuePointer(void *object, int field, int i) const override;
 };
 
-Register_ClassDescriptor(QuicPacketHeaderDescriptor)
+Register_ClassDescriptor(StreamDataBlockedFrameDescriptor)
 
-QuicPacketHeaderDescriptor::QuicPacketHeaderDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::QuicPacketHeader)), "inet::FieldsChunk")
+StreamDataBlockedFrameDescriptor::StreamDataBlockedFrameDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::StreamDataBlockedFrame)), "inet::QuicFrame")
 {
     propertynames = nullptr;
 }
 
-QuicPacketHeaderDescriptor::~QuicPacketHeaderDescriptor()
+StreamDataBlockedFrameDescriptor::~StreamDataBlockedFrameDescriptor()
 {
     delete[] propertynames;
 }
 
-bool QuicPacketHeaderDescriptor::doesSupport(omnetpp::cObject *obj) const
+bool StreamDataBlockedFrameDescriptor::doesSupport(omnetpp::cObject *obj) const
 {
-    return dynamic_cast<QuicPacketHeader *>(obj)!=nullptr;
+    return dynamic_cast<StreamDataBlockedFrame *>(obj)!=nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getPropertyNames() const
+const char **StreamDataBlockedFrameDescriptor::getPropertyNames() const
 {
     if (!propertynames) {
         static const char *names[] = {  nullptr };
@@ -332,19 +332,19 @@ const char **QuicPacketHeaderDescriptor::getPropertyNames() const
     return propertynames;
 }
 
-const char *QuicPacketHeaderDescriptor::getProperty(const char *propertyname) const
+const char *StreamDataBlockedFrameDescriptor::getProperty(const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? basedesc->getProperty(propertyname) : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::getFieldCount() const
+int StreamDataBlockedFrameDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     return basedesc ? 2+basedesc->getFieldCount() : 2;
 }
 
-unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
+unsigned int StreamDataBlockedFrameDescriptor::getFieldTypeFlags(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -353,13 +353,13 @@ unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_packet_number
-        FD_ISEDITABLE,    // FIELD_header_form
+        FD_ISEDITABLE,    // FIELD_stream_id
+        FD_ISEDITABLE,    // FIELD_maximum_stream_data
     };
     return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
+const char *StreamDataBlockedFrameDescriptor::getFieldName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -368,22 +368,22 @@ const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "packet_number",
-        "header_form",
+        "stream_id",
+        "maximum_stream_data",
     };
     return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
-int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
+int StreamDataBlockedFrameDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+0;
-    if (fieldName[0] == 'h' && strcmp(fieldName, "header_form") == 0) return base+1;
+    if (fieldName[0] == 's' && strcmp(fieldName, "stream_id") == 0) return base+0;
+    if (fieldName[0] == 'm' && strcmp(fieldName, "maximum_stream_data") == 0) return base+1;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
+const char *StreamDataBlockedFrameDescriptor::getFieldTypeString(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -392,13 +392,13 @@ const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "int",    // FIELD_packet_number
-        "inet::b",    // FIELD_header_form
+        "int",    // FIELD_stream_id
+        "int",    // FIELD_maximum_stream_data
     };
     return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
-const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
+const char **StreamDataBlockedFrameDescriptor::getFieldPropertyNames(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -411,7 +411,7 @@ const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *propertyname) const
+const char *StreamDataBlockedFrameDescriptor::getFieldProperty(int field, const char *propertyname) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -424,7 +424,7 @@ const char *QuicPacketHeaderDescriptor::getFieldProperty(int field, const char *
     }
 }
 
-int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
+int StreamDataBlockedFrameDescriptor::getFieldArraySize(void *object, int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -432,13 +432,13 @@ int QuicPacketHeaderDescriptor::getFieldArraySize(void *object, int field) const
             return basedesc->getFieldArraySize(object, field);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    StreamDataBlockedFrame *pp = (StreamDataBlockedFrame *)object; (void)pp;
     switch (field) {
         default: return 0;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
+const char *StreamDataBlockedFrameDescriptor::getFieldDynamicTypeString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -446,13 +446,13 @@ const char *QuicPacketHeaderDescriptor::getFieldDynamicTypeString(void *object, 
             return basedesc->getFieldDynamicTypeString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    StreamDataBlockedFrame *pp = (StreamDataBlockedFrame *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }
 }
 
-std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int field, int i) const
+std::string StreamDataBlockedFrameDescriptor::getFieldValueAsString(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -460,15 +460,15 @@ std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int 
             return basedesc->getFieldValueAsString(object,field,i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    StreamDataBlockedFrame *pp = (StreamDataBlockedFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_packet_number: return long2string(pp->getPacket_number());
-        case FIELD_header_form: return unit2string(pp->getHeader_form());
+        case FIELD_stream_id: return long2string(pp->getStream_id());
+        case FIELD_maximum_stream_data: return long2string(pp->getMaximum_stream_data());
         default: return "";
     }
 }
 
-bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
+bool StreamDataBlockedFrameDescriptor::setFieldValueAsString(void *object, int field, int i, const char *value) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -476,15 +476,15 @@ bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, 
             return basedesc->setFieldValueAsString(object,field,i,value);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    StreamDataBlockedFrame *pp = (StreamDataBlockedFrame *)object; (void)pp;
     switch (field) {
-        case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
-        case FIELD_header_form: pp->setHeader_form(b(string2long(value))); return true;
+        case FIELD_stream_id: pp->setStream_id(string2long(value)); return true;
+        case FIELD_maximum_stream_data: pp->setMaximum_stream_data(string2long(value)); return true;
         default: return false;
     }
 }
 
-const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
+const char *StreamDataBlockedFrameDescriptor::getFieldStructName(int field) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -497,7 +497,7 @@ const char *QuicPacketHeaderDescriptor::getFieldStructName(int field) const
     };
 }
 
-void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
+void *StreamDataBlockedFrameDescriptor::getFieldStructValuePointer(void *object, int field, int i) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     if (basedesc) {
@@ -505,7 +505,7 @@ void *QuicPacketHeaderDescriptor::getFieldStructValuePointer(void *object, int f
             return basedesc->getFieldStructValuePointer(object, field, i);
         field -= basedesc->getFieldCount();
     }
-    QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
+    StreamDataBlockedFrame *pp = (StreamDataBlockedFrame *)object; (void)pp;
     switch (field) {
         default: return nullptr;
     }

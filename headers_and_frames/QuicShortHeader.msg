@@ -36,5 +36,5 @@ class QuicShortHeader extends QuicPacketHeader {// ; FieldsChunk {
 	// remove later
 	int packet_type;
 	
-	// total size(in bytes): 1 + packet_number_length + dest_connection_id_length
+	// total size(in bytes): 2 + packet_number_length + dest_connection_id_length
 }
