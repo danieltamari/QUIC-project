@@ -21,7 +21,7 @@
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
 #include "StreamsData.h"
-#include "ack_timer_msg_m.h"
+#include "timer_msg_m.h"
 #include "headers_and_frames/ACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
@@ -37,13 +37,22 @@
 #define SENDER 1
 #define RECEIVER 2
 
-//enum Packet_type {HANDSHAKE =0,
-//                  HANDSHAKE_RESPONSE,
-//                  FIRST_STREAMS_DATA,
-//                  ACK_PACKET,
-//                 // MAX_STREAM_DATA,
-//                 // MAX_DATA
-//                    };
+enum Frame_type {PADDING =0,
+                  PING,
+                  ACK,
+                  RESET_STREAM,
+                  STOP_SENDING,
+                  STREAM_DATA,
+                  MAX_DATA,
+                  MAX_STREAM_DATA,
+                  MAX_STREAMS,
+                  DATA_BLOCKED,
+                  STREAM_DATA_BLOCKED,
+                  STREAMS_BLOCKED,
+                  NEW_CONNECTION_ID,
+                  CONNECTION_CLOSE,
+                  HANDSHAKE_DONE
+                    };
 
 enum Packet_type {INITIAL = 0,
                   ZERO_RTT,
@@ -79,7 +88,7 @@ public:
 
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
-    QuicConnectionClient* AddNewConnection(int* connection_data, int connection_data_size,L3Address destination);
+    QuicConnectionClient* AddNewConnection(int* connection_data, int connection_data_size,L3Address destination,bool reconnect);
     bool isIDAvailable(int src_ID);
     ack_range_info* createAckRange(int arr[],int N,int smallest,int largest,int rcv_next);
 
@@ -90,12 +99,14 @@ protected:
      UdpSocket socket;
      L3Address destAddr;
      int localPort = -1, destPort = -1;
-     std::vector<L3Address> destAddresses;
+     std::vector<L3Address> destAddresses_vector;
      int destAddrRNG = -1;
      std::list<QuicConnection*>* connections;
-     std::map<int,ack_timer_msg*> ACK_timer_msg_map;
+     std::map<int,timer_msg*> ACK_timer_msg_map;
      int type = RECEIVER;
-     bool connected;
+     bool connected; // connected to the udp socket
+
+
 
 
 

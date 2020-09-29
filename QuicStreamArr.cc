@@ -259,15 +259,7 @@ std::vector<IntrusivePtr<StreamFrame>>* QuicStreamArr::framesToSend(int max_payl
         // update stream flow control
         curr_stream->bytes_left_to_send_in_stream -= bytes_to_send_in_frame;
         curr_stream->flow_control_recieve_window -= bytes_to_send_in_frame;
-        curr_stream->current_offset_in_stream += bytes_to_send_in_frame;
-        bytes_left_to_send_in_packet -= bytes_to_send_in_frame;
 
-        if (bytes_left_to_send_in_packet == 0) {
-            packet_full = true;
-        }
-        last_stream_index_checked++;
-        if (last_stream_index_checked == number_of_streams)
-            last_stream_index_checked = 0;
 
         // create new stream frame
         int stream_id = curr_stream->stream_id;
@@ -283,10 +275,20 @@ std::vector<IntrusivePtr<StreamFrame>>* QuicStreamArr::framesToSend(int max_payl
         new_frame->setOffset(offset);
         new_frame->setLength(bytes_to_send_in_frame);
         new_frame->setIs_FIN(isFin);
-        new_frame->setFrame_type(8);
+        new_frame->setFrame_type(5);
         new_frame->setChunkLength(B(bytes_to_send_in_frame));
         frames_vector->push_back(new_frame);
 
+        curr_stream->current_offset_in_stream += bytes_to_send_in_frame;
+        bytes_left_to_send_in_packet -= bytes_to_send_in_frame;
+
+        if (bytes_left_to_send_in_packet == 0) {
+            packet_full = true;
+        }
+
+        last_stream_index_checked++;
+        if (last_stream_index_checked == number_of_streams)
+            last_stream_index_checked = 0;
 
        // curr_stream->send_queue->addStreamFrame(new_frame);
     }

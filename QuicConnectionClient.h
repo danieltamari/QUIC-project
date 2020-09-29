@@ -47,7 +47,7 @@ class QuicConnectionClient : public QuicConnection { //public cSimpleModule, pub
 public:
 
     QuicConnectionClient();
-    QuicConnectionClient(int* connection_data, int connection_data_size,L3Address destination);
+    QuicConnectionClient(int* connection_data, int connection_data_size,L3Address destination,bool reconnect);
     virtual ~QuicConnectionClient();
 
 
@@ -60,17 +60,17 @@ public:
     void performStateTransition(const QuicEventCode &event);
     Packet* ProcessEvent(const QuicEventCode &event,Packet* packet);
 
-    Packet* ProcessInitiateHandshake(Packet* packet, int src_ID_);
+    Packet* ProcessInitiateHandshake( int src_ID_);
     void ProcessClientHandshakeResponse(Packet* packet);
     void ProcessClientSend();
-    void ProcessClientACK(Packet* ack_packet, packet_rcv_type* acked_packet_arr, int total_acked);
+    void ProcessClientACK(packet_rcv_type* acked_packet_arr, int total_acked);
 
     int calcTotalSize(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send);
     void createCopyPacket(Packet* original_packet);
     Packet* RemovePacketFromQueue(int packet_number);
     std::list<Packet*>* getLostPackets(int largest);
     std::list<Packet*>* getPacketsToSend();
-
+    bool GetReconnect();
 
     void updateFlowControl(Packet* acked_packet);
     void updateCongestionControl (Packet* copy_of_ACKED_packet);
@@ -94,6 +94,7 @@ protected:
     std::list<Packet*>* ACKED_out_of_order; // need to only contain meta data
     std::list<Packet*>* waiting_retransmission; // need to only contain meta data
     std::list<Packet*>* packets_to_send;
+    bool reconnect; //new connection or reconnection
     //flow control client side parameters
     int max_payload;
     int Bytes_in_flight;

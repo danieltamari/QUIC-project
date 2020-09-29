@@ -31,6 +31,7 @@
 enum ConnectionEvent {
     RTO_EXPIRED_EVENT = 0,
     ACK_EXPIRED_EVENT,
+    HANDSHAKE_TIMER_EVENT,
 };
 
 
@@ -59,196 +60,225 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
         packet_type = long_header->getLong_packet_type();
         src_ID_from_peer = long_header->getSource_connection_ID();
         dest_ID_from_peer = long_header->getDest_connection_ID();
-    }
 
-    else { // short header
+
+
+
+        switch (packet_type) {
+            case INITIAL: {
+                if (type == RECEIVER) { // HANDSHAKE PACKET (in server)
+                    L3Address srcAddr = packet->getTag<L3AddressInd>()->getSrcAddress();
+                    // create new connection at server's side
+                    QuicConnectionServer *connection = new QuicConnectionServer(srcAddr);
+                    // set connections IDs
+                    if (isIDAvailable(dest_ID_from_peer)) {
+                        connection->SetSourceID(dest_ID_from_peer);
+                    }
+                    else {
+                        int new_dest_ID;
+                        do {
+                            new_dest_ID = std::rand();
+                        }
+                        while (!isIDAvailable(new_dest_ID));
+                        connection->SetSourceID(new_dest_ID);
+                    }
+                    connection->SetDestID(src_ID_from_peer);
+                    timer_msg* ACK_timer = new timer_msg();
+                    ACK_timer_msg_map.insert({ dest_ID_from_peer, ACK_timer });
+                    connections->push_back(connection);
+                    Packet *handshake__response_packet = connection->ServerProcessHandshake(packet);
+                    sendPacket(handshake__response_packet,connection->GetDestAddress());
+                }
+
+
+                else if (type == SENDER) { // HANDSHAKE RESPONSE PACKET (in client)
+                    for (std::list<QuicConnection*>::iterator it =
+                            connections->begin(); it != connections->end(); ++it) {
+                        if ((*it)->GetSourceID() == dest_ID_from_peer) {
+                            (*it)->SetDestID(src_ID_from_peer);
+                            (dynamic_cast<QuicConnectionClient*>(*it))->ProcessClientHandshakeResponse(packet);
+                            dynamic_cast<QuicConnectionClient*>(*it)->ProcessClientSend();
+                            // go over all the available packets and send them
+                            std::list<Packet*>* packets_to_send = (dynamic_cast<QuicConnectionClient*>(*it))->getPacketsToSend();
+                            for (std::list<Packet*>::iterator it_packet = packets_to_send->begin();
+                                    it_packet != packets_to_send->end(); ++it_packet) {
+                                Packet* curr_packet_to_send=*it_packet;
+                                // set RTO on copy packet
+                                auto header = curr_packet_to_send->peekAtFront<QuicPacketHeader>();
+                                int packet_number = header->getPacket_number();
+                                Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
+                                copy_packet->setKind(RTO_EXPIRED_EVENT);
+                                simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
+                                scheduleAt(simTime()+RTO,copy_packet);
+                                sendPacket(curr_packet_to_send,(*it)->GetDestAddress());
+                            }
+                            packets_to_send->clear();
+                            break;
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            case ZERO_RTT: {
+
+
+            }
+
+        }
+   }
+
+    else { // short header -> 1-RTT packet
         auto short_header = packet->peekAtFront<QuicShortHeader>();
         packet_number = short_header->getPacket_number();
         dest_ID_from_peer = short_header->getDest_connection_ID();
-        packet_type = short_header->getPacket_type();
-    }
+        //packet_type = short_header->getPacket_type();
 
 
-    switch (packet_type) {
-    case HANDSHAKE: {
-        if (type == RECEIVER) { // HANDSHAKE PACKET (in server)
-            L3Address srcAddr = packet->getTag<L3AddressInd>()->getSrcAddress();
-            // create new connection at server's side
-            QuicConnectionServer *connection = new QuicConnectionServer(srcAddr);
-            // set connections IDs
-            if (isIDAvailable(dest_ID_from_peer)) {
-                connection->SetSourceID(dest_ID_from_peer);
-            }
-            else {
-                int new_dest_ID;
-                do {
-                    new_dest_ID = std::rand();
-                }
-                while (!isIDAvailable(new_dest_ID));
-                connection->SetSourceID(new_dest_ID);
-            }
-            connection->SetDestID(src_ID_from_peer);
-            ack_timer_msg* ACK_timer = new ack_timer_msg();
-            ACK_timer_msg_map.insert({ dest_ID_from_peer, ACK_timer });
-            connections->push_back(connection);
-            Packet *handshake__response_packet = connection->ServerProcessHandshake(packet);
-            sendPacket(handshake__response_packet,connection->GetDestAddress());
-        }
-
-
-        else if (type == SENDER) { // HANDSHAKE RESPONSE PACKET (in client)
+        if (type == RECEIVER) {
             for (std::list<QuicConnection*>::iterator it =
                     connections->begin(); it != connections->end(); ++it) {
+                int tmp = (*it)->GetSourceID();
                 if ((*it)->GetSourceID() == dest_ID_from_peer) {
-                    (*it)->SetDestID(src_ID_from_peer);
-                    (dynamic_cast<QuicConnectionClient*>(*it))->ProcessClientHandshakeResponse(packet);
-                    dynamic_cast<QuicConnectionClient*>(*it)->ProcessClientSend();
-                    // go over all the available packets and send them
-                    std::list<Packet*>* packets_to_send = (dynamic_cast<QuicConnectionClient*>(*it))->getPacketsToSend();
-                    for (std::list<Packet*>::iterator it_packet = packets_to_send->begin();
-                            it_packet != packets_to_send->end(); ++it_packet) {
-                        Packet* curr_packet_to_send=*it_packet;
-                        // set RTO on copy packet
-                        auto header = curr_packet_to_send->peekAtFront<QuicPacketHeader>();
-                        int packet_number = header->getPacket_number();
-                        Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
-                        copy_packet->setKind(RTO_EXPIRED_EVENT);
-                        simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
-                        scheduleAt(simTime()+RTO,copy_packet);
-                        sendPacket(curr_packet_to_send,(*it)->GetDestAddress());
+                    dynamic_cast<QuicConnectionServer*>(*it)->ProcessServerReceivedPacket(packet);
+                    // set ACK timer for the packet if needed
+                    timer_msg* ACK_timer = this->ACK_timer_msg_map.at(dest_ID_from_peer);
+                    if (!ACK_timer->isScheduled()){
+                        simtime_t max_ack_delay = MAX_DELAY;
+                        ACK_timer->setKind(ACK_EXPIRED_EVENT);
+                        ACK_timer->setDest_connection_ID(dest_ID_from_peer); //set connection id for handle message use
+                        dynamic_cast<QuicConnectionServer*>(*it)->createAckFrame();
+                        scheduleAt(simTime()+max_ack_delay,ACK_timer);
                     }
-                    packets_to_send->clear();
+                 }
+
+            }
+
+        }
+
+        // break packet into frames
+        b offset_in_packet = b(0);
+        auto header = packet->popAtFront<QuicPacketHeader>();
+        while (offset_in_packet < packet->getDataLength()) {
+            auto curr_frame = packet->peekDataAt<QuicFrame>(offset_in_packet);
+            int type = curr_frame->getFrame_type();
+            switch (type) { // temporary - until receiving different types of frames
+                case (STREAM_DATA): {
+                    // call receive packet at server
+
+                    for (std::list<QuicConnection*>::iterator it =
+                             this->connections->begin(); it != connections->end(); ++it) {
+                         if ((*it)->GetSourceID() == dest_ID_from_peer){
+                          //   auto header = packet->popAtFront<QuicShortHeader>();
+                             auto stream_frame = packet->peekDataAt<StreamFrame>(offset_in_packet);
+                             dynamic_cast<QuicConnectionServer*>(*it)->ProcessStreamDataFrame(stream_frame);
+                             break;
+                         }
+                    }
+
+                break;
+
+                }
+                case (ACK): {
+                    for (std::list<QuicConnection*>::iterator it =
+                             this->connections->begin(); it != connections->end(); ++it) {
+                         if ((*it)->GetSourceID() == dest_ID_from_peer){
+                           //  auto header = packet->popAtFront<QuicShortHeader>();
+                            // auto ACK_data = packet->peekData<ACKFrame>();
+                             auto ACK_data = packet->peekDataAt<ACKFrame>(offset_in_packet);
+                             // go over all the ACKED packets in this ACK frame
+                             int first_ack_range = ACK_data->getFirst_ACK_range();
+                             int ack_ranges_num = ACK_data->getACK_range_count();
+                             int largest = ACK_data->getLargest_acknowledged();
+                             int total_acked = first_ack_range+1;
+                              for (int j = 0; j < ack_ranges_num; j++) {
+                                  range curr_ack_range = ACK_data->getACK_ranges(j);
+                                  total_acked += curr_ack_range.ACK_range_length;
+                              }
+
+                              packet_rcv_type* acked_packet_arr =new packet_rcv_type[total_acked];
+
+                              acked_packet_arr[0].packet_number = largest;
+                              if (ack_ranges_num==0){
+                                  acked_packet_arr[0].in_order=true;
+                              }
+                              else
+                                  acked_packet_arr[0].in_order=false;
+                                int recover_index = 1;
+                                int current_ack = largest;
+                                int current_range = first_ack_range;
+                                while (current_range != 0) {
+                                    current_ack--;
+                                    current_range--;
+                                    if (ack_ranges_num==0){
+                                        acked_packet_arr[recover_index].in_order=true;
+                                    }
+                                    else
+                                        acked_packet_arr[recover_index].in_order=false;
+                                    acked_packet_arr[recover_index].packet_number = current_ack;
+                                    recover_index++;
+                                }
+
+                                for (int i = 0; i < ack_ranges_num; i++) {
+                                    range curr_ack_range = ACK_data->getACK_ranges(i);
+                                    current_range = curr_ack_range.ACK_range_length;
+                                    current_ack -= curr_ack_range.gap;
+                                    while (current_range != 0) {
+                                        current_ack--;
+                                        current_range--;
+                                        acked_packet_arr[recover_index].packet_number = current_ack;
+                                        acked_packet_arr[recover_index].in_order=false;
+                                        recover_index++;
+                                    }
+                                }
+                                std::cout << "recover arr is:" << endl;
+                                for (int i = 0; i < total_acked; i++) {
+                                    EV<< "recover arr in place: "<< i << " is: " << acked_packet_arr[i].packet_number <<
+                                            " is in order: " <<  acked_packet_arr[i].in_order << endl;
+                                }
+
+                             for (int i = 0; i < total_acked; i++) {
+                                 int current_packet = acked_packet_arr[i].packet_number;
+                                 // cancel timeout on acked packets
+                                 Packet* copy_received_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(current_packet);
+                                 if (copy_received_packet == NULL)
+                                     continue;
+                                 cancelEvent(copy_received_packet); //cancel RTO timeout
+                             }
+                             (dynamic_cast<QuicConnectionClient*>(*it))->ProcessClientACK(acked_packet_arr,total_acked);
+                             // cancel timeout on lost packets
+                             std::list<Packet*>* lost_packets = (dynamic_cast<QuicConnectionClient*>(*it))->getLostPackets(largest);
+                             for (std::list<Packet*>::iterator it_remove =
+                                     lost_packets->begin(); it_remove != lost_packets->end(); ++it_remove) {
+                                 cancelEvent(*it_remove);
+                             }
+                             (dynamic_cast<QuicConnectionClient*>(*it))->ProcessClientSend();
+
+                             std::list<Packet*>* packets_to_send = (dynamic_cast<QuicConnectionClient*>(*it))->getPacketsToSend();
+                             for (std::list<Packet*>::iterator it_packet = packets_to_send->begin();
+                                     it_packet != packets_to_send->end(); ++it_packet) {
+                                 Packet* curr_packet_to_send=*it_packet;
+                                 // setRTO on copy packet
+                                 auto header = curr_packet_to_send->peekAtFront<QuicPacketHeader>();
+                                 int packet_number = header->getPacket_number();
+                                 Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
+                                 simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
+                                 scheduleAt(simTime()+RTO,copy_packet);
+                                 sendPacket(curr_packet_to_send,(*it)->GetDestAddress());
+                             }
+                             packets_to_send->clear();
+                             break;
+                         }
+                    }
                     break;
                 }
             }
+            offset_in_packet += curr_frame->getChunkLength();
         }
-
-        break;
-    }
-
-
-    case FIRST_STREAMS_DATA: { //DATA PACKET
-        for (std::list<QuicConnection*>::iterator it =
-                connections->begin(); it != connections->end(); ++it) {
-            if ((*it)->GetSourceID() == dest_ID_from_peer) {
-                dynamic_cast<QuicConnectionServer*>(*it)->ProcessServerReceivedPacket(packet);
-                // set ACK timer for the packet if needed
-                ack_timer_msg* ACK_timer = this->ACK_timer_msg_map.at(dest_ID_from_peer);
-                if (!ACK_timer->isScheduled()){
-                    simtime_t max_ack_delay = MAX_DELAY;
-                    ACK_timer->setKind(ACK_EXPIRED_EVENT);
-                    ACK_timer->setDest_connection_ID(dest_ID_from_peer); //set connection id for handle message use
-                    dynamic_cast<QuicConnectionServer*>(*it)->createAckFrame();
-                    scheduleAt(simTime()+max_ack_delay,ACK_timer);
-                }
-             }
-
-        }
-        break;
-    }
-
-    case ACK_PACKET: { //ACK
-        for (std::list<QuicConnection*>::iterator it =
-                 this->connections->begin(); it != connections->end(); ++it) {
-             if ((*it)->GetSourceID() == dest_ID_from_peer){
-                 auto header = packet->popAtFront<QuicShortHeader>();
-                 auto ACK_data = packet->peekData<ACKFrame>();
-
-                 // go over all the ACKED packets in this ACK frame
-                 int first_ack_range = ACK_data->getFirst_ACK_range();
-                 int ack_ranges_num = ACK_data->getACK_range_count();
-                 int largest = ACK_data->getLargest_acknowledged();
-                 int total_acked = first_ack_range+1;
-                  for (int j = 0; j < ack_ranges_num; j++) {
-                      range curr_ack_range = ACK_data->getACK_ranges(j);
-                      total_acked += curr_ack_range.ACK_range_length;
-                  }
-
-                  packet_rcv_type* acked_packet_arr =new packet_rcv_type[total_acked];
-
-                  acked_packet_arr[0].packet_number = largest;
-                  if (ack_ranges_num==0){
-                      acked_packet_arr[0].in_order=true;
-                  }
-                  else
-                      acked_packet_arr[0].in_order=false;
-                    int recover_index = 1;
-                    int current_ack = largest;
-                    int current_range = first_ack_range;
-                    while (current_range != 0) {
-                        current_ack--;
-                        current_range--;
-                        if (ack_ranges_num==0){
-                            acked_packet_arr[recover_index].in_order=true;
-                        }
-                        else
-                            acked_packet_arr[recover_index].in_order=false;
-                        acked_packet_arr[recover_index].packet_number = current_ack;
-                        recover_index++;
-                    }
-
-                    for (int i = 0; i < ack_ranges_num; i++) {
-                        range curr_ack_range = ACK_data->getACK_ranges(i);
-                        current_range = curr_ack_range.ACK_range_length;
-                        current_ack -= curr_ack_range.gap;
-                        while (current_range != 0) {
-                            current_ack--;
-                            current_range--;
-                            acked_packet_arr[recover_index].packet_number = current_ack;
-                            acked_packet_arr[recover_index].in_order=false;
-                            recover_index++;
-                        }
-                    }
-                    std::cout << "recover arr is:" << endl;
-                    for (int i = 0; i < total_acked; i++) {
-                        EV<< "recover arr in place: "<< i << " is: " << acked_packet_arr[i].packet_number <<
-                                " is in order: " <<  acked_packet_arr[i].in_order << endl;
-                    }
-
-                 for (int i = 0; i < total_acked; i++) {
-                     int current_packet = acked_packet_arr[i].packet_number;
-                     // cancel timeout on acked packets
-                     Packet* copy_received_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(current_packet);
-                     if (copy_received_packet == NULL)
-                         continue;
-                     cancelEvent(copy_received_packet); //cancel RTO timeout
-                 }
-
-                 packet->eraseAll();
-                 packet->insertAtFront(header);
-                 packet->insertAtBack(ACK_data);
-                 (dynamic_cast<QuicConnectionClient*>(*it))->ProcessClientACK(packet,acked_packet_arr,total_acked);
-
-                 // cancel timeout on lost packets
-                 std::list<Packet*>* lost_packets = (dynamic_cast<QuicConnectionClient*>(*it))->getLostPackets(largest);
-                 for (std::list<Packet*>::iterator it_remove =
-                         lost_packets->begin(); it_remove != lost_packets->end(); ++it_remove) {
-                     cancelEvent(*it_remove);
-                 }
-
-                 (dynamic_cast<QuicConnectionClient*>(*it))->ProcessClientSend();
-
-                 std::list<Packet*>* packets_to_send = (dynamic_cast<QuicConnectionClient*>(*it))->getPacketsToSend();
-                 for (std::list<Packet*>::iterator it_packet = packets_to_send->begin();
-                         it_packet != packets_to_send->end(); ++it_packet) {
-                     Packet* curr_packet_to_send=*it_packet;
-                     // setRTO on copy packet
-                     auto header = curr_packet_to_send->peekAtFront<QuicPacketHeader>();
-                     int packet_number = header->getPacket_number();
-                     Packet* copy_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacket(packet_number);
-                     simtime_t RTO = dynamic_cast<QuicConnectionClient*>(*it)->GetRto();
-                     scheduleAt(simTime()+RTO,copy_packet);
-                     sendPacket(curr_packet_to_send,(*it)->GetDestAddress());
-                 }
-                 packets_to_send->clear();
-                 break;
-             }
-        }
-
-        break;
-    }
     }
 }
+
 ack_range_info* ConnectionManager::createAckRange(int arr[],int N,int smallest,int largest,int rcv_next){
 
     // Initialize diff
@@ -374,35 +404,24 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             }
         }
         else if (msg->getKind()==ACK_EXPIRED_EVENT) {
-            ack_timer_msg* ACK_timer_msg = dynamic_cast<ack_timer_msg*>(msg);
+            timer_msg* ACK_timer_msg = dynamic_cast<timer_msg*>(msg);
             int dest_ID_from_peer = ACK_timer_msg->getDest_connection_ID();
             EV << "ACK timer EXPIRED!!!!!!!!!!!!!!"<< endl;
             for (std::list<QuicConnection*>::iterator it =
                     this->connections->begin(); it != connections->end(); ++it) {
-              //  int tmp = (*it)->GetSourceID();
-               // int tmp2 = (*it)->GetDestID();
                 if ((*it)->GetSourceID() == dest_ID_from_peer) {
                     // create ACK packet
                     char msgName[32];
                     sprintf(msgName, "QUIC packet ACK");
                     Packet *ack = new Packet(msgName);
-                   // int src_ID = (*it)->GetSourceID();
                     int dest_ID = (*it)->GetDestID();
-//                    auto QuicHeader = makeShared<QuicPacketHeader>();
-//                   // QuicHeader->setPacket_number(rcv_next); // which packet we expect to receive next
-//                    QuicHeader->setSrc_connectionID(src_ID);
-//                    QuicHeader->setDest_connectionID(dest_ID);
-//                    QuicHeader->setPacket_type(5);
-//                    QuicHeader->setChunkLength(B(sizeof(int)*4));
-//                    QuicHeader->setHeader_form(b(0));
-//                    ack->insertAtFront(QuicHeader);
 
                     // create short header
                     unsigned int dest_ID_len = (*it)->calcSizeInBytes(dest_ID);
                     auto QuicHeader_ = makeShared<QuicShortHeader>();
                     QuicHeader_->setHeader_form(b(0));
                     QuicHeader_->setDest_connection_ID(dest_ID);
-                    QuicHeader_->setPacket_type(5);
+                 //   QuicHeader_->setPacket_type(5);
                     int header_length = SHORT_HEADER_BASE_LENGTH + dest_ID_len;
                     QuicHeader_->setChunkLength(B(header_length));
                     ack->insertAtFront(QuicHeader_);
@@ -411,7 +430,7 @@ void ConnectionManager::handleMessage(cMessage *msg) {
                     // create copy of ACK frame
                     IntrusivePtr<inet::ACKFrame> current_Ack_Frame = (dynamic_cast<QuicConnectionServer*>(*it))->getCurrentAckFrame();
                     auto ACK_frame_to_send = makeShared<ACKFrame>();
-
+                    ACK_frame_to_send->setFrame_type(2);
                     std::list<int> not_acked_list=(dynamic_cast<QuicConnectionServer*>(*it))->GetNotAckedList();
                     if (!not_acked_list.empty()){// we need to send out of order ACK
                         int rcv_next=(dynamic_cast<QuicConnectionServer*>(*it))->GetRcvNext();
@@ -443,15 +462,16 @@ void ConnectionManager::handleMessage(cMessage *msg) {
                         dynamic_cast<QuicConnectionServer*>(*it)->RcvInOrdedRst();
                     }
                     else {
-//                        if (dynamic_cast<QuicConnectionServer*>(*it)->GetListFlushed()){
-//                            ACK_frame_to_send->setACK_range_count(-1);
-//                            dynamic_cast<QuicConnectionServer*>(*it)->SetListFlushed(false);
-//                        }
+    //                        if (dynamic_cast<QuicConnectionServer*>(*it)->GetListFlushed()){
+    //                            ACK_frame_to_send->setACK_range_count(-1);
+    //                            dynamic_cast<QuicConnectionServer*>(*it)->SetListFlushed(false);
+    //                        }
                         //int first_ack_range = dynamic_cast<QuicConnectionServer*>(*it)->GetRcvInOrderAndRst()-1;
                         ACK_frame_to_send->setFirst_ACK_range(0); //no out of order ack,first_range_count=0;
                         int largest= dynamic_cast<QuicConnectionServer*>(*it)->getLargestInOrder();
                         ACK_frame_to_send->setLargest_acknowledged(largest);
-                                           }
+                    }
+
                     ACK_frame_to_send->setChunkLength(B(sizeof(int)*4));
                     ack->insertAtBack(ACK_frame_to_send);
                     // current_Ack_Frame;
@@ -460,8 +480,24 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             }
 
         }
+        else if (msg->getKind()==HANDSHAKE_TIMER_EVENT){
+            timer_msg* handshake_timer_msg = dynamic_cast<timer_msg*>(msg);
+            int src_id = handshake_timer_msg->getDest_connection_ID();
+            for (std::list<QuicConnection*>::iterator it =
+                               this->connections->begin(); it != connections->end(); ++it) {
+                if ((*it)->GetSourceID() == src_id) {
+                    Packet *handshake_packet = (dynamic_cast<QuicConnectionClient*>(*it))->ProcessInitiateHandshake(src_id);
+                    if ((dynamic_cast<QuicConnectionClient*>(*it))->GetReconnect()){
+                    //Packet *zero_rtt_packet=SendZeroRtt();
+                    sendPacket(handshake_packet,(*it)->GetDestAddress());
+                    //sendPacket(zero_rtt_packet,(*it)->GetDestAddress());
+                   }
+                    else
+                        sendPacket(handshake_packet,(*it)->GetDestAddress());
+                }
+            }
+        }
     }
-
     else {
         if (connected==false){
             connected=true;
@@ -480,20 +516,42 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             const char* connectAddress=packet_data->getConnectAddress();
             L3Address destination;
             L3AddressResolver().tryResolve(connectAddress, destination);
-            QuicConnectionClient* connection = AddNewConnection(connection_data, connection_data_size,destination);
+            bool reconnect = false;
+            for (std::vector<L3Address>::iterator it =
+                    destAddresses_vector.begin(); it != destAddresses_vector.end(); ++it) {
+                    if (destination==*it) {
+                        reconnect=true;
+                        break;
+                    }
+            }
+
+
+            QuicConnectionClient* connection = AddNewConnection(connection_data, connection_data_size,destination,reconnect);
             int src_ID_;
             do {
                 src_ID_ = std::rand();
             }
             while(!isIDAvailable(src_ID_));
-            Packet *handshake_packet = connection->ProcessInitiateHandshake(packet, src_ID_);
-            sendPacket(handshake_packet,destination);
+            connection->SetSourceID(src_ID_);
+
+
+            timer_msg* handshake_timer = new timer_msg ("handshake timer");
+            handshake_timer->setKind(HANDSHAKE_TIMER_EVENT);
+            handshake_timer->setDest_connection_ID(src_ID_);
+            if (reconnect){
+                scheduleAt(simTime(),handshake_timer);
+            }
+            else
+            {
+                destAddresses_vector.push_back(destination);
+                scheduleAt(simTime()+exponential(1),handshake_timer);
+            }
         }
     }
 }
 
-QuicConnectionClient* ConnectionManager::AddNewConnection(int* connection_data, int connection_data_size,L3Address destination) {
-    QuicConnectionClient* connection = new QuicConnectionClient(connection_data, connection_data_size,destination);
+QuicConnectionClient* ConnectionManager::AddNewConnection(int* connection_data, int connection_data_size,L3Address destination, bool reconnect) {
+    QuicConnectionClient* connection = new QuicConnectionClient(connection_data, connection_data_size,destination,reconnect);
     connections->push_back(connection);
     return connection;
 }
