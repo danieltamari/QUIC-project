@@ -40,12 +40,14 @@ class ACKFrame;
 
 #include "inet/common/packet/chunk/Chunk_m.h" // import inet.common.packet.chunk.Chunk
 
+#include "inet/applications/quicapp/headers_and_frames/QuicFrame_m.h" // import inet.applications.quicapp.headers_and_frames.QuicFrame
+
 // cplusplus {{
 #include "inet/applications/quicapp/QuicConnection.h"
 // }}
 
 /**
- * Struct generated from inet/applications/quicapp/headers_and_frames/ACKFrame.msg:28 by nedtool.
+ * Struct generated from inet/applications/quicapp/headers_and_frames/ACKFrame.msg:29 by nedtool.
  */
 struct INET_API range
 {
@@ -65,12 +67,12 @@ inline void doParsimUnpacking(omnetpp::cCommBuffer *b, range& obj) { __doUnpacki
 namespace inet {
 
 /**
- * Class generated from <tt>inet/applications/quicapp/headers_and_frames/ACKFrame.msg:39</tt> by nedtool.
+ * Class generated from <tt>inet/applications/quicapp/headers_and_frames/ACKFrame.msg:40</tt> by nedtool.
  * <pre>
  * //
  * // TODO generated message class
  * //
- * class ACKFrame extends FieldsChunk
+ * class ACKFrame extends QuicFrame
  * {
  *     //    Receivers send ACK frames (types 0x02 and 0x03) to inform senders of packets they have received and
  *     //    processed. The ACK frame contains one or more ACK Ranges. ACK Ranges identify acknowledged packets.
@@ -83,7 +85,7 @@ namespace inet {
  * }
  * </pre>
  */
-class INET_API ACKFrame : public ::inet::FieldsChunk
+class INET_API ACKFrame : public ::inet::QuicFrame
 {
   protected:
     int largest_acknowledged = 0;

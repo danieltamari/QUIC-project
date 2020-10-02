@@ -237,8 +237,6 @@ void QuicShortHeader::copy(const QuicShortHeader& other)
     this->spin_bit = other.spin_bit;
     this->reserved_bits = other.reserved_bits;
     this->packet_number_length = other.packet_number_length;
-    this->dest_connection_ID = other.dest_connection_ID;
-    this->packet_number = other.packet_number;
     this->packet_type = other.packet_type;
 }
 
@@ -250,8 +248,6 @@ void QuicShortHeader::parsimPack(omnetpp::cCommBuffer *b) const
     doParsimPacking(b,this->spin_bit);
     doParsimPacking(b,this->reserved_bits);
     doParsimPacking(b,this->packet_number_length);
-    doParsimPacking(b,this->dest_connection_ID);
-    doParsimPacking(b,this->packet_number);
     doParsimPacking(b,this->packet_type);
 }
 
@@ -263,8 +259,6 @@ void QuicShortHeader::parsimUnpack(omnetpp::cCommBuffer *b)
     doParsimUnpacking(b,this->spin_bit);
     doParsimUnpacking(b,this->reserved_bits);
     doParsimUnpacking(b,this->packet_number_length);
-    doParsimUnpacking(b,this->dest_connection_ID);
-    doParsimUnpacking(b,this->packet_number);
     doParsimUnpacking(b,this->packet_type);
 }
 
@@ -323,28 +317,6 @@ void QuicShortHeader::setPacket_number_length(B packet_number_length)
     this->packet_number_length = packet_number_length;
 }
 
-int QuicShortHeader::getDest_connection_ID() const
-{
-    return this->dest_connection_ID;
-}
-
-void QuicShortHeader::setDest_connection_ID(int dest_connection_ID)
-{
-    handleChange();
-    this->dest_connection_ID = dest_connection_ID;
-}
-
-int QuicShortHeader::getPacket_number() const
-{
-    return this->packet_number;
-}
-
-void QuicShortHeader::setPacket_number(int packet_number)
-{
-    handleChange();
-    this->packet_number = packet_number;
-}
-
 int QuicShortHeader::getPacket_type() const
 {
     return this->packet_type;
@@ -366,8 +338,6 @@ class QuicShortHeaderDescriptor : public omnetpp::cClassDescriptor
         FIELD_spin_bit,
         FIELD_reserved_bits,
         FIELD_packet_number_length,
-        FIELD_dest_connection_ID,
-        FIELD_packet_number,
         FIELD_packet_type,
     };
   public:
@@ -431,7 +401,7 @@ const char *QuicShortHeaderDescriptor::getProperty(const char *propertyname) con
 int QuicShortHeaderDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 8+basedesc->getFieldCount() : 8;
+    return basedesc ? 6+basedesc->getFieldCount() : 6;
 }
 
 unsigned int QuicShortHeaderDescriptor::getFieldTypeFlags(int field) const
@@ -448,11 +418,9 @@ unsigned int QuicShortHeaderDescriptor::getFieldTypeFlags(int field) const
         FD_ISEDITABLE,    // FIELD_spin_bit
         FD_ISEDITABLE,    // FIELD_reserved_bits
         FD_ISEDITABLE,    // FIELD_packet_number_length
-        FD_ISEDITABLE,    // FIELD_dest_connection_ID
-        FD_ISEDITABLE,    // FIELD_packet_number
         FD_ISEDITABLE,    // FIELD_packet_type
     };
-    return (field >= 0 && field < 8) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 6) ? fieldTypeFlags[field] : 0;
 }
 
 const char *QuicShortHeaderDescriptor::getFieldName(int field) const
@@ -469,11 +437,9 @@ const char *QuicShortHeaderDescriptor::getFieldName(int field) const
         "spin_bit",
         "reserved_bits",
         "packet_number_length",
-        "dest_connection_ID",
-        "packet_number",
         "packet_type",
     };
-    return (field >= 0 && field < 8) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldNames[field] : nullptr;
 }
 
 int QuicShortHeaderDescriptor::findField(const char *fieldName) const
@@ -485,9 +451,7 @@ int QuicShortHeaderDescriptor::findField(const char *fieldName) const
     if (fieldName[0] == 's' && strcmp(fieldName, "spin_bit") == 0) return base+2;
     if (fieldName[0] == 'r' && strcmp(fieldName, "reserved_bits") == 0) return base+3;
     if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number_length") == 0) return base+4;
-    if (fieldName[0] == 'd' && strcmp(fieldName, "dest_connection_ID") == 0) return base+5;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+6;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_type") == 0) return base+7;
+    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_type") == 0) return base+5;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -505,11 +469,9 @@ const char *QuicShortHeaderDescriptor::getFieldTypeString(int field) const
         "inet::b",    // FIELD_spin_bit
         "inet::B",    // FIELD_reserved_bits
         "inet::B",    // FIELD_packet_number_length
-        "int",    // FIELD_dest_connection_ID
-        "int",    // FIELD_packet_number
         "int",    // FIELD_packet_type
     };
-    return (field >= 0 && field < 8) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **QuicShortHeaderDescriptor::getFieldPropertyNames(int field) const
@@ -581,8 +543,6 @@ std::string QuicShortHeaderDescriptor::getFieldValueAsString(void *object, int f
         case FIELD_spin_bit: return unit2string(pp->getSpin_bit());
         case FIELD_reserved_bits: return unit2string(pp->getReserved_bits());
         case FIELD_packet_number_length: return unit2string(pp->getPacket_number_length());
-        case FIELD_dest_connection_ID: return long2string(pp->getDest_connection_ID());
-        case FIELD_packet_number: return long2string(pp->getPacket_number());
         case FIELD_packet_type: return long2string(pp->getPacket_type());
         default: return "";
     }
@@ -603,8 +563,6 @@ bool QuicShortHeaderDescriptor::setFieldValueAsString(void *object, int field, i
         case FIELD_spin_bit: pp->setSpin_bit(b(string2long(value))); return true;
         case FIELD_reserved_bits: pp->setReserved_bits(B(string2long(value))); return true;
         case FIELD_packet_number_length: pp->setPacket_number_length(B(string2long(value))); return true;
-        case FIELD_dest_connection_ID: pp->setDest_connection_ID(string2long(value)); return true;
-        case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
         case FIELD_packet_type: pp->setPacket_type(string2long(value)); return true;
         default: return false;
     }

@@ -23,7 +23,7 @@ namespace inet;
 // TODO generated message class
 //
 class QuicPacketHeader extends FieldsChunk {
-	//int dest_connectionID;
+	int dest_connection_ID;
 	//int src_connectionID;
 	int packet_number;
 	//int packet_type;
