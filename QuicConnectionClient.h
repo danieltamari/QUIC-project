@@ -47,39 +47,47 @@ class QuicConnectionClient : public QuicConnection { //public cSimpleModule, pub
 public:
 
     QuicConnectionClient();
-    QuicConnectionClient(int* connection_data, int connection_data_size,L3Address destination);
+    QuicConnectionClient(int* connection_data, int connection_data_size,L3Address destination,bool reconnect);
     virtual ~QuicConnectionClient();
 
 
-    Packet* createQuicDataPacket(StreamsData* streams_data);
+  //  Packet* createQuicDataPacket(StreamsData* streams_data);
    // StreamsData* CreateSendData(int max_payload, int short_header_size);
-    Packet* createQuicDataPacket(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send, int total_size);
+    Packet* createQuicDataPacket(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send, int total_size, bool one_RTT);
     void AddNewStream(int stream_size,int index);
     Packet* findPacket(int packet_number);
+    Packet* findInitialPacket();
+
 
     void performStateTransition(const QuicEventCode &event);
     Packet* ProcessEvent(const QuicEventCode &event,Packet* packet);
 
-    Packet* ProcessInitiateHandshake(Packet* packet, int src_ID_);
+    Packet* ProcessInitiateHandshake( int src_ID_);
     void ProcessClientHandshakeResponse(Packet* packet);
     void ProcessClientSend();
-    void ProcessClientACK(Packet* ack_packet, packet_rcv_type* acked_packet_arr, int total_acked);
+    void ProcessClientZeroRtt(int connection_window_size, int max_payload_, int stream_window_size);
+    void ProcessClientACK(packet_rcv_type* acked_packet_arr, int total_acked);
 
     int calcTotalSize(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send);
     void createCopyPacket(Packet* original_packet);
     Packet* RemovePacketFromQueue(int packet_number);
     std::list<Packet*>* getLostPackets(int largest);
     std::list<Packet*>* getPacketsToSend();
-
-
+    bool GetReconnect();
+    int getConnectionWindow();
+    int getMaxPayload();
+    int getStreamWindow();
+    int getStreamNumber();
+    void setStreamNumber(int new_stream_number);
     void updateFlowControl(Packet* acked_packet);
+    void updateStreamFlowControl (int  stream_id,int flow_control_window);
     void updateCongestionControl (Packet* copy_of_ACKED_packet);
     void updateMaxStreamData(int stream_id, int max_stream_data_offset);
     Packet* updatePacketNumber(Packet* old_packet);
     void createRetransmitPacket(Packet* packet_to_remove);
 
     void UpdateRtt(simtime_t acked_time);
-    int calcHeaderSize();
+    int calcHeaderSize(bool short_header);
     void freeBlockedStreams(Packet* copy_of_ACKED_packet);
 
     simtime_t GetRto();
@@ -94,12 +102,13 @@ protected:
     std::list<Packet*>* ACKED_out_of_order; // need to only contain meta data
     std::list<Packet*>* waiting_retransmission; // need to only contain meta data
     std::list<Packet*>* packets_to_send;
+    bool reconnect; //new connection or reconnection
     //flow control client side parameters
     int max_payload;
     int Bytes_in_flight;
     int connection_max_flow_control_window_size; // constant
     int connection_flow_control_recieve_window; //
-
+    int stream_flow_control_window;
     // ACK control parameters
     int last_rcvd_ACK;
     int dup_ACKS;

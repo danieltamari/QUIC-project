@@ -42,7 +42,9 @@ module QuicClient extends TransportLayerNodeBase
         tic2: SimV1_client {
             @display("p=960.74994,127.575");
         }
-
+        tic3: SimV1_client {
+            @display("p=965.74994,127.575");
+        }
         at: MessageDispatcher {
             parameters:
                 @display("p=750,146;b=1000,5,,,,1");
@@ -52,6 +54,7 @@ module QuicClient extends TransportLayerNodeBase
     connections allowunconnected:
         tic.out --> connection_manager.quicIn++;
         tic2.out --> connection_manager.quicIn++;
+        tic3.out --> connection_manager.quicIn++;
 
 
         connection_manager.socketOut --> at.in++;

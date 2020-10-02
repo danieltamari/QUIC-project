@@ -59,27 +59,22 @@ public:
     void AddNewStream(int stream_size, int stream_id);
     void AddNewStreamServer(int stream_id, int inital_stream_window);
     bool CloseStream(int stream_id);
-    bool IsAvilableStreamExist();
-    int FreeBytesAvilable() {return total_free_bytes_;}
-    StreamsData* DataToSend(int max_payload);//make a streamData to send
     std::vector<IntrusivePtr<StreamFrame>>* framesToSend(int max_payload);
     void setAllStreamsWindows(int window_size);
     void updateStreamFlowWindow(int stream_id, int acked_data_size);
-    int getTotalConsumedBytes();
-    int getTotalMaxOffset();
     void blockStream(int stream_id);
     void freeStream(int stream_id);
     bool isStreamExist(int stream_id);
     stream* getStream(int stream_id);
     int getSumStreamsWindowSize();
+    int getStreamNumber();
+    void setStreamNumber(int new_stream_number);
 
 
 private:
     std::vector<stream*> stream_arr_; // vector of the streams
     int max_streams_num_; // the maximum number of streams that can send simultaneously .
-    int valid_streams_num_; // current number of open streams.
-    int curr_max_stream_;   // the stream with biggest stream_id
-    int total_free_bytes_;
+    int valid_streams_num_; // current number of open streams
     int number_of_streams;
     int last_stream_index_checked;
 

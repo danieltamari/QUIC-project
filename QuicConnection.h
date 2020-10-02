@@ -23,6 +23,7 @@
 #include "headers_and_frames/QuicHandShakeData_m.h"
 #include "headers_and_frames/QuicFrame_m.h"
 #include "headers_and_frames/PaddingFrame_m.h"
+#include "headers_and_frames/ACKFrame_m.h"
 #include "StreamsData.h"
 #include "retransmission_info_m.h"
 #include "inet/networklayer/common/L3Address.h"
@@ -50,7 +51,6 @@
 #define LONG_HEADER_BASE_LENGTH 11
 #define SHORT_HEADER_BASE_LENGTH 2
 
-#define QUIC_SHORT_HEADER_LENGTH 16
 
 
 namespace inet {
@@ -118,6 +118,8 @@ protected:
     cFSM fsm; // QUIC state machine
     cMessage *event = nullptr;
     cMessage *start_fsm;
+
+
 
 
     // both server and client flow control side parameters, only server update them

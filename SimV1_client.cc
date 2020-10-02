@@ -16,17 +16,17 @@
 #include "SimV1_client.h"
 
 #include <omnetpp.h>
+#include <string>
 
 namespace inet {
 
-#define MSGKIND_CONNECT        1
+#define MSGKIND_CONNECT    1
 #define MSGKIND_SEND       2
 #define MSGKIND_CLOSE      3
-#define NUMBER_OF_STREAMS 4
-# define STREAM_SIZE 60000
 
-#define SENDER 1
-#define RECEIVER 2
+
+//#define SENDER 1
+//#define RECEIVER 2
 
 SimV1_client::SimV1_client() {
     //my_connection = new QuicConnection(8, 0, 0, 000);
@@ -44,6 +44,7 @@ void SimV1_client::initialize(int stage) {
     // need to add connection id parameter and update it here
 
     this->tOpen=0;
+    this->tSend=par("tSend");
     //this->total_bytes_to_send=TOTAL_BYTES;
 
 
@@ -95,26 +96,40 @@ void SimV1_client::connect() {
 }
 
 void SimV1_client::sendData() {
-    int number_of_streams = par("number_of_streams");
-    int stream_size=par("stream_size");
+    //int number_of_streams = par("number_of_streams");
+    //int stream_size=par("stream_size");
+
+    std::string streams = par("streams_list");
+    std::vector<int> streams_vect;
+
+    std::stringstream ss(streams);
+
+    for (int i; ss >> i;) {
+        streams_vect.push_back(i);
+        if (ss.peek() == ',')
+            ss.ignore();
+    }
+
     //int server_number_to_send=par("server_number_to_send");
     //int my_client_number=par("my_client_number");
+
     const char *connectAddress = par("connectAddress");
 
 
     Packet *msg = new Packet("connection_data");
     const auto &payload = makeShared<connection_config_data>();
-    payload->setConnection_dataArraySize(number_of_streams);
-    for (int i=0; i<number_of_streams; i++){
-        payload->setConnection_data(i, stream_size);
+    payload->setConnection_dataArraySize(streams_vect.size());
+    for (std::size_t i = 0; i < streams_vect.size(); i++){
+         payload->setConnection_data(i, streams_vect[i]);
     }
     payload->setConnectAddress(connectAddress);
     //payload->setMy_client_number(my_client_number);
     payload->setChunkLength(B(sizeof(int)*1));
     msg->insertAtBack(payload);
-    msg->setKind(SENDER);
+    int kind = par("sim_type");
+    msg->setKind(kind);
     //long numBytes=this->total_bytes_to_send;
-    EV_INFO << "sending array size: "<< number_of_streams << "with stream_size " << stream_size;
+    //EV_INFO << "sending array size: "<< number_of_streams << "with stream_size " << stream_size;
     send(msg, "out");
 //    if (++commandIndex < (int)commands.size()) {
 //        simtime_t tSend = commands[commandIndex].tSend;

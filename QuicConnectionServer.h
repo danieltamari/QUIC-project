@@ -46,6 +46,7 @@ public:
     QuicConnectionServer(L3Address destination);
     virtual ~QuicConnectionServer();
 
+    void ProcessStreamDataFrame(inet::Ptr<const StreamFrame> stream_frame);
     void recievePacket(Packet* packet);
     bool GetIsOutOfOrder();
     std::list<Packet*>* getMaxStreamDataPackets();

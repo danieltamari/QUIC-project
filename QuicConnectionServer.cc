@@ -43,6 +43,28 @@ QuicConnectionServer::~QuicConnectionServer() {
     // TODO Auto-generated destructor stub
 }
 
+void QuicConnectionServer::ProcessStreamDataFrame(inet::Ptr<const StreamFrame> stream_frame) {
+    int stream_id = stream_frame->getStream_id();
+    int offset = stream_frame->getOffset();
+    int length = stream_frame->getLength();
+    bool is_FIN = stream_frame->getIs_FIN();
+    EV << "stream_id is " << stream_id << " offset is " << offset << " length is " << length << endl;
+    // add new stream at server's side if not already exists
+    if(!stream_arr->isStreamExist(stream_id)) {
+        stream_arr->AddNewStreamServer(stream_id, inital_stream_window);
+    }
+    // find the stream in stream_arr
+    stream* curr_stream = stream_arr->getStream(stream_id);
+    curr_stream->receive_queue->updateStreamInfo(offset,length,is_FIN);
+
+    // ### CHECK if moveDataToApp is needed ?
+ //  int consumed_bytes_size = curr_stream->receive_queue->moveDataToApp(); // remove all available data
+
+    if (curr_stream->receive_queue->check_if_ended()) {
+       //  handle stream ending operations
+   }
+}
+
 
 void QuicConnectionServer::recievePacket(Packet* accepted_packet) {
     // process data
@@ -83,7 +105,7 @@ void QuicConnectionServer::recievePacket(Packet* accepted_packet) {
 
 Packet* QuicConnectionServer::ServerProcessHandshake(Packet* packet) {
     char msgName[32];
-    sprintf(msgName, "QUIC HANDSHAKE RESPONSE");
+    sprintf(msgName, "QUIC INITIAL PACKET (RESPONSE)");
     int src_ID = this->GetSourceID();
     int dest_ID = this->GetDestID();
     // get connections IDs length
@@ -95,7 +117,7 @@ Packet* QuicConnectionServer::ServerProcessHandshake(Packet* packet) {
     auto QuicHeader_ = makeShared<QuicLongHeader>();
     QuicHeader_->setHeader_form(b(1));
     QuicHeader_->setFixed_bit(b(1));
-    QuicHeader_->setLong_packet_type(2);
+    QuicHeader_->setLong_packet_type(0);
     QuicHeader_->setVersion(1);
     QuicHeader_->setDest_connection_ID(dest_ID);
     QuicHeader_->setDest_connection_id_length(dest_ID_len);
@@ -127,7 +149,7 @@ void QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
     is_out_of_order = false;
     bool income_in = false;
     //auto header = packet->popAtFront<QuicPacketHeader>();
-    auto header = packet->popAtFront<QuicShortHeader>();
+    auto header = packet->peekAtFront<QuicPacketHeader>();
     int income_packet_number = header->getPacket_number();
     int dest_connectionID  = header->getDest_connection_ID();
     // find out if packet is retransmission
@@ -174,7 +196,7 @@ void QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
                 dest_connectionID << endl;
 
     // process received frames in packet
-    recievePacket(packet);
+  //  recievePacket(packet);
 
     receive_not_ACKED_queue.sort();
 
@@ -218,6 +240,7 @@ void QuicConnectionServer::createAckFrame() {
     // create ACK frame
     current_Ack_frame = makeShared<ACKFrame>();
     current_Ack_frame->setFirst_ACK_range(0);
+    current_Ack_frame->setFrame_type(2);
     current_Ack_frame->setChunkLength(B(sizeof(int)*4));
 }
 
