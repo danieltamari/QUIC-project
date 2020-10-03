@@ -27,6 +27,7 @@
 #define MAX_DELAY 0.0001
 //#define MAX_DELAY 4.0
 #define CHECK 12
+#define DELAY_TIME 0.2
 
 enum ConnectionEvent {
     RTO_EXPIRED_EVENT = 0,
@@ -476,6 +477,7 @@ void ConnectionManager::handleMessage(cMessage *msg) {
                     auto ACK_frame_to_send = makeShared<ACKFrame>();
                     ACK_frame_to_send->setFrame_type(2);
                     std::list<int> not_acked_list=(dynamic_cast<QuicConnectionServer*>(*it))->GetNotAckedList();
+                    int ack_range_count;
                     if (!not_acked_list.empty()){// we need to send out of order ACK
                         int rcv_next=(dynamic_cast<QuicConnectionServer*>(*it))->GetRcvNext();
                         int arr_index=0;
@@ -490,7 +492,7 @@ void ConnectionManager::handleMessage(cMessage *msg) {
                         int smallest=not_acked_list.front();
                         ack_range_info* ack_range_info_=this->createAckRange(arr,list_size,smallest, largest,rcv_next);
                         ACK_frame_to_send->setACK_rangesArraySize(ack_range_info_->arr_size);
-                        int ack_range_count=ack_range_info_->arr_size;
+                        ack_range_count=ack_range_info_->arr_size;
                         for (int ii=0; ii<ack_range_count;ii++){
                             range* current_range = ack_range_info_->ack_range_arr->at(ii);
                             ACK_frame_to_send->setACK_ranges(ii, *current_range);
@@ -516,7 +518,7 @@ void ConnectionManager::handleMessage(cMessage *msg) {
                         ACK_frame_to_send->setLargest_acknowledged(largest);
                     }
 
-                    ACK_frame_to_send->setChunkLength(B(sizeof(int)*4));
+                    ACK_frame_to_send->setChunkLength(B(sizeof(int)*(4+2*ack_range_count)));
                     ack->insertAtBack(ACK_frame_to_send);
                     // current_Ack_Frame;
                     sendPacket(ack,(*it)->GetDestAddress());
@@ -619,7 +621,7 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             else
             {
                // destAddresses_vector.push_back(destination);
-                scheduleAt(simTime()+exponential(1),handshake_timer);
+                scheduleAt(simTime()+DELAY_TIME,handshake_timer);
             }
         }
         else if (msg->getKind()== ADDSTREAMS){

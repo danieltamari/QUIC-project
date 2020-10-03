@@ -40,7 +40,8 @@
 
 #define DEAFULT_STREAM_NUM 10
 // flow control parameters
-#define Init_Connection_FlowControl_Window 16 * 1024  // 64 KB
+//#define Init_Connection_FlowControl_Window 16 * 1024  // 16 KB
+#define Init_Connection_FlowControl_Window 16800
 #define Init_Stream_ReceiveWindow 16 * 1024   // 16 KB
 // congestion control parameters
 #define ACKTHRESH 3

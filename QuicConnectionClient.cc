@@ -111,7 +111,7 @@ void QuicConnectionClient::ProcessClientHandshakeResponse(Packet* packet) {
     stream_arr->setAllStreamsWindows(initial_stream_window);
     stream_flow_control_window = initial_stream_window;
     congestion_alg->SetSndMss(max_payload);
-    congestion_alg->SetSndCwnd(max_payload*2); //initial congestion window
+    congestion_alg->SetSndCwnd(max_payload * 2); //initial congestion window
     congestion_alg->SetSsThresh(max_payload*SSTHRESH_CHANGE_THIS); // initial slow start threshold.
     int sum_stream_window_size = this->stream_arr->getSumStreamsWindowSize();
     congestion_alg->SetSndWnd(std::min(connection_flow_control_recieve_window-Bytes_in_flight,sum_stream_window_size));
