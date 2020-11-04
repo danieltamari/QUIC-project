@@ -23,12 +23,14 @@
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
 #include "headers_and_frames/QuicHandShakeData_m.h"
-#include "StreamsData.h"
 #include "headers_and_frames/ACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
-#include <omnetpp.h>
 #include "inet/common/ModuleAccess.h"
+#include "inet/transportlayer/contract/udp/UdpControlInfo_m.h"
+#include "inet/networklayer/common/L3AddressResolver.h"
+#include <omnetpp.h>
+
 
 #ifndef INET_APPLICATIONS_QUICAPP_QUICCONNECTIONSERVER_H_
 #define INET_APPLICATIONS_QUICAPP_QUICCONNECTIONSERVER_H_
@@ -39,45 +41,42 @@ class QuicStreamArr;
 class QuicRecieveQueue;
 
 
-
 class QuicConnectionServer : public QuicConnection {
 public:
     QuicConnectionServer();
     QuicConnectionServer(L3Address destination);
     virtual ~QuicConnectionServer();
-
-    void recievePacket(Packet* packet);
+    Packet* ServerProcessHandshake(Packet* packet);
+    bool ProcessServerReceivedPacket(Packet* packet);
+    void ProcessStreamDataFrame(inet::Ptr<const StreamFrame> stream_frame);
+    int GetRcvNext();
     bool GetIsOutOfOrder();
-    std::list<Packet*>* getMaxStreamDataPackets();
-    IntrusivePtr<inet::ACKFrame> getCurrentAckFrame();
+    int GetCurrLargest();
     std::list<int> GetNotAckedList();
     int getLargestInOrder();
-    int GetRcvNext();
     int GetRcvInOrderAndRst();
-    void  RcvInOrdedRst();
-
-    Packet* ServerProcessHandshake(Packet* packet);
-    void ProcessServerReceivedPacket(Packet* packet);
-    void createAckFrame();
+    void SetCurrLargest(int largest);
+    void setLargestWithRcvNext();
 
 
 protected:
     int num_packets_recieved;
-
+    QuicReceiveQueue* receive_queue;
     std::list<int> receive_not_ACKED_queue;
-    std::list<Packet*>* max_stream_data_packets_;
-
 
     //flow control server side parameters
     int inital_stream_window;
 
-
     // ACK control parameters
+    int current_largest;
     int rcv_next;
-    int rcv_in_order;
+    //int rcv_in_order;
     bool is_out_of_order;
     IntrusivePtr<inet::ACKFrame> current_Ack_frame;
+
+
 };
+
 
 } /* namespace inet */
 

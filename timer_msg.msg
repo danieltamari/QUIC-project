@@ -13,20 +13,16 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-package inet.applications.quicapp;
+import inet.common.INETDefs;
+import inet.applications.base.ApplicationPacket;
+import inet.common.packet.chunk.Chunk;
+namespace inet;
 
 
-simple SimV1_client
-{
-    parameters:
-        //int number_of_streams;
-        //int stream_size;
-        string streams_list;
-        string connectAddress;
-        double tSend @unit(s) = default(0s);
-        int sim_type; // 1 = SENDER , 3=ADDSTREAMS
-        //int my_client_number;
-    gates:
-        input in;
-        output out;
+//
+// TODO generated message class
+//
+class timer_msg extends cMessage {
+	int dest_connection_ID;
+
 }

@@ -40,10 +40,10 @@ public:
 
 
   /** Redefine what should happen when data got acked, to add congestion window management */
-  void receivedDataAck(uint32 old_send_una);
+  void receivedDataAck(uint32 old_send_una, bool full_ack);
 
   /** Redefine what should happen when dupAck was received, to add congestion window management */
-  void receivedDuplicateAck(int packet_gap);
+  bool receivedDuplicateAck(int dup_ACKS);
 
 
   void rttMeasurementCompleteUsingTS(uint32 echoedTS);
@@ -52,14 +52,17 @@ public:
   uint32 convertSimtimeToTS(simtime_t simtime);
   void SetSndCwnd(uint32 snd_cwnd);
   int32 GetSndCwnd();
+  void inflateCwnd();
+  bool getLossRecovery();
   void SetSndWnd(uint32 snd_wnd);
   void SetSndMss(uint32 snd_mss);
   void SetSsThresh(uint32 ssthresh);
   void SetSndMax(uint32 bytes_sent);
   void SetSndUnA(uint32 snd_una);
   void SetDupACKS(int dup_acks);
-  void SetFlightSize(int flight_size);
+ // void SetFlightSize(int flight_size);
   simtime_t GetRto();
+  simtime_t GetRtt();
 
 
 protected:
@@ -80,11 +83,12 @@ protected:
 
   simtime_t srtt;    ///< smoothed round-trip time
   simtime_t rttvar;    ///< variance of round-trip time
+  simtime_t rtt;
 
   int rexmit_count;    ///< number of retransmissions (=1 after first rexmit)
   simtime_t rexmit_timeout;    ///< current retransmission timeout (aka RTO)
 
-  uint32 flight_size;
+//  uint32 flight_size;
 
 };
 

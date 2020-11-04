@@ -21,7 +21,7 @@
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
 #include "StreamsData.h"
-#include "ack_timer_msg_m.h"
+#include "timer_msg_m.h"
 #include "headers_and_frames/ACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
@@ -34,16 +34,27 @@
 #ifndef INET_APPLICATIONS_QUICAPP_CONNECTIONMANAGER_H_
 #define INET_APPLICATIONS_QUICAPP_CONNECTIONMANAGER_H_
 
-#define SENDER 1
-#define RECEIVER 2
+enum Sim_type { SENDER = 1,
+                RECEIVER,
+                ADDSTREAMS
+               };
 
-//enum Packet_type {HANDSHAKE =0,
-//                  HANDSHAKE_RESPONSE,
-//                  FIRST_STREAMS_DATA,
-//                  ACK_PACKET,
-//                 // MAX_STREAM_DATA,
-//                 // MAX_DATA
-//                    };
+enum Frame_type {PADDING =0,
+                  PING,
+                  ACK,
+                  RESET_STREAM,
+                  STOP_SENDING,
+                  STREAM_DATA,
+                  MAX_DATA,
+                  MAX_STREAM_DATA,
+                  MAX_STREAMS,
+                  DATA_BLOCKED,
+                  STREAM_DATA_BLOCKED,
+                  STREAMS_BLOCKED,
+                  NEW_CONNECTION_ID,
+                  CONNECTION_CLOSE,
+                  HANDSHAKE_DONE
+                    };
 
 enum Packet_type {INITIAL = 0,
                   ZERO_RTT,
@@ -64,7 +75,12 @@ struct ack_range_info {
     int first_ack_range;
 };
 
-
+struct old_transport_parameters {
+    int connection_window_size;
+    int stream_window_size;
+    int max_payload;
+    L3Address destination;
+};
 
 class ConnectionManager:  public cSimpleModule, public UdpSocket::ICallback{
 public:
@@ -75,11 +91,12 @@ public:
     virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
     virtual void socketClosed(UdpSocket *socket) override;
     void sendPacket(Packet *packet,L3Address destAddr) ;
+    void processPacketFrames(Packet* packet, int dest_ID_from_peer);
     void connectToUDPSocket();
 
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
-    QuicConnectionClient* AddNewConnection(int* connection_data, int connection_data_size,L3Address destination);
+    QuicConnectionClient* AddNewConnection(int* connection_data, int connection_data_size,L3Address destination,bool reconnect);
     bool isIDAvailable(int src_ID);
     ack_range_info* createAckRange(int arr[],int N,int smallest,int largest,int rcv_next);
 
@@ -90,13 +107,41 @@ protected:
      UdpSocket socket;
      L3Address destAddr;
      int localPort = -1, destPort = -1;
-     std::vector<L3Address> destAddresses;
+    // std::vector<L3Address> destAddresses_vector;
+     std::vector<old_transport_parameters*> old_trans_parameters;
      int destAddrRNG = -1;
      std::list<QuicConnection*>* connections;
-     std::map<int,ack_timer_msg*> ACK_timer_msg_map;
+     std::map<int,timer_msg*> ACK_timer_msg_map;
+     std::map<int,int> latency_connection_map;
      int type = RECEIVER;
-     bool connected;
+     bool connected; // connected to the udp socket
+     timer_msg* throughput_timer;
+     int counter;
 
+
+     /// REMOVE
+     int latency_index=0;
+
+
+private:
+     simsignal_t snd_wnd_Signal;
+     simsignal_t bytes_sent_signal;
+     simsignal_t rtt_signal;
+     simsignal_t latency_signal;
+     simsignal_t latency_signal_second;
+     simsignal_t current_new_sent_bytes_signal;
+     simsignal_t current_total_sent_bytes_signal;
+     simsignal_t bytes_sent_with_ret_signal;
+     simsignal_t stream0_send_bytes_signal;
+     simsignal_t stream1_send_bytes_signal;
+     simsignal_t stream2_send_bytes_signal;
+     simsignal_t stream3_send_bytes_signal;
+     simsignal_t stream4_send_bytes_signal;
+     simsignal_t stream5_send_bytes_signal;
+     simsignal_t stream6_send_bytes_signal;
+     simsignal_t stream7_send_bytes_signal;
+     simsignal_t stream8_send_bytes_signal;
+     simsignal_t stream9_send_bytes_signal;
 
 
 };

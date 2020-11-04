@@ -16,10 +16,7 @@
 #ifndef INET_APPLICATIONS_QUICAPP_QUICSTREAMARR_H_
 #define INET_APPLICATIONS_QUICAPP_QUICSTREAMARR_H_
 
-#include "StreamsData.h"
 #include <omnetpp.h>
-#include "QuicSendQueue.h"
-#include "QuicReceiveQueue.h"
 #include "headers_and_frames/QuicFrame_m.h"
 #include "headers_and_frames/StreamFrame_m.h"
 
@@ -36,19 +33,13 @@ struct stream {
     int current_offset_in_stream; // stream send frame from this current offset
     bool valid;
     int stream_size; // how many bytes stream have to send
+    int ACKed_bytes;
+    bool stream_done;
 
     // flow control parameters
     int max_flow_control_window_size; // constant max window size
-  //  int highest_recieved_byte_offset; // how many bytes currently received to receive queue
-  //  int flow_control_recieve_offset; //
     int flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
-   // int consumed_bytes; // how many bytes moved to application layer
-
     int bytes_left_to_send_in_stream; // how many bytes we are left to send in this stream
-
-    // send queue
-    QuicSendQueue* send_queue;
-    QuicRecieveQueue* receive_queue;
 };
 
 class QuicStreamArr {
@@ -58,28 +49,26 @@ public:
     virtual ~QuicStreamArr();
     void AddNewStream(int stream_size, int stream_id);
     void AddNewStreamServer(int stream_id, int inital_stream_window);
-    bool CloseStream(int stream_id);
-    bool IsAvilableStreamExist();
-    int FreeBytesAvilable() {return total_free_bytes_;}
-    StreamsData* DataToSend(int max_payload);//make a streamData to send
-    std::vector<IntrusivePtr<StreamFrame>>* framesToSend(int max_payload);
-    void setAllStreamsWindows(int window_size);
-    void updateStreamFlowWindow(int stream_id, int acked_data_size);
-    int getTotalConsumedBytes();
-    int getTotalMaxOffset();
+    void CloseStream(int stream_id);
     void blockStream(int stream_id);
     void freeStream(int stream_id);
+    void updateACKedBytes(int stream_id, int num_of_bytes);
+    bool getAllStreamsDone();
+    std::vector<IntrusivePtr<StreamFrame>>* framesToSend(int max_payload);
     bool isStreamExist(int stream_id);
-    stream* getStream(int stream_id);
+    void setAllStreamsWindows(int window_size);
+    void updateStreamFlowWindow(int stream_id, int acked_data_size);
+    int getStreamNumber();
+    void setStreamNumber(int new_stream_number);
     int getSumStreamsWindowSize();
+    stream* getStream(int stream_id);
+    int getStreamBytesSent(int stream_id);
 
 
 private:
     std::vector<stream*> stream_arr_; // vector of the streams
     int max_streams_num_; // the maximum number of streams that can send simultaneously .
-    int valid_streams_num_; // current number of open streams.
-    int curr_max_stream_;   // the stream with biggest stream_id
-    int total_free_bytes_;
+    int valid_streams_num_; // current number of open streams
     int number_of_streams;
     int last_stream_index_checked;
 

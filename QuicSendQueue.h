@@ -13,12 +13,14 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 //
 
-
-#include "StreamsData.h"
+#include "inet/common/packet/Packet.h"
+#include "headers_and_frames/QuicPacketHeader_m.h"
+#include "headers_and_frames/QuicLongHeader_m.h"
 
 #ifndef INET_APPLICATIONS_QUICAPP_QUICSENDQUEUE_H_
 #define INET_APPLICATIONS_QUICAPP_QUICSENDQUEUE_H_
 
+#define kPacketThreshold 3
 
 namespace inet {
 
@@ -27,13 +29,23 @@ class QuicSendQueue {
 public:
     QuicSendQueue();
     virtual ~QuicSendQueue();
-    bool isQueueEmpty();
-    void addStreamFrame(stream_frame* frame);
+    void createCopyPacket(Packet* original_packet);
+    void removeFromSendQueue(Packet* packet_to_remove);
+    Packet* findPacketInSendQueue(int packet_number);
+    Packet* findInitialPacket();
+    std::list<Packet*>* getPacketsToCancel(int cancel_RTO_before_number);
+    Packet* removeFromSendQueueByNumber(int packet_number);
+    std::list<Packet*>* getAckedPackets(int first_acked);
+    std::list<Packet*>* getLostPackets();
+    std::vector<int>* updateLostPackets(int largest);
+    // TEMP
+    void printSendNotAcked();
 
 
 protected:
-  //  ChunkQueue send_queue; // stores application data
-    std::vector<stream_frame*> sent_without_ACK_frames;
+    std::list<Packet*>* send_not_ACKED_queue;
+    std::list<Packet*>* lost_packets;
+
 };
 
 } /* namespace inet */
