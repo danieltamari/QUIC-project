@@ -35,7 +35,6 @@ public:
     Packet* findInitialPacket();
     std::list<Packet*>* getPacketsToCancel(int cancel_RTO_before_number);
     Packet* removeFromSendQueueByNumber(int packet_number);
-    std::list<Packet*>* getAckedPackets(int first_acked);
     std::list<Packet*>* getLostPackets();
     std::vector<int>* updateLostPackets(int largest);
     // TEMP

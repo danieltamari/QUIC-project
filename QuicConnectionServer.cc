@@ -25,14 +25,13 @@ QuicConnectionServer::QuicConnectionServer() {
 }
 
 
-QuicConnectionServer::QuicConnectionServer(L3Address destination) {
+QuicConnectionServer::QuicConnectionServer(L3Address destination_) {
     stream_arr = new QuicStreamArr();
     receive_queue = new QuicReceiveQueue();
     num_packets_recieved = 0;
     rcv_next = 0;
-    this->destination=destination;
+    destination = destination_;
     inital_stream_window = Init_Stream_ReceiveWindow;
-    is_out_of_order = false;
     current_largest=-1;
 }
 
@@ -45,8 +44,8 @@ QuicConnectionServer::~QuicConnectionServer() {
 Packet* QuicConnectionServer::ServerProcessHandshake(Packet* packet) {
     char msgName[32];
     sprintf(msgName, "QUIC INITIAL PACKET (RESPONSE)");
-    int src_ID = this->GetSourceID();
-    int dest_ID = this->GetDestID();
+    int src_ID = getSourceID();
+    int dest_ID = getDestID();
     // get connections IDs length
     unsigned int dest_ID_len = calcSizeInBytes(dest_ID);
     unsigned int src_ID_len = calcSizeInBytes(src_ID);
@@ -82,9 +81,7 @@ Packet* QuicConnectionServer::ServerProcessHandshake(Packet* packet) {
 }
 
 
-
 bool QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
-    is_out_of_order = false;
     auto header = packet->peekAtFront<QuicPacketHeader>();
     int income_packet_number = header->getPacket_number();
     int dest_connectionID  = header->getDest_connection_ID();
@@ -112,7 +109,6 @@ bool QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
 
     else if (rcv_next != income_packet_number) { // out of order packet
         receive_not_ACKED_queue.push_back(income_packet_number);
-        is_out_of_order = true;
     }
 
     else     { // in order packet
@@ -132,7 +128,6 @@ bool QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
     while (it != receive_not_ACKED_queue.end()) {
         if ((*it) <= rcv_next){
             int packet_number_to_remove = (*it);
-
             receive_not_ACKED_queue.remove(packet_number_to_remove);
             rcv_next++;
             it = receive_not_ACKED_queue.begin();
@@ -150,8 +145,6 @@ bool QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
     }
 
     EV << "########### receive next after: " << rcv_next <<" ###############" << endl;
-//    if (rcv_next != 1)
-//        this->current_largest=rcv_next-1;
     return new_data;
 }
 
@@ -164,7 +157,7 @@ void QuicConnectionServer::ProcessStreamDataFrame(inet::Ptr<const StreamFrame> s
     EV << "stream_id is " << stream_id << " offset is " << offset << " length is " << length << endl;
     // add new stream at server's side if not already exists
     if(!stream_arr->isStreamExist(stream_id)) {
-        stream_arr->AddNewStreamServer(stream_id, inital_stream_window);
+        stream_arr->addNewStreamServer(stream_id, inital_stream_window);
     }
 
     // update new accepted bytes in streams info
@@ -173,26 +166,24 @@ void QuicConnectionServer::ProcessStreamDataFrame(inet::Ptr<const StreamFrame> s
     // check if stream has ended
     if (receive_queue->checkIfEnded(stream_id)) {
        //  handle stream ending operations
-       stream_arr->CloseStream(stream_id);
+       stream_arr->closeStream(stream_id);
        receive_queue->removeStreamInfo(stream_id);
        EV << "******** stream " << stream_id << " ended at server *********" << endl;
    }
 }
 
 
-int QuicConnectionServer::GetRcvNext(){
+int QuicConnectionServer::getRcvNext(){
     return rcv_next;
 }
-int QuicConnectionServer::GetCurrLargest(){
-    return this->current_largest;
+
+
+int QuicConnectionServer::getCurrLargest(){
+    return current_largest;
 }
 
-bool QuicConnectionServer::GetIsOutOfOrder() {
-    return is_out_of_order;
-}
 
-
-std::list<int> QuicConnectionServer::GetNotAckedList(){
+std::list<int> QuicConnectionServer::getNotAckedList(){
     return receive_not_ACKED_queue;
 }
 
@@ -202,23 +193,14 @@ int QuicConnectionServer::getLargestInOrder(){
 }
 
 
-//int QuicConnectionServer::GetRcvInOrderAndRst(){
-//    int rcv_in_order_= rcv_in_order;
-//    rcv_in_order = 0;
-//    return rcv_in_order_;
-//}
-
-
-//void QuicConnectionServer:: RcvInOrdedRst(){
-//    rcv_in_order = 0;
-//}
-
-void QuicConnectionServer::SetCurrLargest(int largest){
-    this->current_largest=largest;
+void QuicConnectionServer::setCurrLargest(int largest){
+    current_largest=largest;
 }
+
 
 void QuicConnectionServer::setLargestWithRcvNext(){
-    this->current_largest=rcv_next-1;;
+    current_largest=rcv_next-1;;
 }
+
 
 } /* namespace inet */

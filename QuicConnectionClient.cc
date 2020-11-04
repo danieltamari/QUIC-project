@@ -22,7 +22,6 @@ namespace inet {
 
 QuicConnectionClient::QuicConnectionClient() {
     // TODO Auto-generated constructor stub
-
 }
 
 
@@ -58,7 +57,7 @@ QuicConnectionClient::~QuicConnectionClient() {
 
 
 void QuicConnectionClient::AddNewStream(int stream_size, int stream_id) {
-    stream_arr->AddNewStream(stream_size, stream_id);
+    stream_arr->addNewStream(stream_size, stream_id);
 }
 
 
@@ -86,8 +85,8 @@ Packet* QuicConnectionClient::ProcessInitiateHandshake(int src_ID_) {
     int header_length = LONG_HEADER_BASE_LENGTH + dest_ID_len + src_ID_len;
     QuicHeader_->setChunkLength(B(header_length));
     packet_to_send->insertAtFront(QuicHeader_);
-    SetSourceID(src_ID_);
-    SetDestID(dest_ID_);
+    setSourceID(src_ID_);
+    setDestID(dest_ID_);
 
     // create frames for packet's payload
     const auto &handshake_data = makeShared<QuicHandShakeData>();
@@ -118,22 +117,22 @@ void QuicConnectionClient::ProcessClientHandshakeResponse(Packet* packet) {
     connection_flow_control_recieve_window = initial_connection_window;
     stream_arr->setAllStreamsWindows(initial_stream_window);
     stream_flow_control_window = initial_stream_window;
-    congestion_alg->SetSndMss(max_payload);
-    congestion_alg->SetSndCwnd(max_payload * 2); //initial congestion window
-    congestion_alg->SetSsThresh(MAX_THRESHOLD); // initial slow start threshold.
-    int sum_stream_window_size = this->stream_arr->getSumStreamsWindowSize();
-    congestion_alg->SetSndWnd(std::min(connection_flow_control_recieve_window,sum_stream_window_size));
+    congestion_alg->setSndMss(max_payload);
+    congestion_alg->setSndCwnd(max_payload * 2); //initial congestion window
+    congestion_alg->setSsThresh(MAX_THRESHOLD); // initial slow start threshold.
+    int sum_stream_window_size = stream_arr->getSumStreamsWindowSize();
+    congestion_alg->setSndWnd(std::min(connection_flow_control_recieve_window,sum_stream_window_size));
     delete packet;
 }
 
 
 void QuicConnectionClient::ProcessClientSend(){
 
-    EV << "############ congestion window size: " << congestion_alg->GetSndCwnd()  << " ############" << endl;
+    EV << "############ congestion window size: " << congestion_alg->getSndCwnd()  << " ############" << endl;
     EV << "############ flow control window size: " << connection_flow_control_recieve_window - Bytes_in_flight << " ############"<< endl;
 
-
-    int actual_window = std::min(connection_flow_control_recieve_window - Bytes_in_flight,congestion_alg->GetSndCwnd() - Bytes_in_flight);
+    int temp = congestion_alg->getSndCwnd();
+    int actual_window = std::min(connection_flow_control_recieve_window - Bytes_in_flight,congestion_alg->getSndCwnd() - Bytes_in_flight);
 
     EV << " ############ actual window size: " << actual_window << " ############" << endl;
     EV << " ############ Bytes in flight: " << Bytes_in_flight << " ############"<< endl;
@@ -176,7 +175,7 @@ void QuicConnectionClient::ProcessClientSend(){
             break; // currently there is no data to send
         int frames_total_size = calcTotalSize(frames_to_send);
         int bytes_sent = frames_total_size + short_header_size;
-        // congestion_alg->SetSndMax(bytes_sent);
+        // congestion_alg->setSndMax(bytes_sent);
 
         Packet* packet_to_send = createQuicDataPacket(frames_to_send, bytes_sent, true);
         retransmission_info* info = new retransmission_info;
@@ -187,7 +186,7 @@ void QuicConnectionClient::ProcessClientSend(){
         // update flow control window
         int packet_size = packet_to_send->getByteLength();
         actual_window -= packet_size;
-        congestion_alg->SetSndMax(packet_size);
+        congestion_alg->setSndMax(packet_size);
        // connection_flow_control_recieve_window -= packet_size;
         createCopyPacket(packet_to_send);
         Bytes_in_flight += packet_size;
@@ -202,11 +201,11 @@ void QuicConnectionClient::ProcessClientSend(){
 
 void QuicConnectionClient::ProcessClientZeroRtt(int connection_window_size, int max_payload_, int stream_window_size) {
 
-    congestion_alg->SetSndCwnd(max_payload_*2);
+    congestion_alg->setSndCwnd(max_payload_*2);
     connection_flow_control_recieve_window = connection_window_size;
     stream_arr->setAllStreamsWindows(stream_window_size);
     max_payload = max_payload_;
-    int actual_window = std::min(connection_window_size - Bytes_in_flight,congestion_alg->GetSndCwnd() - Bytes_in_flight);
+    int actual_window = std::min(connection_window_size - Bytes_in_flight,congestion_alg->getSndCwnd() - Bytes_in_flight);
     int long_header_size = calcHeaderSize(false);
     int curr_payload_size = max_payload_;
     // create new data packets
@@ -216,7 +215,7 @@ void QuicConnectionClient::ProcessClientZeroRtt(int connection_window_size, int 
             break; // currently there is no data to send
         int frames_total_size = calcTotalSize(frames_to_send);
         int bytes_sent = frames_total_size + long_header_size;
-        // congestion_alg->SetSndMax(bytes_sent);
+        // congestion_alg->setSndMax(bytes_sent);
 
         Packet* packet_to_send = createQuicDataPacket(frames_to_send, bytes_sent, false);
         retransmission_info* info = new retransmission_info;
@@ -228,7 +227,7 @@ void QuicConnectionClient::ProcessClientZeroRtt(int connection_window_size, int 
         // update flow control window
         int packet_size = packet_to_send->getByteLength();
         actual_window -= packet_size;
-        congestion_alg->SetSndMax(packet_size);
+        congestion_alg->setSndMax(packet_size);
        // connection_flow_control_recieve_window -= packet_size;
         createCopyPacket(packet_to_send);
         Bytes_in_flight += packet_size;
@@ -241,13 +240,11 @@ void QuicConnectionClient::ProcessClientZeroRtt(int connection_window_size, int 
 
 
 
-bool QuicConnectionClient::ProcessClientACK(packet_rcv_type* acked_packet_arr,int total_acked){
+void QuicConnectionClient::ProcessClientACK(packet_rcv_type* acked_packet_arr,int total_acked){
     // if first is in order, remove the packets previous to it from send_not_ACKED and update flow & congestion
-    bool full_ack = false;
-    bool old_send_una_updated = false;
     int first_acked = acked_packet_arr[total_acked-1].packet_number;
-    int largest_in_order = acked_packet_arr[0].packet_number; // when we get full ack
-   // std::list<Packet*>* acked_packets = send_queue->getAckedPackets(first_acked);
+    int largest_in_order = acked_packet_arr[0].packet_number;
+    // go over all acknowledged packets
     for (int i = 0; i < total_acked; i++) {
         int current_packet = acked_packet_arr[i].packet_number;
         Packet* copy_of_ACKED_packet = send_queue->removeFromSendQueueByNumber(current_packet);
@@ -255,79 +252,52 @@ bool QuicConnectionClient::ProcessClientACK(packet_rcv_type* acked_packet_arr,in
             int packet_size = copy_of_ACKED_packet->getByteLength();
             Bytes_in_flight -= packet_size;
             Packet* p_temp = copy_of_ACKED_packet->dup();
-            Packet* p_temp2 = copy_of_ACKED_packet->dup();
-
             updateStreamInfo(copy_of_ACKED_packet);
             if (acked_packet_arr[total_acked-1].in_order) {
-                if (i == 0)
-                    updateCongestionParams(p_temp);
-                updateFlowControl(p_temp2);
+                if (i == 0) {
+                    // update RTT on largest packet in this ACK frame
+                    simtime_t acked_time = copy_of_ACKED_packet->getTimestamp();
+                    updateRtt(acked_time); //update rtt measurement
+                }
+                updateFlowControl(p_temp);
                 if (ACKED_out_of_order->empty()) {
+                    // all missing packets arrived - update send_una
                     int size_in_bytes = p_temp->getByteLength();
-                    if (old_send_una_updated == false){
-                        old_send_una = send_una;
-                        old_send_una_updated =true;
-                    }
                     send_una += size_in_bytes;
-                    congestion_alg->SetSndUnA(send_una);
+                    congestion_alg->setSndUna(send_una);
                     EV << "############### send_una in order: " << send_una <<  " ################" << endl;
                 }
             }
             else
-                ACKED_out_of_order->push_back(p_temp2);
+                ACKED_out_of_order->push_back(p_temp);
         }
     }
 
+    // update flow control and remove all previous OOO packet until the first one ACKED from ACKED_out_of_order queue
+    int number_to_remove_up_to;
+    if (acked_packet_arr[total_acked-1].in_order)
+        // if the smallest packet arrived in order - remove all up to the largest acknowledged
+        number_to_remove_up_to = largest_in_order;
 
-    if (acked_packet_arr[total_acked-1].in_order) {
-        //   update flow control and remove all previous OOO packet until the first one ACKED
-        std::list<Packet*>::iterator it = ACKED_out_of_order->begin();
-        while (it != ACKED_out_of_order->end()) {
-            auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
-            Packet* packet_to_remove;
-            if (current_header->getPacket_number() <= largest_in_order){
-                packet_to_remove=(*it);
-                it++;
-                ACKED_out_of_order->remove(packet_to_remove);
+    else
+        number_to_remove_up_to = first_acked;
 
-                // update send una
-                int size_in_bytes = packet_to_remove->getByteLength();
-                if (old_send_una_updated == false){
-                    old_send_una = send_una;
-                    old_send_una_updated =true;
-                }
-                send_una += size_in_bytes;
-                congestion_alg->SetSndUnA(send_una);
-                EV << "############### send_una in full ack: " << send_una <<  " ################" << endl;
-                updateFlowControl(packet_to_remove);
-                full_ack = true;
-            }
-            else
-                it++;
-        }
-    }
-
-    // update flow control and remove all previous OOO packet until the first one ACKED
     std::list<Packet*>::iterator it = ACKED_out_of_order->begin();
     while (it != ACKED_out_of_order->end()) {
         auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
         Packet* packet_to_remove;
-        if (current_header->getPacket_number() < first_acked){
+        if (current_header->getPacket_number() < number_to_remove_up_to){
             packet_to_remove=*it;
             it++;
             ACKED_out_of_order->remove(packet_to_remove);
             // update send una
             int size_in_bytes = packet_to_remove->getByteLength();
-            if (old_send_una_updated == false){
-                old_send_una = send_una;
-                old_send_una_updated =true;
-            }
             send_una += size_in_bytes;
-            congestion_alg->SetSndUnA(send_una);
+            congestion_alg->setSndUna(send_una);
             EV << "############### send_una in partial ack: " << send_una <<  " ################" << endl;
             Packet* p_temp = packet_to_remove->dup();
             updateFlowControl(packet_to_remove);
-            updateStreamInfo(p_temp);
+
         }
         else
             it++;
@@ -342,7 +312,6 @@ bool QuicConnectionClient::ProcessClientACK(packet_rcv_type* acked_packet_arr,in
         auto temp_header =(*it)->peekAtFront<QuicPacketHeader>();
         EV << "packet number: " << temp_header->getPacket_number() << endl;
     }
-    return full_ack;
 }
 
 
@@ -503,32 +472,16 @@ void QuicConnectionClient::updateStreamFlowControl (int  stream_id,int flow_cont
 }
 
 
-void QuicConnectionClient::updateCongestionParams (Packet* copy_of_ACKED_packet) {
-    simtime_t acked_time = copy_of_ACKED_packet->getTimestamp();
-    UpdateRtt(acked_time); //update rtt measurement
-    // update congestion control
-//    int size_in_bytes = copy_of_ACKED_packet->getByteLength();
-//    old_send_una = send_una;
-//    send_una += size_in_bytes;
-//    congestion_alg->SetSndUnA(send_una);
-//    EV << "############### send_una: " << send_una <<  " ################" << endl;
-    int sum_stream_window_size = stream_arr->getSumStreamsWindowSize();
-    congestion_alg->SetSndWnd(std::min(connection_flow_control_recieve_window,sum_stream_window_size));
-}
-
-
-
-void QuicConnectionClient::UpdateRtt(simtime_t acked_time) {
+void QuicConnectionClient::updateRtt(simtime_t acked_time) {
     uint32 acked_time_int = congestion_alg->convertSimtimeToTS(acked_time);
     congestion_alg->rttMeasurementCompleteUsingTS(acked_time_int);
 }
 
 
-void QuicConnectionClient::updateCongestionAlgo(std::vector<int>* lost_packets_numbers, int largest, bool full_ack) {
+void QuicConnectionClient::updateCongestionAlgo(std::vector<int>* lost_packets_numbers, int largest) {
     bool recovery = congestion_alg->getLossRecovery();
     if (lost_packets_numbers->empty() && !recovery) {
-        congestion_alg->receivedDataAck(old_send_una, full_ack);
-        //dup_ACKS = 1;
+        congestion_alg->receivedDataAck();
     }
 
     else if(!recovery) {
@@ -547,7 +500,7 @@ void QuicConnectionClient::updateCongestionAlgo(std::vector<int>* lost_packets_n
     else {
         if (largest >= recovery_start_packet) {
             // stop recovery stage
-            congestion_alg->receivedDataAck(old_send_una, full_ack);
+            congestion_alg->receivedDataAck();
             dup_ACKS = 1;
             EV << "################ exit recovery ############" << endl;
         }
@@ -597,9 +550,9 @@ std::list<Packet*>* QuicConnectionClient::getPacketsToSend() {
 }
 
 
-void QuicConnectionClient::updateLostPackets(int largest, bool full_ack) {
+void QuicConnectionClient::updateLostPackets(int largest) {
     std::vector<int>* lost_packets_numbers = send_queue->updateLostPackets(largest);
-    updateCongestionAlgo(lost_packets_numbers,largest, full_ack);
+    updateCongestionAlgo(lost_packets_numbers,largest);
 }
 
 
@@ -615,7 +568,7 @@ std::list<Packet*>* QuicConnectionClient::getLostPackets() {
 
 
 int QuicConnectionClient::getSendWindow() {
-    return std::min(connection_flow_control_recieve_window, congestion_alg->GetSndCwnd());
+    return std::min(connection_flow_control_recieve_window, congestion_alg->getSndCwnd());
 }
 
 
@@ -643,17 +596,17 @@ int QuicConnectionClient::getCurrentBytesSent(bool with_ret) {
 }
 
 
-simtime_t QuicConnectionClient::GetRto(){
-    return congestion_alg->GetRto();
+simtime_t QuicConnectionClient::getRto(){
+    return congestion_alg->getRto();
 }
 
 
-simtime_t QuicConnectionClient::GetRtt(){
-    return congestion_alg->GetRtt();
+simtime_t QuicConnectionClient::getRtt(){
+    return congestion_alg->getRtt();
 }
 
 
-bool QuicConnectionClient::GetReconnect(){
+bool QuicConnectionClient::getReconnect(){
     return reconnect;
 }
 

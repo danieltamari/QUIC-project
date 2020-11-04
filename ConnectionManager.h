@@ -16,11 +16,9 @@
 #include "inet/common/INETDefs.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
-#include "headers_and_frames/QuicData_m.h"
 #include "headers_and_frames/QuicPacketHeader_m.h"
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
-#include "StreamsData.h"
 #include "timer_msg_m.h"
 #include "headers_and_frames/ACKFrame_m.h"
 #include "inet/networklayer/common/L3Address.h"
@@ -91,9 +89,8 @@ public:
     virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
     virtual void socketClosed(UdpSocket *socket) override;
     void sendPacket(Packet *packet,L3Address destAddr) ;
-    void processPacketFrames(Packet* packet, int dest_ID_from_peer);
+    void processPacketFrames(Packet* packet, int dest_ID_from_peer, bool new_data);
     void connectToUDPSocket();
-
     virtual void initialize() override;
     virtual void handleMessage(cMessage *msg) override;
     QuicConnectionClient* AddNewConnection(int* connection_data, int connection_data_size,L3Address destination,bool reconnect);
@@ -103,11 +100,9 @@ public:
 
 
 protected:
-    // state
      UdpSocket socket;
      L3Address destAddr;
      int localPort = -1, destPort = -1;
-    // std::vector<L3Address> destAddresses_vector;
      std::vector<old_transport_parameters*> old_trans_parameters;
      int destAddrRNG = -1;
      std::list<QuicConnection*>* connections;

@@ -19,10 +19,7 @@ namespace inet {
 
 
 QuicConnection::QuicConnection() {
-    char fsmname[24];
-    sprintf(fsmname, "quic_fsm");
-    fsm.setName(fsmname);
-    this->event = new cMessage("INITAL");
+
 }
 
 
@@ -31,27 +28,27 @@ QuicConnection::~QuicConnection() {
 }
 
 
-int QuicConnection::GetSourceID() {
+int QuicConnection::getSourceID() {
     return connection_source_ID;
 }
 
 
-void QuicConnection::SetSourceID(int source_ID) {
+void QuicConnection::setSourceID(int source_ID) {
     connection_source_ID = source_ID;
 }
 
 
-int QuicConnection::GetDestID() {
+int QuicConnection::getDestID() {
     return connection_dest_ID;
 }
 
 
-void QuicConnection::SetDestID(int dest_ID) {
+void QuicConnection::setDestID(int dest_ID) {
     connection_dest_ID = dest_ID;
 }
 
 
-L3Address QuicConnection::GetDestAddress(){
+L3Address QuicConnection::getDestAddress(){
     return destination;
 }
 
@@ -96,5 +93,6 @@ int QuicConnection::calcHeaderSize(bool short_header) {
     }
     return size;
 }
+
 
 } /* namespace inet */

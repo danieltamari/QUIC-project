@@ -24,7 +24,6 @@ QuicSendQueue::QuicSendQueue() {
 }
 
 
-
 QuicSendQueue::~QuicSendQueue() {
     // TODO Auto-generated destructor stub
 }
@@ -36,9 +35,6 @@ void QuicSendQueue::createCopyPacket(Packet* original_packet) {
     copy_packet_to_send->setTimestamp(simTime());
     send_not_ACKED_queue->push_back(copy_packet_to_send);
 }
-
-
-
 
 
 Packet* QuicSendQueue::findPacketInSendQueue(int packet_number) {
@@ -111,26 +107,6 @@ Packet* QuicSendQueue::removeFromSendQueueByNumber(int packet_number) {
 }
 
 
-std::list<Packet*>* QuicSendQueue::getAckedPackets(int first_acked) {
-    std::list<Packet*>* acked_packets = new std::list<Packet*>();
-    std::list<Packet*>::iterator it = send_not_ACKED_queue->begin();
-    while (it != send_not_ACKED_queue->end()) {
-            auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
-            if (current_header->getPacket_number() < first_acked){
-                Packet* copy_of_ACKED_packet = (*it)->dup();
-                send_not_ACKED_queue->erase(it);
-                it++;
-               // send_not_ACKED_queue->remove(copy_of_ACKED_packet);
-                acked_packets->push_back(copy_of_ACKED_packet);
-             //   Packet* p_temp = copy_of_ACKED_packet->dup();
-            }
-            else
-                it++;
-    }
-    return acked_packets;
-}
-
-
 std::list<Packet*>* QuicSendQueue::getLostPackets() {
     return lost_packets;
 }
@@ -153,6 +129,7 @@ std::vector<int>* QuicSendQueue::updateLostPackets(int largest) {
     return lost_packets_numbers;
 }
 
+
 // TEMP
 void QuicSendQueue::printSendNotAcked(){
     // print send_not_ACKED_queue:
@@ -163,5 +140,6 @@ void QuicSendQueue::printSendNotAcked(){
         EV << "packet number: " << temp_header->getPacket_number() << endl;
     }
 }
+
 
 } /* namespace inet */

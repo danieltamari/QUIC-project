@@ -16,7 +16,7 @@
 
 #ifndef INET_APPLICATIONS_QUICAPP_QUICRECEIVEQUEUE_H_
 #define INET_APPLICATIONS_QUICAPP_QUICRECEIVEQUEUE_H_
-#define NUM_OF_STREAMS 10 // will be parameters later
+
 
 namespace inet {
 

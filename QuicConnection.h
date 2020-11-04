@@ -16,7 +16,6 @@
 #include "inet/common/INETDefs.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
-#include "headers_and_frames/QuicData_m.h"
 #include "headers_and_frames/QuicPacketHeader_m.h"
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
@@ -24,7 +23,6 @@
 #include "headers_and_frames/QuicFrame_m.h"
 #include "headers_and_frames/PaddingFrame_m.h"
 #include "headers_and_frames/ACKFrame_m.h"
-#include "StreamsData.h"
 #include "retransmission_info_m.h"
 #include "inet/networklayer/common/L3Address.h"
 #include "inet/common/packet/Packet.h"
@@ -38,9 +36,7 @@
 #define INET_APPLICATIONS_QUICAPP_QUICCONNECTION_H_
 
 
-#define DEAFULT_STREAM_NUM 10
 // flow control parameters
-//#define Init_Connection_FlowControl_Window 16 * 1024  // 16 KB
 #define Init_Connection_FlowControl_Window 1472 * 14
 #define Init_Stream_ReceiveWindow 1472 * 14
 // congestion control parameters
@@ -56,26 +52,6 @@
 
 
 namespace inet {
-
-enum QuicState {
-    QUIC_S_CLIENT_INITIATE_HANDSHAKE = 0,
-    QUIC_S_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE = FSM_Steady(1),
-    QUIC_S_CLIENT_PROCESS_ACK = FSM_Steady(2),
-    QUIC_S_SEND = FSM_Steady(3),
-    QUIC_S_SERVER_PROCESS_HANDSHAKE = FSM_Steady(4),
-    QUIC_S_SERVER_WAIT_FOR_DATA =FSM_Steady(5),
-//    QUIC_S_CONNECTION_TERM = FSM_Steady(8),
-};
-
-enum QuicEventCode {
-    QUIC_E_CLIENT_INITIATE_HANDSHAKE = 0,
-    QUIC_E_CLIENT_WAIT_FOR_HANDSHAKE_RESPONSE,
-    QUIC_E_CLIENT_PROCESS_ACK,
-    QUIC_E_SEND,
-    QUIC_E_SERVER_PROCESS_HANDSHAKE,
-    QUIC_E_SERVER_WAIT_FOR_DATA,
-//    QUIC_E_CONNECTION_TERM,
-};
 
 struct range {
     int gap;
@@ -94,12 +70,11 @@ public:
     QuicConnection();
     virtual ~QuicConnection();
 
-    int GetSourceID();
-    void SetSourceID(int source_ID);
-    int GetDestID();
-    void SetDestID(int dest_ID);
-    //int GetMaxOffset();
-    L3Address GetDestAddress();
+    int getSourceID();
+    void setSourceID(int source_ID);
+    int getDestID();
+    void setDestID(int dest_ID);
+    L3Address getDestAddress();
     unsigned int calcSizeInBytes(int number);
     int calcTotalSize(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send);
     int calcHeaderSize(bool short_header);
@@ -109,14 +84,10 @@ protected:
     int connection_source_ID;
     int connection_dest_ID;
     L3Address destination;
-
     QuicStreamArr *stream_arr;
 
-    cFSM fsm; // QUIC state machine
-    cMessage *event = nullptr;
-    cMessage *start_fsm;
-
 };
+
 
 } /* namespace inet */
 
