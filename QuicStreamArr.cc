@@ -20,17 +20,14 @@
 namespace inet {
 
 QuicStreamArr::QuicStreamArr() {
-    max_streams_num_ = 0;
     number_of_streams = 0;
-    last_stream_index_checked=0;
+    last_stream_index_checked = 0;
 }
 
 
 QuicStreamArr::QuicStreamArr(int streams_num) {
-    max_streams_num_ = streams_num;
     number_of_streams = streams_num;
     last_stream_index_checked=0;
-    valid_streams_num_ = 0;
 }
 
 
@@ -39,13 +36,12 @@ QuicStreamArr::~QuicStreamArr() {
 }
 
 
-void QuicStreamArr::AddNewStream(int stream_size, int stream_id) {
+void QuicStreamArr::addNewStream(int stream_size, int stream_id) {
     stream* stream_to_add = new stream;
     stream_to_add->stream_id = stream_id;
     stream_to_add->valid = true;
     stream_to_add->current_offset_in_stream = 0;
     stream_to_add->stream_size = stream_size;
-    stream_to_add->max_flow_control_window_size = 0;
     stream_to_add->flow_control_recieve_window = 0;
     stream_to_add->bytes_left_to_send_in_stream = stream_size;
     stream_to_add->ACKed_bytes = 0;
@@ -54,12 +50,11 @@ void QuicStreamArr::AddNewStream(int stream_size, int stream_id) {
 }
 
 
-void QuicStreamArr::AddNewStreamServer(int stream_id, int inital_stream_window) {
+void QuicStreamArr::addNewStreamServer(int stream_id, int inital_stream_window) {
     stream* stream_to_add=new stream;
     stream_to_add->stream_id = stream_id;
     stream_to_add->valid = true;
     stream_to_add->current_offset_in_stream = 0;
-    stream_to_add->max_flow_control_window_size = inital_stream_window;
     stream_to_add->flow_control_recieve_window = inital_stream_window;
     stream_to_add->ACKed_bytes = 0;
     stream_to_add->stream_done = false;
@@ -67,7 +62,7 @@ void QuicStreamArr::AddNewStreamServer(int stream_id, int inital_stream_window) 
 }
 
 
-void QuicStreamArr::CloseStream(int stream_id) {
+void QuicStreamArr::closeStream(int stream_id) {
     for (std::vector<stream*>::iterator it =
             stream_arr_.begin(); it != stream_arr_.end(); ++it) {
         if (stream_id == (*it)->stream_id) {
@@ -86,7 +81,6 @@ void QuicStreamArr::blockStream(int stream_id) {
             break;
         }
     }
-    EV << "############## blocked stream: " << stream_id << " ##############" << endl;
 }
 
 
@@ -98,7 +92,6 @@ void QuicStreamArr::freeStream(int stream_id) {
             break;
         }
     }
-    EV << "############## free stream: " << stream_id << " ##############" << endl;
 }
 
 
@@ -111,7 +104,7 @@ void QuicStreamArr::updateACKedBytes(int stream_id, int num_of_bytes) {
 
             if ((*it)->ACKed_bytes == (*it)->stream_size)
                 // stream is done
-                CloseStream(stream_id);
+                closeStream(stream_id);
             break;
         }
     }
@@ -148,7 +141,7 @@ std::vector<IntrusivePtr<StreamFrame>>* QuicStreamArr::framesToSend(int max_payl
     int bytes_left_to_send_in_packet = max_payload;
 
     // fill the given payload with data from streams
-    while (!packet_full && checked_streams != this->number_of_streams) {
+    while (!packet_full && checked_streams != number_of_streams) {
         bool isFin = false;
         int bytes_to_send_in_frame;
         stream* curr_stream = stream_arr_[last_stream_index_checked];
@@ -212,13 +205,7 @@ std::vector<IntrusivePtr<StreamFrame>>* QuicStreamArr::framesToSend(int max_payl
         last_stream_index_checked++;
         if (last_stream_index_checked == number_of_streams)
             last_stream_index_checked = 0;
-
-       // curr_stream->send_queue->addStreamFrame(new_frame);
     }
-
-    // there is nothing to send (all streams are full ?)
-   // if (bytes_left_to_send_in_packet == max_payload)
-   //     return NULL;
 
     return frames_vector;
 }
@@ -237,7 +224,6 @@ bool QuicStreamArr::isStreamExist(int stream_id) {
 void QuicStreamArr::setAllStreamsWindows(int window_size) {
     for (std::vector<stream*>::iterator it =
                  stream_arr_.begin(); it != stream_arr_.end(); ++it) {
-        (*it)->max_flow_control_window_size = window_size;
         (*it)->flow_control_recieve_window = window_size - ((*it)->stream_size - (*it)->bytes_left_to_send_in_stream);
     }
 }
@@ -281,5 +267,6 @@ int QuicStreamArr::getStreamBytesSent(int stream_id) {
             return (*it)->current_offset_in_stream;
     }
 }
+
 
 } /* namespace inet */

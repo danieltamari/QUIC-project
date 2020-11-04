@@ -42,7 +42,6 @@ void QuicReceiveQueue::updateStreamInfo(int stream_id,int offset,int length,bool
         curr_stream_info->num_bytes_received += length;
     }
 
-
    if (is_FIN) {
        // update the final_size field as mentioned in RFC
        stream_information* curr_stream_info = streams_info->at(stream_id);
@@ -64,6 +63,7 @@ bool QuicReceiveQueue::checkIfEnded(int stream_id) {
 void QuicReceiveQueue::removeStreamInfo(int stream_id) {
     streams_info->erase(stream_id);
 }
+
 
 
 } /* namespace inet */

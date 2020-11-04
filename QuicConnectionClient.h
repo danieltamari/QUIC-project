@@ -19,7 +19,6 @@
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
 #include "QuicNewReno.h"
-#include "headers_and_frames/QuicData_m.h"
 #include "headers_and_frames/QuicPacketHeader_m.h"
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
@@ -36,9 +35,6 @@
 
 namespace inet {
 
-class QuicSendQueue;
-class QuicNewRENO;
-
 class QuicConnectionClient : public QuicConnection { //public cSimpleModule, public UdpSocket::ICallback{
 public:
 
@@ -50,17 +46,16 @@ public:
     void ProcessClientHandshakeResponse(Packet* packet);
     void ProcessClientSend();
     void ProcessClientZeroRtt(int connection_window_size, int max_payload_, int stream_window_size);
-    bool ProcessClientACK(packet_rcv_type* acked_packet_arr, int total_acked);
+    void ProcessClientACK(packet_rcv_type* acked_packet_arr, int total_acked);
     Packet* createQuicDataPacket(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send, int total_size, bool one_RTT);
     void createCopyPacket(Packet* original_packet);
     Packet* createRetransmitPacket(Packet* packet_to_remove, bool immedidate_retransmit);
     void updateFlowControl(Packet* acked_packet);
     void updateStreamFlowControl (int  stream_id,int flow_control_window);
-    void updateCongestionParams (Packet* copy_of_ACKED_packet);
-    void UpdateRtt(simtime_t acked_time);
-    void updateCongestionAlgo(std::vector<int>* lost_packets_numbers, int largest, bool full_ack);
+    void updateRtt(simtime_t acked_time);
+    void updateCongestionAlgo(std::vector<int>* lost_packets_numbers, int largest);
     void updateStreamInfo(Packet* copy_of_ACKED_packet);
-    void updateLostPackets(int largest, bool full_ack);
+    void updateLostPackets(int largest);
     void processRexmitTimer();
     Packet* findPacketInSendQueue(int packet_number);
     Packet* RemovePacketFromQueue(int packet_number);
@@ -73,9 +68,9 @@ public:
     int getNumBytesSentWithRet();
     int getCurrentBytesSent(bool with_ret);
     int getStreamBytesSent(int stream_id);
-    simtime_t GetRto();
-    simtime_t GetRtt();
-    bool GetReconnect();
+    simtime_t getRto();
+    simtime_t getRtt();
+    bool getReconnect();
     bool getEndConnection();
     int getConnectionWindow();
     int getMaxPayload();
@@ -84,13 +79,9 @@ public:
     void setStreamNumber(int new_stream_number);
 
 
-
-
-
 protected:
     int packet_counter; // counter to assign each packet header a unique packet number
     int send_una; // sent and unacknowledged bytes so far
-    int old_send_una;
     QuicSendQueue* send_queue;
     std::list<Packet*>* ACKED_out_of_order;
     std::list<Packet*>* waiting_retransmission;

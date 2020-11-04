@@ -18,7 +18,6 @@
 #include "QuicReceiveQueue.h"
 #include "inet/transportlayer/contract/udp/UdpSocket.h"
 #include "QuicStreamArr.h"
-#include "headers_and_frames/QuicData_m.h"
 #include "headers_and_frames/QuicPacketHeader_m.h"
 #include "headers_and_frames/QuicLongHeader_m.h"
 #include "headers_and_frames/QuicShortHeader_m.h"
@@ -37,9 +36,6 @@
 
 namespace inet {
 
-class QuicStreamArr;
-class QuicRecieveQueue;
-
 
 class QuicConnectionServer : public QuicConnection {
 public:
@@ -49,13 +45,11 @@ public:
     Packet* ServerProcessHandshake(Packet* packet);
     bool ProcessServerReceivedPacket(Packet* packet);
     void ProcessStreamDataFrame(inet::Ptr<const StreamFrame> stream_frame);
-    int GetRcvNext();
-    bool GetIsOutOfOrder();
-    int GetCurrLargest();
-    std::list<int> GetNotAckedList();
+    int getRcvNext();
+    int getCurrLargest();
+    std::list<int> getNotAckedList();
     int getLargestInOrder();
-    int GetRcvInOrderAndRst();
-    void SetCurrLargest(int largest);
+    void setCurrLargest(int largest);
     void setLargestWithRcvNext();
 
 
@@ -63,17 +57,11 @@ protected:
     int num_packets_recieved;
     QuicReceiveQueue* receive_queue;
     std::list<int> receive_not_ACKED_queue;
-
     //flow control server side parameters
     int inital_stream_window;
-
     // ACK control parameters
     int current_largest;
     int rcv_next;
-    //int rcv_in_order;
-    bool is_out_of_order;
-    IntrusivePtr<inet::ACKFrame> current_Ack_frame;
-
 
 };
 

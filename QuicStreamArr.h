@@ -20,11 +20,6 @@
 #include "headers_and_frames/QuicFrame_m.h"
 #include "headers_and_frames/StreamFrame_m.h"
 
-/*
- * this class represent the stream data array in the connection.
- * each time a packet with data is sent or recieved each side of the connection
- * should update his stream data array accordingly.
- */
 
 namespace inet {
 
@@ -37,19 +32,19 @@ struct stream {
     bool stream_done;
 
     // flow control parameters
-    int max_flow_control_window_size; // constant max window size
-    int flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
+    int flow_control_recieve_window; // receive window size per stream
     int bytes_left_to_send_in_stream; // how many bytes we are left to send in this stream
 };
+
 
 class QuicStreamArr {
 public:
     QuicStreamArr();
     QuicStreamArr(int streams_num);
     virtual ~QuicStreamArr();
-    void AddNewStream(int stream_size, int stream_id);
-    void AddNewStreamServer(int stream_id, int inital_stream_window);
-    void CloseStream(int stream_id);
+    void addNewStream(int stream_size, int stream_id);
+    void addNewStreamServer(int stream_id, int inital_stream_window);
+    void closeStream(int stream_id);
     void blockStream(int stream_id);
     void freeStream(int stream_id);
     void updateACKedBytes(int stream_id, int num_of_bytes);
@@ -61,18 +56,16 @@ public:
     int getStreamNumber();
     void setStreamNumber(int new_stream_number);
     int getSumStreamsWindowSize();
-    stream* getStream(int stream_id);
     int getStreamBytesSent(int stream_id);
 
 
 private:
     std::vector<stream*> stream_arr_; // vector of the streams
-    int max_streams_num_; // the maximum number of streams that can send simultaneously .
-    int valid_streams_num_; // current number of open streams
     int number_of_streams;
     int last_stream_index_checked;
 
 };
+
 
 } /* namespace inet */
 
