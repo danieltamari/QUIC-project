@@ -31,8 +31,8 @@ class QuicShortHeader extends QuicPacketHeader {// ; FieldsChunk {
 	b spin_bit;
 	B reserved_bits;
 	B packet_number_length; // contain the length of the packet number, encoded as an unsigned, two-bit integer that is one less than the length of the packet number field in bytes
-	int dest_connection_ID; // The Destination Connection ID is a connection ID that is chosen by the intended recipient of the packet, max size is 20 Bytes
-	int packet_number; //  The packet number field is 1 to 4 bytes long
+//	int dest_connection_ID; // The Destination Connection ID is a connection ID that is chosen by the intended recipient of the packet, max size is 20 Bytes
+//	int packet_number; //  The packet number field is 1 to 4 bytes long
 	// remove later
 	int packet_type;
 	

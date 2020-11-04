@@ -466,11 +466,11 @@ inline std::ostream& operator<<(std::ostream& out, const std::vector<T,A>& vec)
 
 Register_Class(ACKFrame)
 
-ACKFrame::ACKFrame() : ::inet::FieldsChunk()
+ACKFrame::ACKFrame() : ::inet::QuicFrame()
 {
 }
 
-ACKFrame::ACKFrame(const ACKFrame& other) : ::inet::FieldsChunk(other)
+ACKFrame::ACKFrame(const ACKFrame& other) : ::inet::QuicFrame(other)
 {
     copy(other);
 }
@@ -483,7 +483,7 @@ ACKFrame::~ACKFrame()
 ACKFrame& ACKFrame::operator=(const ACKFrame& other)
 {
     if (this == &other) return *this;
-    ::inet::FieldsChunk::operator=(other);
+    ::inet::QuicFrame::operator=(other);
     copy(other);
     return *this;
 }
@@ -504,7 +504,7 @@ void ACKFrame::copy(const ACKFrame& other)
 
 void ACKFrame::parsimPack(omnetpp::cCommBuffer *b) const
 {
-    ::inet::FieldsChunk::parsimPack(b);
+    ::inet::QuicFrame::parsimPack(b);
     doParsimPacking(b,this->largest_acknowledged);
     doParsimPacking(b,this->ACK_delay);
     doParsimPacking(b,this->ACK_range_count);
@@ -515,7 +515,7 @@ void ACKFrame::parsimPack(omnetpp::cCommBuffer *b) const
 
 void ACKFrame::parsimUnpack(omnetpp::cCommBuffer *b)
 {
-    ::inet::FieldsChunk::parsimUnpack(b);
+    ::inet::QuicFrame::parsimUnpack(b);
     doParsimUnpacking(b,this->largest_acknowledged);
     doParsimUnpacking(b,this->ACK_delay);
     doParsimUnpacking(b,this->ACK_range_count);
@@ -679,7 +679,7 @@ class ACKFrameDescriptor : public omnetpp::cClassDescriptor
 
 Register_ClassDescriptor(ACKFrameDescriptor)
 
-ACKFrameDescriptor::ACKFrameDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::ACKFrame)), "inet::FieldsChunk")
+ACKFrameDescriptor::ACKFrameDescriptor() : omnetpp::cClassDescriptor(omnetpp::opp_typename(typeid(inet::ACKFrame)), "inet::QuicFrame")
 {
     propertynames = nullptr;
 }

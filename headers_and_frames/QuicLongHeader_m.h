@@ -61,7 +61,7 @@ namespace inet {
  *     //		0x3	Retry	
  *     int version; //32-bit field that follows the first byte. This field indicates the version of QUIC that is in use
  *     unsigned int dest_connection_id_length; // length in bytes of the Destination Connection ID field that follows it. This length is encoded as an 8-bit unsigned integer
- *     int dest_connection_ID; // max size is 20 Bytes
+ *     //int dest_connection_ID; // max size is 20 Bytes
  *     unsigned int source_connection_id_length; // length in bytes of the Destination Connection ID field that follows it. This length is encoded as an 8-bit unsigned integer
  *     int source_connection_ID; // max size is 20 Bytes
  * 
@@ -77,7 +77,6 @@ class INET_API QuicLongHeader : public ::inet::QuicPacketHeader
     int long_packet_type = 0;
     int version = 0;
     unsigned int dest_connection_id_length = 0;
-    int dest_connection_ID = 0;
     unsigned int source_connection_id_length = 0;
     int source_connection_ID = 0;
 
@@ -108,8 +107,6 @@ class INET_API QuicLongHeader : public ::inet::QuicPacketHeader
     virtual void setVersion(int version);
     virtual unsigned int getDest_connection_id_length() const;
     virtual void setDest_connection_id_length(unsigned int dest_connection_id_length);
-    virtual int getDest_connection_ID() const;
-    virtual void setDest_connection_ID(int dest_connection_ID);
     virtual unsigned int getSource_connection_id_length() const;
     virtual void setSource_connection_id_length(unsigned int source_connection_id_length);
     virtual int getSource_connection_ID() const;

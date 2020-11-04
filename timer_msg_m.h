@@ -1,9 +1,9 @@
 //
-// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/headers_and_frames/QuicPacketHeader.msg.
+// Generated file, do not edit! Created by nedtool 5.6 from inet/applications/quicapp/timer_msg.msg.
 //
 
-#ifndef __INET_QUICPACKETHEADER_M_H
-#define __INET_QUICPACKETHEADER_M_H
+#ifndef __INET_TIMER_MSG_M_H
+#define __INET_TIMER_MSG_M_H
 
 #if defined(__clang__)
 #  pragma clang diagnostic ignored "-Wreserved-id-macro"
@@ -30,7 +30,7 @@
 
 namespace inet {
 
-class QuicPacketHeader;
+class timer_msg;
 } // namespace inet
 
 #include "inet/common/INETDefs_m.h" // import inet.common.INETDefs
@@ -43,57 +43,48 @@ class QuicPacketHeader;
 namespace inet {
 
 /**
- * Class generated from <tt>inet/applications/quicapp/headers_and_frames/QuicPacketHeader.msg:25</tt> by nedtool.
+ * Class generated from <tt>inet/applications/quicapp/timer_msg.msg:25</tt> by nedtool.
  * <pre>
  * //
  * // TODO generated message class
  * //
- * class QuicPacketHeader extends FieldsChunk
+ * class timer_msg extends cMessage
  * {
  *     int dest_connection_ID;
- *     //int src_connectionID;
- *     int packet_number;
- *     //int packet_type;
- *     b header_form;
+ * 
  * }
  * </pre>
  */
-class INET_API QuicPacketHeader : public ::inet::FieldsChunk
+class INET_API timer_msg : public ::omnetpp::cMessage
 {
   protected:
     int dest_connection_ID = 0;
-    int packet_number = 0;
-    b header_form = b(-1);
 
   private:
-    void copy(const QuicPacketHeader& other);
+    void copy(const timer_msg& other);
 
   protected:
     // protected and unimplemented operator==(), to prevent accidental usage
-    bool operator==(const QuicPacketHeader&);
+    bool operator==(const timer_msg&);
 
   public:
-    QuicPacketHeader();
-    QuicPacketHeader(const QuicPacketHeader& other);
-    virtual ~QuicPacketHeader();
-    QuicPacketHeader& operator=(const QuicPacketHeader& other);
-    virtual QuicPacketHeader *dup() const override {return new QuicPacketHeader(*this);}
+    timer_msg(const char *name=nullptr);
+    timer_msg(const timer_msg& other);
+    virtual ~timer_msg();
+    timer_msg& operator=(const timer_msg& other);
+    virtual timer_msg *dup() const override {return new timer_msg(*this);}
     virtual void parsimPack(omnetpp::cCommBuffer *b) const override;
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
     virtual int getDest_connection_ID() const;
     virtual void setDest_connection_ID(int dest_connection_ID);
-    virtual int getPacket_number() const;
-    virtual void setPacket_number(int packet_number);
-    virtual b getHeader_form() const;
-    virtual void setHeader_form(b header_form);
 };
 
-inline void doParsimPacking(omnetpp::cCommBuffer *b, const QuicPacketHeader& obj) {obj.parsimPack(b);}
-inline void doParsimUnpacking(omnetpp::cCommBuffer *b, QuicPacketHeader& obj) {obj.parsimUnpack(b);}
+inline void doParsimPacking(omnetpp::cCommBuffer *b, const timer_msg& obj) {obj.parsimPack(b);}
+inline void doParsimUnpacking(omnetpp::cCommBuffer *b, timer_msg& obj) {obj.parsimUnpack(b);}
 
 } // namespace inet
 
-#endif // ifndef __INET_QUICPACKETHEADER_M_H
+#endif // ifndef __INET_TIMER_MSG_M_H
 

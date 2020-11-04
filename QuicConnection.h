@@ -23,6 +23,7 @@
 #include "headers_and_frames/QuicHandShakeData_m.h"
 #include "headers_and_frames/QuicFrame_m.h"
 #include "headers_and_frames/PaddingFrame_m.h"
+#include "headers_and_frames/ACKFrame_m.h"
 #include "StreamsData.h"
 #include "retransmission_info_m.h"
 #include "inet/networklayer/common/L3Address.h"
@@ -39,18 +40,19 @@
 
 #define DEAFULT_STREAM_NUM 10
 // flow control parameters
-#define Init_Connection_FlowControl_Window 16 * 1024  // 64 KB
-#define Init_Stream_ReceiveWindow 16 * 1024   // 16 KB
+//#define Init_Connection_FlowControl_Window 16 * 1024  // 16 KB
+#define Init_Connection_FlowControl_Window 1472 * 14
+#define Init_Stream_ReceiveWindow 1472 * 14
 // congestion control parameters
 #define ACKTHRESH 3
-#define SSTHRESH_CHANGE_THIS 10
+#define MAX_THRESHOLD 0xFFFFFFFF
 #define kPacketThreshold 3
 // packets and headers sizes
-#define QUIC_ALLOWED_PACKET_SIZE 1200 // from RFC 14.1
+#define QUIC_MIN_PACKET_SIZE 1200 // from RFC 14.1
+#define QUIC_MAX_PACKET_SIZE 1472
 #define LONG_HEADER_BASE_LENGTH 11
 #define SHORT_HEADER_BASE_LENGTH 2
 
-#define QUIC_SHORT_HEADER_LENGTH 16
 
 
 namespace inet {
@@ -99,14 +101,9 @@ public:
     //int GetMaxOffset();
     L3Address GetDestAddress();
     unsigned int calcSizeInBytes(int number);
-   // void setConnectionsRecieveOffset(int offset);
-   // void setConnectionsRecieveWindow(int window_size);
+    int calcTotalSize(std::vector<IntrusivePtr<StreamFrame>>* frames_to_send);
+    int calcHeaderSize(bool short_header);
 
-    //virtual void performStateTransition(const QuicEventCode &event) = 0;
-    //virtual Packet* ProcessEvent(const QuicEventCode &event,Packet* packet) = 0;
-
-    //Packet* ActivateFsm(Packet* packet);
-    //QuicEventCode preanalyseAppCommandEvent(int commandCode);
 
 protected:
     int connection_source_ID;
@@ -118,12 +115,6 @@ protected:
     cFSM fsm; // QUIC state machine
     cMessage *event = nullptr;
     cMessage *start_fsm;
-
-
-    // both server and client flow control side parameters, only server update them
-   // int connection_max_flow_control_window_size; // constant
-  //  int connection_flow_control_recieve_offset; //
-   // int connection_flow_control_recieve_window; // flow_control_recieve_offset - highest_recieved_byte_offset
 
 };
 
