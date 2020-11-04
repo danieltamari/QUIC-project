@@ -16,6 +16,7 @@
 import inet.common.INETDefs;
 import inet.applications.base.ApplicationPacket;
 import inet.common.packet.chunk.Chunk;
+import inet.applications.quicapp.headers_and_frames.QuicFrame;
 
 
 cplusplus {{
@@ -36,7 +37,7 @@ namespace inet;
 //
 // TODO generated message class
 //
-class ACKFrame extends FieldsChunk {
+class ACKFrame extends QuicFrame {
 //    Receivers send ACK frames (types 0x02 and 0x03) to inform senders of packets they have received and
 //    processed. The ACK frame contains one or more ACK Ranges. ACK Ranges identify acknowledged packets.
 //	  (RFC 19.3)
