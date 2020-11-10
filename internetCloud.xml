@@ -1,9 +1,9 @@
 <internetCloud symmetric="true">
   <parameters name="good">
-    <traffic src="remoteRouter" dest="server_remote" delay="20ms+truncnormal(200ms,60ms)" datarate="uniform(1Mbps,10Mbps)" drop="uniform(0,1) &lt; 0.01" />
+    <traffic src="remoteRouter" dest="server_remote" delay="20ms+truncnormal(200ms,10ms)" datarate="uniform(99Mbps,101Mbps)" drop="uniform(0,1) &lt; 0.05" />
 
 <!--
-    <traffic src="**" dest="**" delay="10ms+truncnormal(100ms,20ms)" datarate="uniform(100kbps,500kbps)" drop="uniform(0,1) &lt; uniform(0.01, 0.05)" />
+    <traffic src="**" dest="**" delay="10ms+truncnormal(200ms,10ms)" datarate="uniform(99Mbps,101Mbps)" drop="uniform(0,1) &lt; 0.05" />
 -->
   </parameters>
 </internetCloud>

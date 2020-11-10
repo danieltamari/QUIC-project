@@ -130,6 +130,26 @@ std::vector<int>* QuicSendQueue::updateLostPackets(int largest) {
 }
 
 
+std::list<Packet*>* QuicSendQueue::getLostAcksPackets(int get_before_number) {
+    std::list<Packet*>* lost_ACK_packets = new std::list<Packet*>();
+    std::list<Packet*>::iterator it = send_not_ACKED_queue->begin();
+    while (it != send_not_ACKED_queue->end()) {
+        auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
+        Packet* packet_to_remove;
+        if (current_header->getPacket_number() <= get_before_number){
+            packet_to_remove=*it;
+            it++;
+            send_not_ACKED_queue->remove(packet_to_remove);
+            lost_ACK_packets->push_back(packet_to_remove);
+        }
+        else {
+            it++;
+        }
+    }
+    return lost_ACK_packets;
+}
+
+
 // TEMP
 void QuicSendQueue::printSendNotAcked(){
     // print send_not_ACKED_queue:

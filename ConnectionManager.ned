@@ -20,7 +20,6 @@ import inet.applications.quicapp.IQuicapp;
 
 simple ConnectionManager like IQuicapp
 {
-
     parameters:
         //string destAddresses = default(""); // list of IP addresses, separated by spaces ("": don't send)
         //string localAddress = default("");
@@ -31,34 +30,47 @@ simple ConnectionManager like IQuicapp
         int destAddrRNG = default(0); // random generator ID for selecting a destination address
         int localPort = default(-1);  // local UDP port number (-1: use ephemeral port)
         int destPort; // remote UDP port number
-     //   int numApps = default(1);
-     	@signal[snd_wnd];
-     	@signal[num_bytes_sent];
-     	@signal[bytes_sent_with_ret];
-     	@signal[rtt];
-     	@signal[latency1];
-     	@signal[latency2];
-     	@signal[current_new_sent_bytes];
-     	@signal[current_total_sent_bytes];
-     	@signal[stream0];
-     	@signal[stream1];
-     	@signal[stream2];
-     	@signal[stream3];
-     	@signal[stream4];
-     	@signal[stream5];
-     	@signal[stream6];
-     	@signal[stream7];
-     	@signal[stream8];
-     	@signal[stream9];
-        
-        @statistic[send_window](title="send window"; source="snd_wnd"; record=vector; interpolationmode=sample-hold);   	
+        //   int numApps = default(1);
+        @signal[snd_wnd];
+        @signal[num_bytes_sent];
+        @signal[bytes_sent_with_ret];
+        @signal[rtt];
+        @signal[latency1];
+        @signal[latency2];
+        @signal[latency3];
+        @signal[latency4];
+        @signal[current_new_sent_bytes];
+        @signal[current_total_sent_bytes];
+        @signal[current_new_sent_bytes_for_long];
+        @signal[current_total_sent_bytes_for_long];
+        @signal[total_bytes_in_curr_send];
+        @signal[new_bytes_in_curr_send];
+        @signal[stream0];
+        @signal[stream1];
+        @signal[stream2];
+        @signal[stream3];
+        @signal[stream4];
+        @signal[stream5];
+        @signal[stream6];
+        @signal[stream7];
+        @signal[stream8];
+        @signal[stream9];
+
+        @statistic[send_window](title="send window"; source="snd_wnd"; record=vector; interpolationmode=sample-hold);
         @statistic[bytes_sent](title="num bytes sent"; source="num_bytes_sent"; record=vector; interpolationmode=sample-hold);
         @statistic[rtt](title="rtt"; source="rtt"; record=vector; interpolationmode=sample-hold);
         @statistic[latency1](title="latency1"; source="latency1"; record=vector; interpolationmode=sample-hold);
         @statistic[latency2](title="latency2"; source="latency2"; record=vector; interpolationmode=sample-hold);
+        @statistic[latency3](title="latency3"; source="latency3"; record=vector; interpolationmode=sample-hold);
+        @statistic[latency4](title="latency4"; source="latency4"; record=vector; interpolationmode=sample-hold);
         @statistic[bytes_sent_with_ret](title="num bytes sent with ret"; source="bytes_sent_with_ret"; record=vector; interpolationmode=sample-hold);
         @statistic[current_new_sent_bytes](title="current_new_sent_bytes"; source="current_new_sent_bytes"; record=vector; interpolationmode=sample-hold);
         @statistic[current_total_sent_bytes](title="current_total_sent_bytes"; source="current_total_sent_bytes"; record=vector; interpolationmode=sample-hold);
+        @statistic[total_bytes_in_curr_send](title="total_bytes_in_curr_send"; source="total_bytes_in_curr_send"; record=vector; interpolationmode=sample-hold);
+        @statistic[new_bytes_in_curr_send](title="new_bytes_in_curr_send"; source="new_bytes_in_curr_send"; record=vector; interpolationmode=sample-hold);
+        @statistic[current_new_sent_bytes_for_long](title="current_new_sent_bytes_for_long"; source="current_new_sent_bytes_for_long"; record=vector; interpolationmode=sample-hold);
+        @statistic[current_total_sent_bytes_for_long](title="current_total_sent_bytes_for_long"; source="current_total_sent_bytes_for_long"; record=vector; interpolationmode=sample-hold);
+
         @statistic[stream0](title="stream 0"; source="stream0"; record=vector; interpolationmode=sample-hold);
         @statistic[stream1](title="stream 1"; source="stream1"; record=vector; interpolationmode=sample-hold);
         @statistic[stream2](title="stream 2"; source="stream2"; record=vector; interpolationmode=sample-hold);
@@ -69,7 +81,7 @@ simple ConnectionManager like IQuicapp
         @statistic[stream7](title="stream 7"; source="stream7"; record=vector; interpolationmode=sample-hold);
         @statistic[stream8](title="stream 8"; source="stream8"; record=vector; interpolationmode=sample-hold);
         @statistic[stream9](title="stream 9"; source="stream9"; record=vector; interpolationmode=sample-hold);
-   
+
     gates:
         input socketIn @labels(UdpControlInfo/up);
         output socketOut @labels(UdpControlInfo/down);

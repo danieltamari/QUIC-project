@@ -25,8 +25,9 @@
 
 
 #define MAX_DELAY 0.00001
-#define DELAY_TIME 0.2
-#define THROUGHPUT_GAP 0.05
+#define DELAY_TIME 0
+#define THROUGHPUT_GAP 0.1
+#define LONG_THROUGHPUT_GAP 1
 
 
 enum ConnectionEvent {
@@ -35,6 +36,7 @@ enum ConnectionEvent {
     HANDSHAKE_TIMER_EVENT,
     RTO_INITIAL_EXPIRED_EVENT,
     UPDATE_THROUGHPUT,
+    UPDATE_THROUGHPUT_LONG
 };
 
 
@@ -44,6 +46,7 @@ ConnectionManager::ConnectionManager() {
     connections = new std::list<QuicConnection*>();
     connected=false;
     throughput_timer = new timer_msg("throughput timer");
+    throughput_timer_long =new timer_msg("throughput long timer");
     counter = 0;
     latency_index=1;
 
@@ -95,8 +98,9 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                         timer_msg* ACK_timer = new timer_msg();
                         ACK_timer_msg_map.insert({ new_dest_ID, ACK_timer });
                         // #### REMOVE THIS
-                        latency_connection_map.insert({ dest_ID_from_peer, latency_index });
-                        latency_index++;
+                        int old_latency=latency_connection_map.at(dest_ID_from_peer);
+                        //latency_connection_map.erase(dest_ID_from_peer);
+                        latency_connection_map.insert({ new_dest_ID, old_latency });
                     }
                     connection->setDestID(src_ID_from_peer);
                     connections->push_back(connection);
@@ -151,6 +155,10 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                             emit(bytes_sent_signal, bytes_sent);
                             emit(bytes_sent_with_ret_signal,bytes_sent_with_ret);
 
+                            int total_bytes_in_curr_send = (dynamic_cast<QuicConnectionClient*>(*it))->getTotalBytesInCurrSend();
+                            int new_bytes_in_curr_send = (dynamic_cast<QuicConnectionClient*>(*it))->getNewBytesInCurrSend();
+                            emit(total_bytes_in_curr_send_signal, total_bytes_in_curr_send);
+                            emit(new_bytes_in_curr_send_signal, new_bytes_in_curr_send);
 
                             int stream0_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(0);
                             int stream1_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(1);
@@ -184,7 +192,6 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 bool new_data = false;
                 for (std::list<QuicConnection*>::iterator it =
                         connections->begin(); it != connections->end(); ++it) {
-                    int tmp = (*it)->getSourceID();
 
                     if ((*it)->getSourceID() == dest_ID_from_peer) {
                         simtime_t t_sent = packet->getTimestamp();
@@ -195,8 +202,15 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                         if (latency_index==1){
                             emit(latency_signal,latency*1000);
                         }
-                        else
+                        else if (latency_index==2){
                             emit(latency_signal_second,latency*1000);
+                        }
+                        else if (latency_index==3){
+                            emit(latency_signal_third,latency*1000);
+                        }
+                        else
+                            emit(latency_signal_fourth,latency*1000);
+
                         new_data = dynamic_cast<QuicConnectionServer*>(*it)->ProcessServerReceivedPacket(packet);
                         // set ACK timer for the packet if needed
                         timer_msg* ACK_timer = ACK_timer_msg_map.at(dest_ID_from_peer);
@@ -232,8 +246,15 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 if (latency_index==1){
                     emit(latency_signal,latency*1000);
                 }
-                else
+                else if (latency_index==2){
                     emit(latency_signal_second,latency*1000);
+                }
+                else if (latency_index==3){
+                    emit(latency_signal_third,latency*1000);
+                }
+                else
+                    emit(latency_signal_fourth,latency*1000);
+
                 if ((*it)->getSourceID() == dest_ID_from_peer) {
                     new_data = dynamic_cast<QuicConnectionServer*>(*it)->ProcessServerReceivedPacket(packet);
                     // set ACK timer for the packet if needed
@@ -256,6 +277,7 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
     // break packet into frames
     b offset_in_packet = b(0);
     auto header = packet->popAtFront<QuicPacketHeader>();
+
     while (offset_in_packet < packet->getDataLength()) {
         auto curr_frame = packet->peekDataAt<QuicFrame>(offset_in_packet);
         int type = curr_frame->getFrame_type();
@@ -265,8 +287,12 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                          connections->begin(); it != connections->end(); ++it) {
                      if ((*it)->getSourceID() == dest_ID_from_peer){
                          auto stream_frame = packet->peekDataAt<StreamFrame>(offset_in_packet);
-                         if (new_data)
+                         if (new_data) {
+                             EV << "##############" << endl;
+                             EV << "packet number is: " << header->getPacket_number() << endl;
                              dynamic_cast<QuicConnectionServer*>(*it)->ProcessStreamDataFrame(stream_frame);
+                             EV << "##############" << endl;
+                         }
                          break;
                      }
                 }
@@ -336,16 +362,22 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                              Packet* copy_received_packet = (dynamic_cast<QuicConnectionClient*>(*it))->findPacketInSendQueue(current_packet);
                              if (copy_received_packet == NULL)
                                  continue;
+                             EV << " canceling RTO on packet " << current_packet << endl;
                              cancelEvent(copy_received_packet); //cancel RTO timeout
                          }
 
-                         /////################ cancel timeout on lost ack packet
+                         /////################ cancel timeout on lost ACK packet
                          if (acked_packet_arr[total_acked-1].in_order==true){
                              int cancel_RTO_before_number=acked_packet_arr[total_acked-1].packet_number-1;
                              std::list<Packet*>* packets_to_cancel = (dynamic_cast<QuicConnectionClient*>(*it))->getPacketsToCancel(cancel_RTO_before_number);
                              for (std::list<Packet*>::iterator it_packet = packets_to_cancel->begin();
                                      it_packet != packets_to_cancel->end(); ++it_packet) {
                                  cancelEvent(*it_packet);
+                               //  Packet* packet_copy = (*it_packet)->dup();
+                               //  (dynamic_cast<QuicConnectionClient*>(*it))->updateStreamInfo(*it_packet);
+                              //   (dynamic_cast<QuicConnectionClient*>(*it))->updateFlowControl(packet_copy);
+                                 auto headerrr = (*it_packet)->peekAtFront<QuicPacketHeader>();
+                                 EV << " canceling RTO on packet " << headerrr->getPacket_number() << endl;
                              }
                              delete(packets_to_cancel);
                          }
@@ -353,10 +385,13 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                          (dynamic_cast<QuicConnectionClient*>(*it))->ProcessClientACK(acked_packet_arr,total_acked);
                          (dynamic_cast<QuicConnectionClient*>(*it))->updateLostPackets(largest);
                          // cancel timeout on lost packets
+                         EV << " ***********canceling RTO on lost packets****** "<< endl;
                          std::list<Packet*>* lost_packets = (dynamic_cast<QuicConnectionClient*>(*it))->getLostPackets();
                          for (std::list<Packet*>::iterator it_remove =
                                  lost_packets->begin(); it_remove != lost_packets->end(); ++it_remove) {
                              cancelEvent(*it_remove);
+
+
                          }
 
                          // record window change and RTT measurment
@@ -370,12 +405,15 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                          if (packets_to_send->empty()) {
                              // if all streams ended -> close connection
                              if((dynamic_cast<QuicConnectionClient*>(*it))->getEndConnection()) {
+                                 EV << "connection source id " << (*it)->getSourceID() << " and dest id " << (*it)->getDestID() << " ended at client" << endl;
                                  cancelEvent(throughput_timer);
+                                 cancelEvent(throughput_timer_long);
                                  connections->erase(it);
                                  delete (*it);
                                  break;
                              }
                          }
+
 
                          for (std::list<Packet*>::iterator it_packet = packets_to_send->begin();
                                  it_packet != packets_to_send->end(); ++it_packet) {
@@ -395,6 +433,12 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                          int bytes_sent_with_ret = (dynamic_cast<QuicConnectionClient*>(*it))->getNumBytesSentWithRet();
                          emit(bytes_sent_signal, bytes_sent);
                          emit(bytes_sent_with_ret_signal,bytes_sent_with_ret);
+
+                         int total_bytes_in_curr_send = (dynamic_cast<QuicConnectionClient*>(*it))->getTotalBytesInCurrSend();
+                         int new_bytes_in_curr_send = (dynamic_cast<QuicConnectionClient*>(*it))->getNewBytesInCurrSend();
+                         emit(total_bytes_in_curr_send_signal, total_bytes_in_curr_send);
+                         emit(new_bytes_in_curr_send_signal, new_bytes_in_curr_send);
+
                          int stream0_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(0);
                          int stream1_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(1);
                          int stream2_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(2);
@@ -419,11 +463,13 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                          break;
                      }
                 }
+
                 break;
             }
         }
         offset_in_packet += curr_frame->getChunkLength();
     }
+
 }
 
 
@@ -504,6 +550,11 @@ void ConnectionManager::initialize() {
     rtt_signal = registerSignal("rtt");
     current_new_sent_bytes_signal = registerSignal("current_new_sent_bytes");
     current_total_sent_bytes_signal = registerSignal("current_total_sent_bytes");
+    current_new_sent_bytes_signal_for_long = registerSignal("current_new_sent_bytes_for_long");
+    current_total_sent_bytes_signal_for_long = registerSignal("current_total_sent_bytes_for_long");
+
+    total_bytes_in_curr_send_signal = registerSignal("total_bytes_in_curr_send");
+    new_bytes_in_curr_send_signal = registerSignal("new_bytes_in_curr_send");
     stream0_send_bytes_signal = registerSignal("stream0");
     stream1_send_bytes_signal = registerSignal("stream1");
     stream2_send_bytes_signal = registerSignal("stream2");
@@ -516,6 +567,8 @@ void ConnectionManager::initialize() {
     stream9_send_bytes_signal = registerSignal("stream9");
     latency_signal = registerSignal("latency1");
     latency_signal_second = registerSignal("latency2");
+    latency_signal_third  = registerSignal("latency3");
+    latency_signal_fourth = registerSignal("latency4");
 }
 
 
@@ -734,16 +787,33 @@ void ConnectionManager::handleMessage(cMessage *msg) {
                     // bytes sent for Throughput
                     int current_total_sent_bytes = (dynamic_cast<QuicConnectionClient*>(*it))->getCurrentBytesSent(true);
                     int current_new_sent_bytes = (dynamic_cast<QuicConnectionClient*>(*it))->getCurrentBytesSent(false);
-                    emit(current_total_sent_bytes_signal, current_total_sent_bytes * 20);
-                    emit(current_new_sent_bytes_signal, current_new_sent_bytes * 20);
+
+
+                    emit(current_total_sent_bytes_signal, current_total_sent_bytes * 10);
+                    emit(current_new_sent_bytes_signal, current_new_sent_bytes * 10);
                     throughput_timer->setKind(UPDATE_THROUGHPUT);
                     scheduleAt(simTime()+THROUGHPUT_GAP,throughput_timer);
-                    counter++;
-                    if (counter == 300)
-                        cancelEvent(throughput_timer);
                 }
             }
         }
+        else if (msg->getKind() == UPDATE_THROUGHPUT_LONG) {
+            timer_msg* thr_timer_msg = dynamic_cast<timer_msg*>(msg);
+            int dest_ID_from_peer = thr_timer_msg->getDest_connection_ID();
+            for (std::list<QuicConnection*>::iterator it =
+                    connections->begin(); it != connections->end(); ++it) {
+                if ((*it)->getSourceID() == dest_ID_from_peer) {
+                    // bytes sent for Throughput
+                    int current_total_sent_bytes_long = (dynamic_cast<QuicConnectionClient*>(*it))->getCurrentBytesSentLong(true);
+                    int current_new_sent_bytes_long = (dynamic_cast<QuicConnectionClient*>(*it))->getCurrentBytesSentLong(false);
+
+                    emit(current_total_sent_bytes_signal_for_long, current_total_sent_bytes_long);
+                    emit(current_new_sent_bytes_signal_for_long, current_new_sent_bytes_long);
+                    throughput_timer_long->setKind(UPDATE_THROUGHPUT_LONG);
+                    scheduleAt(simTime()+LONG_THROUGHPUT_GAP,throughput_timer_long);
+                }
+            }
+        }
+
     }
 
     else {
@@ -786,7 +856,13 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             throughput_timer->setDest_connection_ID(src_ID_);
             throughput_timer->setKind(UPDATE_THROUGHPUT);
             scheduleAt(simTime()+THROUGHPUT_GAP,throughput_timer);
-            counter++;
+
+            // bytes sent for long Throughput
+            emit(current_total_sent_bytes_signal_for_long, 0);
+            emit(current_new_sent_bytes_signal_for_long, 0);
+            throughput_timer_long->setDest_connection_ID(src_ID_);
+            throughput_timer_long->setKind(UPDATE_THROUGHPUT_LONG);
+            scheduleAt(simTime()+LONG_THROUGHPUT_GAP,throughput_timer_long);
 
             timer_msg* handshake_timer = new timer_msg ("handshake timer");
             handshake_timer->setKind(HANDSHAKE_TIMER_EVENT);

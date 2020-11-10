@@ -37,20 +37,28 @@ network QuicLargeNetwork
     types:
         channel C extends DatarateChannel
         {
-            datarate = 10Mbps;
-            delay = 20ms;
+            datarate = 100Mbps;
+            delay = 10ms;
             per = per;
         }
 
         channel C2 extends DatarateChannel
         {
-            datarate = 2Mbps;
-            delay = 20ms;
+            datarate = 20Mbps;
+            delay = 50ms;
             per = per;
         }
+
         channel C3 extends DatarateChannel
         {
-            datarate = 10Mbps;
+            datarate = 30Mbps;
+            delay = 100ms;
+            per = 0;
+        }
+
+        channel C4 extends DatarateChannel
+        {
+            datarate = 100Mbps;
             delay = 1us;
            // per = 0;
         }
@@ -79,6 +87,7 @@ network QuicLargeNetwork
             @display("p=183,110;i=device/pc3");
         }
         switch1_net1: EtherSwitch {
+        //switch1_net1: Router {
             @display("p=300,75");
         }
 
@@ -88,7 +97,8 @@ network QuicLargeNetwork
         client4_net1: QuicOneClient {
             @display("p=183,250;i=device/pc3");
         }
-        switch2_net1: EtherSwitch {
+         switch2_net1: EtherSwitch {
+        //switch2_net1: Router {
             @display("p=300,215");
         }
         router_local_net1: Router {
@@ -102,7 +112,8 @@ network QuicLargeNetwork
         client2_net2: QuicOneClient {
             @display("p=183,470;i=device/pc3");
         }
-        switch1_net2: EtherSwitch {
+         switch1_net2: EtherSwitch {
+        //switch1_net2: Router {
             @display("p=300,435");
         }
         client3_net2: QuicOneClient {
@@ -111,7 +122,8 @@ network QuicLargeNetwork
         client4_net2: QuicOneClient {
             @display("p=183,610;i=device/pc3");
         }
-        switch2_net2: EtherSwitch {
+          switch2_net2: EtherSwitch {
+        //switch2_net2: Router {
             @display("p=300,575");
         }
         router_local_net2: Router {
@@ -126,7 +138,7 @@ network QuicLargeNetwork
         }
 
     connections: // network level connections
-        client1_net1.ethg++ <--> C <--> switch1_net1.ethg++; // 
+        client1_net1.ethg++ <--> C <--> switch1_net1.ethg++; //  
         client2_net1.ethg++ <--> C <--> switch1_net1.ethg++; //
 
         client3_net1.ethg++ <--> C <--> switch2_net1.ethg++; // 
@@ -153,7 +165,7 @@ network QuicLargeNetwork
         router_local_net2.pppg++ <--> C3 <--> remoteRouter.pppg++; // 
 
 
-        remoteRouter.pppg++ <--> C3 <--> internet.pppg++; // 
-        internet.pppg++ <--> C3 <--> server_remote.pppg++; // 
+        remoteRouter.pppg++ <--> C4 <--> internet.pppg++; // 
+        internet.pppg++ <--> C4 <--> server_remote.pppg++; // 
 
 }

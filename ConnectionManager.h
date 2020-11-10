@@ -111,6 +111,8 @@ protected:
      int type = RECEIVER;
      bool connected; // connected to the udp socket
      timer_msg* throughput_timer;
+     timer_msg* throughput_timer_long;
+
      int counter;
 
 
@@ -124,9 +126,18 @@ private:
      simsignal_t rtt_signal;
      simsignal_t latency_signal;
      simsignal_t latency_signal_second;
+     simsignal_t latency_signal_third;
+     simsignal_t latency_signal_fourth;
+
+
      simsignal_t current_new_sent_bytes_signal;
      simsignal_t current_total_sent_bytes_signal;
+     simsignal_t current_new_sent_bytes_signal_for_long;
+     simsignal_t current_total_sent_bytes_signal_for_long;
+
      simsignal_t bytes_sent_with_ret_signal;
+     simsignal_t new_bytes_in_curr_send_signal;
+     simsignal_t total_bytes_in_curr_send_signal;
      simsignal_t stream0_send_bytes_signal;
      simsignal_t stream1_send_bytes_signal;
      simsignal_t stream2_send_bytes_signal;

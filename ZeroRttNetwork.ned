@@ -36,16 +36,9 @@ network ZeroRttNetwork
         channel C extends DatarateChannel
         {
             datarate = 10Mbps;
-            delay = 50ms;
+            delay = 10ms;
             per = per;
         }
-
-//        channel C2 extends DatarateChannel
-//        {
-//            datarate = 2Mbps;
-//            delay = 10ms;
-//            per = per;
-//        }
 
     submodules:
         client1: QuicTwoClient {
@@ -60,12 +53,10 @@ network ZeroRttNetwork
             parameters:
                 @display("p=29,100;is=s");
         }
-//        router: Router {
-//            @display("p=362,116");
-//        }
-        router: InternetCloud {
-            @display("p=362,116;is=vl");
+        router: Router {
+            @display("p=362,116");
         }
+
     connections allowunconnected:
 
         client1.pppg++ <--> C <--> router.pppg++;

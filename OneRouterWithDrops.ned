@@ -29,8 +29,7 @@ import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
 network OneRouterWithDrops
 {
     parameters:
-        //double per = default(0.005);
-        double per = default(0.01);
+        double per = default(0);
         @display("bgb=668,191");
     types:
         channel C extends DatarateChannel

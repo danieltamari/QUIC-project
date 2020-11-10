@@ -102,9 +102,11 @@ void QuicStreamArr::updateACKedBytes(int stream_id, int num_of_bytes) {
             (*it)->ACKed_bytes += num_of_bytes;
             EV << "############## ACKed_bytes of stream " << (*it)->stream_id << " is: " <<  (*it)->ACKed_bytes << " ##############" << endl;
 
-            if ((*it)->ACKed_bytes == (*it)->stream_size)
+            if ((*it)->ACKed_bytes == (*it)->stream_size) {
                 // stream is done
+                EV << "****** stream " << (*it)->stream_id << " ended at client" << endl;
                 closeStream(stream_id);
+            }
             break;
         }
     }
@@ -140,6 +142,8 @@ std::vector<IntrusivePtr<StreamFrame>>* QuicStreamArr::framesToSend(int max_payl
     bool packet_full = false;
     int bytes_left_to_send_in_packet = max_payload;
 
+    EV << "##########################" << endl;
+    EV << " *********** current packet content: ***********" << endl;
     // fill the given payload with data from streams
     while (!packet_full && checked_streams != number_of_streams) {
         bool isFin = false;
@@ -195,6 +199,7 @@ std::vector<IntrusivePtr<StreamFrame>>* QuicStreamArr::framesToSend(int max_payl
         new_frame->setChunkLength(B(bytes_to_send_in_frame));
         frames_vector->push_back(new_frame);
 
+        EV << "*** stream_id is " << stream_id << " offset is " << offset << " length is " << bytes_to_send_in_frame << endl;
         curr_stream->current_offset_in_stream += bytes_to_send_in_frame;
         bytes_left_to_send_in_packet -= bytes_to_send_in_frame;
 

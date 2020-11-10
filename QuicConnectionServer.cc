@@ -154,6 +154,8 @@ void QuicConnectionServer::ProcessStreamDataFrame(inet::Ptr<const StreamFrame> s
     int offset = stream_frame->getOffset();
     int length = stream_frame->getLength();
     bool is_FIN = stream_frame->getIs_FIN();
+    EV << "connection id of server: " << this->connection_source_ID << endl;
+    EV << "connection id of client: " << this->connection_dest_ID << endl;
     EV << "stream_id is " << stream_id << " offset is " << offset << " length is " << length << endl;
     // add new stream at server's side if not already exists
     if(!stream_arr->isStreamExist(stream_id)) {

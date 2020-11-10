@@ -77,6 +77,9 @@ public:
     int getStreamWindow();
     int getStreamNumber();
     void setStreamNumber(int new_stream_number);
+    int getTotalBytesInCurrSend();
+    int getNewBytesInCurrSend();
+    int getCurrentBytesSentLong(bool with_ret);
 
 
 protected:
@@ -103,6 +106,11 @@ protected:
     int bytes_sent_with_ret;
     int current_sent_bytes;
     int current_sent_bytes_with_ret;
+    int current_sent_bytes_long;
+    int current_sent_bytes_with_ret_long;
+    // for sent bytes signal
+    int total_sent_bytes_in_curr;
+    int new_sent_bytes_in_curr;
 };
 
 
