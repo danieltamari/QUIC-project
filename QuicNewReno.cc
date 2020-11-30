@@ -137,15 +137,14 @@ void QuicNewReno::receivedDataAck() {
 }
 
 
-bool QuicNewReno::receivedDuplicateAck(int dup_ACKS)
+void QuicNewReno::receivedDuplicateAck()
 {
-    bool start_epoch = false;
     if (!lossRecovery) {
         if (snd_una - 1 > recover) {
             recalculateSlowStartThreshold();
             recover = (snd_max - 1);
             lossRecovery = true;
-            start_epoch = true;
+       //     start_epoch = true;
 
             // RFC 3782, page 4:
             // "2) Entering Fast Retransmit:
@@ -153,16 +152,11 @@ bool QuicNewReno::receivedDuplicateAck(int dup_ACKS)
             // This artificially "inflates" the congestion window by the number
             // of segments (three) that have left the network and the receiver
             // has buffered."
-            if (dup_ACKS >= 3)
-                snd_cwnd = ssthresh + 3 * snd_mss;
 
-            else
-                snd_cwnd = ssthresh;
+            snd_cwnd = ssthresh;
          }
         EV_INFO << "NewReno on dupAcks == DUPTHRESH(=3): TCP is already in Fast Recovery procedure\n";
     }
-
-    return start_epoch;
 }
 
 

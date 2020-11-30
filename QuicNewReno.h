@@ -42,7 +42,7 @@ public:
     void receivedDataAck();
 
     /** Redefine what should happen when dupAck was received, to add congestion window management */
-    bool receivedDuplicateAck(int dup_ACKS);
+    void receivedDuplicateAck();
 
     void inflateCwnd();
     void rttMeasurementComplete(simtime_t tSent, simtime_t tAcked);

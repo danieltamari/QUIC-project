@@ -52,6 +52,8 @@ QuicConnectionClient::QuicConnectionClient(int* connection_data, int connection_
     current_sent_bytes_with_ret_long = 0;
     total_sent_bytes_in_curr = 0;
     new_sent_bytes_in_curr = 0;
+    actual_window = 0;
+    out_of_recovery_packet = 0;
 }
 
 
@@ -137,15 +139,15 @@ void QuicConnectionClient::ProcessClientSend(){
     EV << "############ congestion window size: " << congestion_alg->getSndCwnd()  << " ############" << endl;
     EV << "############ flow control window size: " << connection_flow_control_recieve_window - Bytes_in_flight << " ############"<< endl;
 
-    int temp = congestion_alg->getSndCwnd();
-    int actual_window = std::min(connection_flow_control_recieve_window - Bytes_in_flight,congestion_alg->getSndCwnd() - Bytes_in_flight);
+    actual_window = std::min(connection_flow_control_recieve_window - Bytes_in_flight,congestion_alg->getSndCwnd() - Bytes_in_flight);
 
     EV << " ############ actual window size: " << actual_window << " ############" << endl;
     EV << " ############ Bytes in flight: " << Bytes_in_flight << " ############"<< endl;
 
-    if (actual_window < 0)
-       actual_window = 0;
-    int curr_payload_size = max_payload;
+    int actual_wnd_temp = actual_window;
+    if (actual_wnd_temp < 0)
+        actual_wnd_temp = 0;
+   // int curr_payload_size = max_payload;
 
     // trying to send retransmissions first
     std::list<Packet*>::iterator it = waiting_retransmission->begin();
@@ -172,14 +174,14 @@ void QuicConnectionClient::ProcessClientSend(){
 
     int short_header_size = calcHeaderSize(true);
     // create new data packets
-    while (actual_window != 0) {
+    while (actual_wnd_temp != 0) {
         // if window is less than 1 packet size - don't send anything
-        if (actual_window < max_payload) {
+        if (actual_wnd_temp < max_payload) {
             break;
         }
 
 
-        std::vector<IntrusivePtr<StreamFrame>>* frames_to_send = stream_arr->framesToSend(curr_payload_size - short_header_size);
+        std::vector<IntrusivePtr<StreamFrame>>* frames_to_send = stream_arr->framesToSend(max_payload - short_header_size);
         if (frames_to_send->empty())
             break; // currently there is no data to send
         int frames_total_size = calcTotalSize(frames_to_send);
@@ -195,7 +197,7 @@ void QuicConnectionClient::ProcessClientSend(){
         packets_to_send->push_back(packet_to_send);
         // update flow control window
         int packet_size = packet_to_send->getByteLength();
-        actual_window -= packet_size;
+        actual_wnd_temp -= packet_size;
         congestion_alg->setSndMax(packet_size);
        // connection_flow_control_recieve_window -= packet_size;
         createCopyPacket(packet_to_send);
@@ -522,14 +524,18 @@ void QuicConnectionClient::updateCongestionAlgo(std::vector<int>* lost_packets_n
 
     else if(!recovery) {
         int min_packet_lost = *(std::min_element(lost_packets_numbers->begin(),lost_packets_numbers->end()));
-        dup_ACKS++;
+       // if (min_packet_lost >= recovery_start_packet)
+        if (min_packet_lost >= out_of_recovery_packet)
+            dup_ACKS++;
         EV << "dup ack is " << dup_ACKS << " min packet loss is: " << min_packet_lost << " recovery start packet is " << recovery_start_packet  <<   endl;
-        if ((dup_ACKS >= 3 && min_packet_lost < recovery_start_packet) || (min_packet_lost > recovery_start_packet)) {
-            bool start_epoch = congestion_alg->receivedDuplicateAck(dup_ACKS);
-            if (start_epoch) {
+        if (dup_ACKS >= 3) { //&& min_packet_lost < recovery_start_packet) {//|| (min_packet_lost > recovery_start_packet)) {
+           // bool start_epoch = congestion_alg->receivedDuplicateAck(dup_ACKS);
+            congestion_alg->receivedDuplicateAck();
+           // if (start_epoch) {
                 recovery_start_packet = packet_counter;
                 EV << "################ enter recovery ############" << endl;
-            }
+                EV << "################ window is: " << congestion_alg->getSndCwnd() << " ############" << endl;
+         //   }
         }
     }
 
@@ -538,12 +544,15 @@ void QuicConnectionClient::updateCongestionAlgo(std::vector<int>* lost_packets_n
             // stop recovery stage
             congestion_alg->receivedDataAck();
             dup_ACKS = 1;
+            out_of_recovery_packet = packet_counter;
             EV << "################ exit recovery ############" << endl;
+            EV << "################ window is: " << congestion_alg->getSndCwnd() << " ############" << endl;
         }
         else {
             // inflating cwnd
-             congestion_alg->inflateCwnd();
-             dup_ACKS++;
+           // if (actual_window < 0)
+                congestion_alg->inflateCwnd();
+            dup_ACKS++;
         }
     }
 }
@@ -719,10 +728,14 @@ Packet* QuicConnectionClient::findInitialPacket() {
 }
 
 
+int QuicConnectionClient::getPacketNumber() {
+    return packet_counter;
+}
+
+
 bool QuicConnectionClient::getEndConnection() {
     return stream_arr->getAllStreamsDone();
 }
-
 
 } /* namespace inet */
 

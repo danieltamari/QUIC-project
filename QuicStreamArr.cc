@@ -59,6 +59,7 @@ void QuicStreamArr::addNewStreamServer(int stream_id, int inital_stream_window) 
     stream_to_add->ACKed_bytes = 0;
     stream_to_add->stream_done = false;
     stream_arr_.push_back(stream_to_add);
+    number_of_streams++;
 }
 
 

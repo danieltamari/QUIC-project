@@ -108,16 +108,17 @@ protected:
      std::list<QuicConnection*>* connections;
      std::map<int,timer_msg*> ACK_timer_msg_map;
      std::map<int,int> latency_connection_map;
+     std::map<int,int> throughput_connection_map;
      int type = RECEIVER;
      bool connected; // connected to the udp socket
      timer_msg* throughput_timer;
      timer_msg* throughput_timer_long;
-
-     int counter;
+     std::set<int> connections_done;
 
 
      /// REMOVE
      int latency_index=0;
+     int throughput_index=0;
 
 
 private:
@@ -129,6 +130,16 @@ private:
      simsignal_t latency_signal_third;
      simsignal_t latency_signal_fourth;
 
+     simsignal_t throughput_signal;
+     simsignal_t throughput_signal_second;
+     simsignal_t throughput_signal_third;
+     simsignal_t throughput_signal_fourth;
+
+     simsignal_t throughput_signal_long;
+     simsignal_t throughput_signal_second_long;
+     simsignal_t throughput_signal_third_long;
+     simsignal_t throughput_signal_fourth_long;
+
 
      simsignal_t current_new_sent_bytes_signal;
      simsignal_t current_total_sent_bytes_signal;
@@ -138,16 +149,6 @@ private:
      simsignal_t bytes_sent_with_ret_signal;
      simsignal_t new_bytes_in_curr_send_signal;
      simsignal_t total_bytes_in_curr_send_signal;
-     simsignal_t stream0_send_bytes_signal;
-     simsignal_t stream1_send_bytes_signal;
-     simsignal_t stream2_send_bytes_signal;
-     simsignal_t stream3_send_bytes_signal;
-     simsignal_t stream4_send_bytes_signal;
-     simsignal_t stream5_send_bytes_signal;
-     simsignal_t stream6_send_bytes_signal;
-     simsignal_t stream7_send_bytes_signal;
-     simsignal_t stream8_send_bytes_signal;
-     simsignal_t stream9_send_bytes_signal;
 
 
 };

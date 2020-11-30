@@ -26,7 +26,7 @@
 
 #define MAX_DELAY 0.00001
 #define DELAY_TIME 0
-#define THROUGHPUT_GAP 0.1
+#define THROUGHPUT_GAP 0.5
 #define LONG_THROUGHPUT_GAP 1
 
 
@@ -47,9 +47,8 @@ ConnectionManager::ConnectionManager() {
     connected=false;
     throughput_timer = new timer_msg("throughput timer");
     throughput_timer_long =new timer_msg("throughput long timer");
-    counter = 0;
     latency_index=1;
-
+    throughput_index=1;
 }
 
 
@@ -87,6 +86,8 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                         // #### REMOVE THIS
                         latency_connection_map.insert({ dest_ID_from_peer, latency_index });
                         latency_index++;
+                        throughput_connection_map.insert({ dest_ID_from_peer, throughput_index });
+                        throughput_index++;
                     }
                     else {
                         int new_dest_ID;
@@ -101,6 +102,9 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                         int old_latency=latency_connection_map.at(dest_ID_from_peer);
                         //latency_connection_map.erase(dest_ID_from_peer);
                         latency_connection_map.insert({ new_dest_ID, old_latency });
+                        int old_throughput=throughput_connection_map.at(dest_ID_from_peer);
+                        //latency_connection_map.erase(dest_ID_from_peer);
+                        throughput_connection_map.insert({ new_dest_ID, old_throughput });
                     }
                     connection->setDestID(src_ID_from_peer);
                     connections->push_back(connection);
@@ -160,26 +164,6 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                             emit(total_bytes_in_curr_send_signal, total_bytes_in_curr_send);
                             emit(new_bytes_in_curr_send_signal, new_bytes_in_curr_send);
 
-                            int stream0_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(0);
-                            int stream1_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(1);
-                            int stream2_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(2);
-                            int stream3_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(3);
-                            int stream4_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(4);
-                            int stream5_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(5);
-                            int stream6_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(6);
-                            int stream7_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(7);
-                            int stream8_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(8);
-                            int stream9_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(9);
-                            emit (stream0_send_bytes_signal,stream0_offset);
-                            emit (stream1_send_bytes_signal,stream1_offset);
-                            emit (stream2_send_bytes_signal,stream2_offset);
-                            emit (stream3_send_bytes_signal,stream3_offset);
-                            emit (stream4_send_bytes_signal,stream4_offset);
-                            emit (stream5_send_bytes_signal,stream5_offset);
-                            emit (stream6_send_bytes_signal,stream6_offset);
-                            emit (stream7_send_bytes_signal,stream7_offset);
-                            emit (stream8_send_bytes_signal,stream8_offset);
-                            emit (stream9_send_bytes_signal,stream9_offset);
                             break;
                         }
                     }
@@ -244,7 +228,7 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 EV << "latency is: " << latency*1000 << " ms" << endl;
                 int latency_index = latency_connection_map.at(dest_ID_from_peer);
                 if (latency_index==1){
-                    emit(latency_signal,latency*1000);
+                   emit(latency_signal,latency*1000);
                 }
                 else if (latency_index==2){
                     emit(latency_signal_second,latency*1000);
@@ -254,6 +238,8 @@ void ConnectionManager::socketDataArrived(UdpSocket *socket, Packet *packet) {
                 }
                 else
                     emit(latency_signal_fourth,latency*1000);
+
+
 
                 if ((*it)->getSourceID() == dest_ID_from_peer) {
                     new_data = dynamic_cast<QuicConnectionServer*>(*it)->ProcessServerReceivedPacket(packet);
@@ -293,7 +279,16 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                              dynamic_cast<QuicConnectionServer*>(*it)->ProcessStreamDataFrame(stream_frame);
                              EV << "##############" << endl;
                          }
-                         break;
+                        // break;
+                     }
+
+                     if((dynamic_cast<QuicConnectionServer*>(*it))->getEndConnection()) {
+                         int num_rcvd = (dynamic_cast<QuicConnectionServer*>(*it))->getRcvdPackets();
+                         EV << "********* PACKETS_RECEIVED " << num_rcvd << " ************" << endl;
+                         connections_done.insert((*it)->getSourceID());
+                        // connections->erase(it);
+                        // delete (*it);
+                        // break;
                      }
                 }
 
@@ -406,8 +401,10 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                              // if all streams ended -> close connection
                              if((dynamic_cast<QuicConnectionClient*>(*it))->getEndConnection()) {
                                  EV << "connection source id " << (*it)->getSourceID() << " and dest id " << (*it)->getDestID() << " ended at client" << endl;
-                                 cancelEvent(throughput_timer);
-                                 cancelEvent(throughput_timer_long);
+                                // cancelEvent(throughput_timer);
+                                 //cancelEvent(throughput_timer_long);
+                                 int num_sent = (dynamic_cast<QuicConnectionClient*>(*it))->getPacketNumber();
+                                 EV << "********* PACKETS_SENT " << num_sent << " ************" << endl;
                                  connections->erase(it);
                                  delete (*it);
                                  break;
@@ -439,26 +436,6 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
                          emit(total_bytes_in_curr_send_signal, total_bytes_in_curr_send);
                          emit(new_bytes_in_curr_send_signal, new_bytes_in_curr_send);
 
-                         int stream0_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(0);
-                         int stream1_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(1);
-                         int stream2_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(2);
-                         int stream3_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(3);
-                         int stream4_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(4);
-                         int stream5_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(5);
-                         int stream6_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(6);
-                         int stream7_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(7);
-                         int stream8_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(8);
-                         int stream9_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(9);
-                         emit (stream0_send_bytes_signal,stream0_offset);
-                         emit (stream1_send_bytes_signal,stream1_offset);
-                         emit (stream2_send_bytes_signal,stream2_offset);
-                         emit (stream3_send_bytes_signal,stream3_offset);
-                         emit (stream4_send_bytes_signal,stream4_offset);
-                         emit (stream5_send_bytes_signal,stream5_offset);
-                         emit (stream6_send_bytes_signal,stream6_offset);
-                         emit (stream7_send_bytes_signal,stream7_offset);
-                         emit (stream8_send_bytes_signal,stream8_offset);
-                         emit (stream9_send_bytes_signal,stream9_offset);
 
                          break;
                      }
@@ -470,6 +447,10 @@ void ConnectionManager::processPacketFrames(Packet* packet, int dest_ID_from_pee
         offset_in_packet += curr_frame->getChunkLength();
     }
 
+    if (type == RECEIVER and connections_done.size() == connections->size()) {
+        cancelEvent(throughput_timer);
+        cancelEvent(throughput_timer_long);
+    }
 }
 
 
@@ -555,20 +536,21 @@ void ConnectionManager::initialize() {
 
     total_bytes_in_curr_send_signal = registerSignal("total_bytes_in_curr_send");
     new_bytes_in_curr_send_signal = registerSignal("new_bytes_in_curr_send");
-    stream0_send_bytes_signal = registerSignal("stream0");
-    stream1_send_bytes_signal = registerSignal("stream1");
-    stream2_send_bytes_signal = registerSignal("stream2");
-    stream3_send_bytes_signal = registerSignal("stream3");
-    stream4_send_bytes_signal = registerSignal("stream4");
-    stream5_send_bytes_signal = registerSignal("stream5");
-    stream6_send_bytes_signal = registerSignal("stream6");
-    stream7_send_bytes_signal = registerSignal("stream7");
-    stream8_send_bytes_signal = registerSignal("stream8");
-    stream9_send_bytes_signal = registerSignal("stream9");
+
     latency_signal = registerSignal("latency1");
     latency_signal_second = registerSignal("latency2");
     latency_signal_third  = registerSignal("latency3");
     latency_signal_fourth = registerSignal("latency4");
+
+    throughput_signal = registerSignal("throughput1");
+    throughput_signal_second = registerSignal("throughput2");
+    throughput_signal_third = registerSignal("throughput3");
+    throughput_signal_fourth = registerSignal("throughput4");
+
+    throughput_signal_long = registerSignal("throughput1_long");
+    throughput_signal_second_long = registerSignal("throughput2_long");
+    throughput_signal_third_long = registerSignal("throughput3_long");
+    throughput_signal_fourth_long = registerSignal("throughput4_long");
 }
 
 
@@ -745,28 +727,6 @@ void ConnectionManager::handleMessage(cMessage *msg) {
                         emit(bytes_sent_signal, bytes_sent);
                         emit(bytes_sent_with_ret_signal,bytes_sent_with_ret);
 
-                        int stream0_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(0);
-                        int stream1_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(1);
-                        int stream2_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(2);
-//                        int stream3_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(3);
-//                        int stream4_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(4);
-//                        int stream5_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(5);
-//                        int stream6_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(6);
-//                        int stream7_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(7);
-//                        int stream8_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(8);
-//                        int stream9_offset=(dynamic_cast<QuicConnectionClient*>(*it))->getStreamBytesSent(9);
-                        emit (stream0_send_bytes_signal,stream0_offset);
-                        emit (stream1_send_bytes_signal,stream1_offset);
-                        emit (stream2_send_bytes_signal,stream2_offset);
-//                        emit (stream3_send_bytes_signal,stream3_offset);
-//                        emit (stream4_send_bytes_signal,stream4_offset);
-//                        emit (stream5_send_bytes_signal,stream5_offset);
-//                        emit (stream6_send_bytes_signal,stream6_offset);
-//                        emit (stream7_send_bytes_signal,stream7_offset);
-//                        emit (stream8_send_bytes_signal,stream8_offset);
-//                        emit (stream9_send_bytes_signal,stream9_offset);
-
-
                         // record window change
                         int send_window = (dynamic_cast<QuicConnectionClient*>(*it))->getSendWindow();
                         emit(snd_wnd_Signal, send_window);
@@ -779,39 +739,68 @@ void ConnectionManager::handleMessage(cMessage *msg) {
         }
 
         else if (msg->getKind() == UPDATE_THROUGHPUT) {
-            timer_msg* thr_timer_msg = dynamic_cast<timer_msg*>(msg);
-            int dest_ID_from_peer = thr_timer_msg->getDest_connection_ID();
             for (std::list<QuicConnection*>::iterator it =
                     connections->begin(); it != connections->end(); ++it) {
-                if ((*it)->getSourceID() == dest_ID_from_peer) {
-                    // bytes sent for Throughput
-                    int current_total_sent_bytes = (dynamic_cast<QuicConnectionClient*>(*it))->getCurrentBytesSent(true);
-                    int current_new_sent_bytes = (dynamic_cast<QuicConnectionClient*>(*it))->getCurrentBytesSent(false);
+                // bytes sent for Throughput
+                int current_total_rcvd_bytes = (dynamic_cast<QuicConnectionServer*>(*it))->getCurrentBytesReceived(true);
+                int current_new_rcvd_bytes = (dynamic_cast<QuicConnectionServer*>(*it))->getCurrentBytesReceived(false);
 
+                bool done = (dynamic_cast<QuicConnectionServer*>(*it))->getEndConnection();
 
-                    emit(current_total_sent_bytes_signal, current_total_sent_bytes * 10);
-                    emit(current_new_sent_bytes_signal, current_new_sent_bytes * 10);
-                    throughput_timer->setKind(UPDATE_THROUGHPUT);
-                    scheduleAt(simTime()+THROUGHPUT_GAP,throughput_timer);
+                if (!done) {
+                    int src_ID = (*it)->getSourceID();
+                    int t_index = throughput_connection_map.at(src_ID);
+                    if (t_index==1){
+                        emit(throughput_signal, current_total_rcvd_bytes * 2);
+                    }
+                    else if (t_index==2){
+                        emit(throughput_signal_second, current_total_rcvd_bytes * 2);
+                    }
+                    else if (t_index==3){
+                        emit(throughput_signal_third, current_total_rcvd_bytes * 2);
+                    }
+                    else
+                        emit(throughput_signal_fourth, current_total_rcvd_bytes * 2);
                 }
+
+              //  emit(current_new_sent_bytes_signal, current_new_sent_bytes * 2);
+
             }
+
+//            int current_total_sent_bytes = (dynamic_cast<QuicConnectionServer*>(*it))->getCurrentBytesReceived(true);
+//            int current_new_sent_bytes = (dynamic_cast<QuicConnectionServer*>(*it))->getCurrentBytesReceived(false);
+//
+//
+            throughput_timer->setKind(UPDATE_THROUGHPUT);
+            scheduleAt(simTime()+THROUGHPUT_GAP,throughput_timer);
+
         }
         else if (msg->getKind() == UPDATE_THROUGHPUT_LONG) {
-            timer_msg* thr_timer_msg = dynamic_cast<timer_msg*>(msg);
-            int dest_ID_from_peer = thr_timer_msg->getDest_connection_ID();
             for (std::list<QuicConnection*>::iterator it =
                     connections->begin(); it != connections->end(); ++it) {
-                if ((*it)->getSourceID() == dest_ID_from_peer) {
-                    // bytes sent for Throughput
-                    int current_total_sent_bytes_long = (dynamic_cast<QuicConnectionClient*>(*it))->getCurrentBytesSentLong(true);
-                    int current_new_sent_bytes_long = (dynamic_cast<QuicConnectionClient*>(*it))->getCurrentBytesSentLong(false);
 
-                    emit(current_total_sent_bytes_signal_for_long, current_total_sent_bytes_long);
-                    emit(current_new_sent_bytes_signal_for_long, current_new_sent_bytes_long);
-                    throughput_timer_long->setKind(UPDATE_THROUGHPUT_LONG);
-                    scheduleAt(simTime()+LONG_THROUGHPUT_GAP,throughput_timer_long);
+                int current_total_sent_bytes_long = (dynamic_cast<QuicConnectionServer*>(*it))->getCurrentBytesReceivedLong(true);
+                int current_new_sent_bytes_long = (dynamic_cast<QuicConnectionServer*>(*it))->getCurrentBytesReceivedLong(false);
+                bool done = (dynamic_cast<QuicConnectionServer*>(*it))->getEndConnection();
+
+                if (!done) {
+                    int src_ID = (*it)->getSourceID();
+                    int t_index = throughput_connection_map.at(src_ID);
+                    if (t_index==1){
+                        emit(throughput_signal_long, current_total_sent_bytes_long);
+                    }
+                    else if (t_index==2){
+                        emit(throughput_signal_second_long, current_total_sent_bytes_long);
+                    }
+                    else if (t_index==3){
+                        emit(throughput_signal_third_long, current_total_sent_bytes_long);
+                    }
+                    else
+                        emit(throughput_signal_fourth_long, current_total_sent_bytes_long);
                 }
             }
+            throughput_timer_long->setKind(UPDATE_THROUGHPUT_LONG);
+            scheduleAt(simTime()+LONG_THROUGHPUT_GAP,throughput_timer_long);
         }
 
     }
@@ -821,7 +810,17 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             connected=true;
             connectToUDPSocket();
         }
-        if (msg->getKind() == SENDER) {
+        if (msg->getKind() == RECEIVER) {
+            // bytes sent for Throughput
+            throughput_timer->setKind(UPDATE_THROUGHPUT);
+            scheduleAt(simTime()+THROUGHPUT_GAP,throughput_timer);
+
+          //  throughput_timer_long->setDest_connection_ID(src_ID_);
+            throughput_timer_long->setKind(UPDATE_THROUGHPUT_LONG);
+            scheduleAt(simTime()+LONG_THROUGHPUT_GAP,throughput_timer_long);
+        }
+
+        else if (msg->getKind() == SENDER) {
             type = SENDER;
             Packet *packet = check_and_cast<Packet*>(msg);
             auto packet_data = packet->peekData<connection_config_data>();
@@ -850,19 +849,19 @@ void ConnectionManager::handleMessage(cMessage *msg) {
             while(!isIDAvailable(src_ID_));
             connection->setSourceID(src_ID_);
 
-            // bytes sent for Throughput
-            emit(current_total_sent_bytes_signal, 0);
-            emit(current_new_sent_bytes_signal, 0);
-            throughput_timer->setDest_connection_ID(src_ID_);
-            throughput_timer->setKind(UPDATE_THROUGHPUT);
-            scheduleAt(simTime()+THROUGHPUT_GAP,throughput_timer);
-
-            // bytes sent for long Throughput
-            emit(current_total_sent_bytes_signal_for_long, 0);
-            emit(current_new_sent_bytes_signal_for_long, 0);
-            throughput_timer_long->setDest_connection_ID(src_ID_);
-            throughput_timer_long->setKind(UPDATE_THROUGHPUT_LONG);
-            scheduleAt(simTime()+LONG_THROUGHPUT_GAP,throughput_timer_long);
+//            // bytes sent for Throughput
+//            emit(current_total_sent_bytes_signal, 0);
+//            emit(current_new_sent_bytes_signal, 0);
+//            throughput_timer->setDest_connection_ID(src_ID_);
+//            throughput_timer->setKind(UPDATE_THROUGHPUT);
+//            scheduleAt(simTime()+THROUGHPUT_GAP,throughput_timer);
+//
+//            // bytes sent for long Throughput
+//            emit(current_total_sent_bytes_signal_for_long, 0);
+//            emit(current_new_sent_bytes_signal_for_long, 0);
+//            throughput_timer_long->setDest_connection_ID(src_ID_);
+//            throughput_timer_long->setKind(UPDATE_THROUGHPUT_LONG);
+//            scheduleAt(simTime()+LONG_THROUGHPUT_GAP,throughput_timer_long);
 
             timer_msg* handshake_timer = new timer_msg ("handshake timer");
             handshake_timer->setKind(HANDSHAKE_TIMER_EVENT);

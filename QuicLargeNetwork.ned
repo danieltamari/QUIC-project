@@ -31,36 +31,36 @@ import inet.node.internetcloud.InternetCloud;
 network QuicLargeNetwork
 {
     parameters:
-        double per = default(0.01);
+        double per = default(0.001);
 
         @display("bgb=1013.02496,677.62494");
     types:
         channel C extends DatarateChannel
         {
             datarate = 100Mbps;
-            delay = 10ms;
-            per = per;
+            delay = 5ms;
+            per = 0;
         }
 
         channel C2 extends DatarateChannel
         {
-            datarate = 20Mbps;
-            delay = 50ms;
+            datarate = 25Mbps;
+            delay = 10ms;
             per = per;
         }
 
         channel C3 extends DatarateChannel
         {
-            datarate = 30Mbps;
-            delay = 100ms;
+            datarate = 25Mbps;
+            delay = 10ms;
             per = 0;
         }
 
         channel C4 extends DatarateChannel
         {
-            datarate = 100Mbps;
+            datarate = 20Mbps;
             delay = 1us;
-           // per = 0;
+            per = 0;
         }
 
 
@@ -79,7 +79,7 @@ network QuicLargeNetwork
         }
 
 
-        //		### Network1 ###
+        // ### Network1 ###
         client1_net1: QuicOneClient {
             @display("p=183,40;i=device/pc3");
         }
@@ -94,6 +94,7 @@ network QuicLargeNetwork
         client3_net1: QuicOneClient {
             @display("p=183,180;i=device/pc3");
         }
+        
         client4_net1: QuicOneClient {
             @display("p=183,250;i=device/pc3");
         }
@@ -159,11 +160,8 @@ network QuicLargeNetwork
         router_local_net1.pppg++ <--> C2 <--> server_local_net1.pppg++; // 
         router_local_net2.pppg++ <--> C2 <--> server_local_net2.pppg++; // 
 
-
-
         router_local_net1.pppg++ <--> C3 <--> remoteRouter.pppg++; // 
         router_local_net2.pppg++ <--> C3 <--> remoteRouter.pppg++; // 
-
 
         remoteRouter.pppg++ <--> C4 <--> internet.pppg++; // 
         internet.pppg++ <--> C4 <--> server_remote.pppg++; // 

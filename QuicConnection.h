@@ -37,8 +37,8 @@
 
 
 // flow control parameters
-#define Init_Connection_FlowControl_Window 1472 * 14
-#define Init_Stream_ReceiveWindow 1472 * 14
+#define Init_Connection_FlowControl_Window 1472 * 140
+#define Init_Stream_ReceiveWindow 1472 * 140
 // congestion control parameters
 #define ACKTHRESH 3
 #define MAX_THRESHOLD 0xFFFFFFFF
@@ -69,7 +69,6 @@ class QuicConnection {
 public:
     QuicConnection();
     virtual ~QuicConnection();
-
     int getSourceID();
     void setSourceID(int source_ID);
     int getDestID();
@@ -85,7 +84,6 @@ protected:
     int connection_dest_ID;
     L3Address destination;
     QuicStreamArr *stream_arr;
-
 };
 
 

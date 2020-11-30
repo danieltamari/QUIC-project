@@ -20,7 +20,7 @@
 
 namespace inet {
 
-struct stream_information {
+struct stream_receive_state {
     int final_size; // update after the last frame in received
     bool last_frame_received; // true if the final frame of this stream (marked with isFIN) is received
     int num_bytes_received;
@@ -32,12 +32,12 @@ public:
     QuicReceiveQueue();
     virtual ~QuicReceiveQueue();
     bool checkIfEnded(int stream_id);
-    void updateStreamInfo(int stream_id,int offset,int length,bool is_FIN);
-    void removeStreamInfo(int stream_id);
+    void updateStreamStatus(int stream_id,int offset,int length,bool is_FIN);
+    void removeStreamStatus(int stream_id);
 
 
 protected:
-    std::map<int,stream_information*>* streams_info;
+    std::map<int,stream_receive_state*>* streams_status;
 
 
 };

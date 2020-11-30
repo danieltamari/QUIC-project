@@ -34,15 +34,15 @@ network OneRouterWithDrops
     types:
         channel C extends DatarateChannel
         {
-            datarate = 10Mbps;
-            delay = 10ms;
+            datarate = 100Mbps;
+            delay = 30ms;
             per = per;
         }
 
         channel C2 extends DatarateChannel
         {
-            datarate = 2Mbps;
-            delay = 10ms;
+            datarate = 10Mbps;
+            delay = 30ms;
             per = per;
         }
 

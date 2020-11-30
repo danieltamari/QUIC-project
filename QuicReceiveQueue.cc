@@ -19,7 +19,7 @@ namespace inet {
 
 QuicReceiveQueue::QuicReceiveQueue() {
     // TODO Auto-generated constructor stub
-    streams_info = new std::map<int,stream_information*>();
+    streams_status = new std::map<int,stream_receive_state*>();
 }
 
 
@@ -27,24 +27,24 @@ QuicReceiveQueue::~QuicReceiveQueue() {
     // TODO Auto-generated destructor stub
 }
 
-void QuicReceiveQueue::updateStreamInfo(int stream_id,int offset,int length,bool is_FIN) {
-  // check if stream exist in streams_info
-    std::map<int,stream_information*>::iterator it = streams_info->find(stream_id);
-    if (it == streams_info->end()) {
-        stream_information* stream_info = new stream_information;
+void QuicReceiveQueue::updateStreamStatus(int stream_id,int offset,int length,bool is_FIN) {
+  // check if stream exist in streams_status
+    std::map<int,stream_receive_state*>::iterator it = streams_status->find(stream_id);
+    if (it == streams_status->end()) {
+        stream_receive_state* stream_info = new stream_receive_state;
         stream_info->final_size = -1;
         stream_info->last_frame_received = false;
         stream_info->num_bytes_received = length;
-        streams_info->insert({stream_id,stream_info});
+        streams_status->insert({stream_id,stream_info});
     }
     else {
-        stream_information* curr_stream_info = streams_info->at(stream_id);
+        stream_receive_state* curr_stream_info = streams_status->at(stream_id);
         curr_stream_info->num_bytes_received += length;
     }
 
    if (is_FIN) {
        // update the final_size field as mentioned in RFC
-       stream_information* curr_stream_info = streams_info->at(stream_id);
+       stream_receive_state* curr_stream_info = streams_status->at(stream_id);
        curr_stream_info->final_size = offset + length;
        curr_stream_info->last_frame_received = true;
    }
@@ -52,7 +52,7 @@ void QuicReceiveQueue::updateStreamInfo(int stream_id,int offset,int length,bool
 
 
 bool QuicReceiveQueue::checkIfEnded(int stream_id) {
-    stream_information* curr_stream_info = streams_info->at(stream_id);
+    stream_receive_state* curr_stream_info = streams_status->at(stream_id);
     if (curr_stream_info->last_frame_received && curr_stream_info->final_size == curr_stream_info->num_bytes_received)
         return true;
     else
@@ -60,8 +60,8 @@ bool QuicReceiveQueue::checkIfEnded(int stream_id) {
 }
 
 
-void QuicReceiveQueue::removeStreamInfo(int stream_id) {
-    streams_info->erase(stream_id);
+void QuicReceiveQueue::removeStreamStatus(int stream_id) {
+    streams_status->erase(stream_id);
 }
 
 

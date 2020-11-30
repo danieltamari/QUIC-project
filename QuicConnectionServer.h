@@ -51,6 +51,10 @@ public:
     int getLargestInOrder();
     void setCurrLargest(int largest);
     void setLargestWithRcvNext();
+    int getRcvdPackets();
+    int getCurrentBytesReceived(bool with_ret);
+    int getCurrentBytesReceivedLong(bool with_ret);
+    bool getEndConnection();
 
 
 protected:
@@ -62,6 +66,13 @@ protected:
     // ACK control parameters
     int current_largest;
     int rcv_next;
+    int num_streams;
+    int num_streams_ended;
+    bool ended;
+    int current_rcvd_bytes;
+    int current_rcvd_bytes_with_ret;
+    int current_rcvd_bytes_long;
+    int current_rcvd_bytes_with_ret_long;
 
 };
 

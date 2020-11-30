@@ -71,7 +71,7 @@ public:
     simtime_t getRto();
     simtime_t getRtt();
     bool getReconnect();
-    bool getEndConnection();
+
     int getConnectionWindow();
     int getMaxPayload();
     int getStreamWindow();
@@ -80,6 +80,8 @@ public:
     int getTotalBytesInCurrSend();
     int getNewBytesInCurrSend();
     int getCurrentBytesSentLong(bool with_ret);
+    int getPacketNumber();
+    bool getEndConnection();
 
 
 protected:
@@ -96,10 +98,12 @@ protected:
     int connection_max_flow_control_window_size; // constant
     int connection_flow_control_recieve_window; //
     int stream_flow_control_window;
+    int actual_window;
     // ACK control parameters
     int last_rcvd_ACK;
     int dup_ACKS;
     int recovery_start_packet;
+
     QuicNewReno* congestion_alg;
     int min_packet_lost;
     int num_bytes_sent;
@@ -111,6 +115,8 @@ protected:
     // for sent bytes signal
     int total_sent_bytes_in_curr;
     int new_sent_bytes_in_curr;
+
+    int out_of_recovery_packet;
 };
 
 
