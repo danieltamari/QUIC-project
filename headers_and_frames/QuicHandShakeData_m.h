@@ -57,10 +57,6 @@ namespace inet {
  *     // by the client; This transport parameter is only sent by a server. (RFC 18.2)
  *     int original_destination_connection_id; // inital Dest_ID server get in the first packet
  * 
- *     // The value that the server included in the Source Connection ID field of a Retry packet;
- *     // This transport parameter is only sent by a server.
- *     int retry_source_connection_id; // new Source_ID negotiated by server
- * 
  *     // limits the size of UDP payloads that the endpoint is willing to receive. UDP packets with
  *     // payloads larger than this limit are not likely to be processed by the receiver. (RFC 18.2)
  *     int max_udp_payload_size;
@@ -83,7 +79,6 @@ class INET_API QuicHandShakeData : public ::inet::QuicFrame
   protected:
     int initial_source_connection_id = 0;
     int original_destination_connection_id = 0;
-    int retry_source_connection_id = 0;
     int max_udp_payload_size = 0;
     int initial_max_data = 0;
     int initial_max_stream_data = 0;
@@ -109,8 +104,6 @@ class INET_API QuicHandShakeData : public ::inet::QuicFrame
     virtual void setInitial_source_connection_id(int initial_source_connection_id);
     virtual int getOriginal_destination_connection_id() const;
     virtual void setOriginal_destination_connection_id(int original_destination_connection_id);
-    virtual int getRetry_source_connection_id() const;
-    virtual void setRetry_source_connection_id(int retry_source_connection_id);
     virtual int getMax_udp_payload_size() const;
     virtual void setMax_udp_payload_size(int max_udp_payload_size);
     virtual int getInitial_max_data() const;

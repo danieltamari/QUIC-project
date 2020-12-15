@@ -24,17 +24,9 @@ namespace inet;
 // TODO generated message class
 //
 class QuicShortHeader extends QuicPacketHeader {// ; FieldsChunk {
-    // Packets with the short header are used after a connection is established and 1-RTT keys are available (RFC 12)
-    
-    b header_form; // The most significant bit of byte 0 is set to 1 for long headers
-    b fixed_bit; // The next bit of byte 0 is set to 1. Packets containing a zero value for this bit are not valid packets in this version and MUST be discarded.
+    // Packets with the short header are used after a connection is established and 1-RTT keys are available (RFC 12)   
 	b spin_bit;
-	B reserved_bits;
-	B packet_number_length; // contain the length of the packet number, encoded as an unsigned, two-bit integer that is one less than the length of the packet number field in bytes
-//	int dest_connection_ID; // The Destination Connection ID is a connection ID that is chosen by the intended recipient of the packet, max size is 20 Bytes
-//	int packet_number; //  The packet number field is 1 to 4 bytes long
-	// remove later
-	int packet_type;
+	B reserved_bits;	
 	
 	// total size(in bytes): 2 + packet_number_length + dest_connection_id_length
 }

@@ -234,7 +234,6 @@ void QuicHandShakeData::copy(const QuicHandShakeData& other)
 {
     this->initial_source_connection_id = other.initial_source_connection_id;
     this->original_destination_connection_id = other.original_destination_connection_id;
-    this->retry_source_connection_id = other.retry_source_connection_id;
     this->max_udp_payload_size = other.max_udp_payload_size;
     this->initial_max_data = other.initial_max_data;
     this->initial_max_stream_data = other.initial_max_stream_data;
@@ -245,7 +244,6 @@ void QuicHandShakeData::parsimPack(omnetpp::cCommBuffer *b) const
     ::inet::QuicFrame::parsimPack(b);
     doParsimPacking(b,this->initial_source_connection_id);
     doParsimPacking(b,this->original_destination_connection_id);
-    doParsimPacking(b,this->retry_source_connection_id);
     doParsimPacking(b,this->max_udp_payload_size);
     doParsimPacking(b,this->initial_max_data);
     doParsimPacking(b,this->initial_max_stream_data);
@@ -256,7 +254,6 @@ void QuicHandShakeData::parsimUnpack(omnetpp::cCommBuffer *b)
     ::inet::QuicFrame::parsimUnpack(b);
     doParsimUnpacking(b,this->initial_source_connection_id);
     doParsimUnpacking(b,this->original_destination_connection_id);
-    doParsimUnpacking(b,this->retry_source_connection_id);
     doParsimUnpacking(b,this->max_udp_payload_size);
     doParsimUnpacking(b,this->initial_max_data);
     doParsimUnpacking(b,this->initial_max_stream_data);
@@ -282,17 +279,6 @@ void QuicHandShakeData::setOriginal_destination_connection_id(int original_desti
 {
     handleChange();
     this->original_destination_connection_id = original_destination_connection_id;
-}
-
-int QuicHandShakeData::getRetry_source_connection_id() const
-{
-    return this->retry_source_connection_id;
-}
-
-void QuicHandShakeData::setRetry_source_connection_id(int retry_source_connection_id)
-{
-    handleChange();
-    this->retry_source_connection_id = retry_source_connection_id;
 }
 
 int QuicHandShakeData::getMax_udp_payload_size() const
@@ -335,7 +321,6 @@ class QuicHandShakeDataDescriptor : public omnetpp::cClassDescriptor
     enum FieldConstants {
         FIELD_initial_source_connection_id,
         FIELD_original_destination_connection_id,
-        FIELD_retry_source_connection_id,
         FIELD_max_udp_payload_size,
         FIELD_initial_max_data,
         FIELD_initial_max_stream_data,
@@ -401,7 +386,7 @@ const char *QuicHandShakeDataDescriptor::getProperty(const char *propertyname) c
 int QuicHandShakeDataDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 6+basedesc->getFieldCount() : 6;
+    return basedesc ? 5+basedesc->getFieldCount() : 5;
 }
 
 unsigned int QuicHandShakeDataDescriptor::getFieldTypeFlags(int field) const
@@ -415,12 +400,11 @@ unsigned int QuicHandShakeDataDescriptor::getFieldTypeFlags(int field) const
     static unsigned int fieldTypeFlags[] = {
         FD_ISEDITABLE,    // FIELD_initial_source_connection_id
         FD_ISEDITABLE,    // FIELD_original_destination_connection_id
-        FD_ISEDITABLE,    // FIELD_retry_source_connection_id
         FD_ISEDITABLE,    // FIELD_max_udp_payload_size
         FD_ISEDITABLE,    // FIELD_initial_max_data
         FD_ISEDITABLE,    // FIELD_initial_max_stream_data
     };
-    return (field >= 0 && field < 6) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 5) ? fieldTypeFlags[field] : 0;
 }
 
 const char *QuicHandShakeDataDescriptor::getFieldName(int field) const
@@ -434,12 +418,11 @@ const char *QuicHandShakeDataDescriptor::getFieldName(int field) const
     static const char *fieldNames[] = {
         "initial_source_connection_id",
         "original_destination_connection_id",
-        "retry_source_connection_id",
         "max_udp_payload_size",
         "initial_max_data",
         "initial_max_stream_data",
     };
-    return (field >= 0 && field < 6) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 5) ? fieldNames[field] : nullptr;
 }
 
 int QuicHandShakeDataDescriptor::findField(const char *fieldName) const
@@ -448,10 +431,9 @@ int QuicHandShakeDataDescriptor::findField(const char *fieldName) const
     int base = basedesc ? basedesc->getFieldCount() : 0;
     if (fieldName[0] == 'i' && strcmp(fieldName, "initial_source_connection_id") == 0) return base+0;
     if (fieldName[0] == 'o' && strcmp(fieldName, "original_destination_connection_id") == 0) return base+1;
-    if (fieldName[0] == 'r' && strcmp(fieldName, "retry_source_connection_id") == 0) return base+2;
-    if (fieldName[0] == 'm' && strcmp(fieldName, "max_udp_payload_size") == 0) return base+3;
-    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_max_data") == 0) return base+4;
-    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_max_stream_data") == 0) return base+5;
+    if (fieldName[0] == 'm' && strcmp(fieldName, "max_udp_payload_size") == 0) return base+2;
+    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_max_data") == 0) return base+3;
+    if (fieldName[0] == 'i' && strcmp(fieldName, "initial_max_stream_data") == 0) return base+4;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -466,12 +448,11 @@ const char *QuicHandShakeDataDescriptor::getFieldTypeString(int field) const
     static const char *fieldTypeStrings[] = {
         "int",    // FIELD_initial_source_connection_id
         "int",    // FIELD_original_destination_connection_id
-        "int",    // FIELD_retry_source_connection_id
         "int",    // FIELD_max_udp_payload_size
         "int",    // FIELD_initial_max_data
         "int",    // FIELD_initial_max_stream_data
     };
-    return (field >= 0 && field < 6) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 5) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **QuicHandShakeDataDescriptor::getFieldPropertyNames(int field) const
@@ -540,7 +521,6 @@ std::string QuicHandShakeDataDescriptor::getFieldValueAsString(void *object, int
     switch (field) {
         case FIELD_initial_source_connection_id: return long2string(pp->getInitial_source_connection_id());
         case FIELD_original_destination_connection_id: return long2string(pp->getOriginal_destination_connection_id());
-        case FIELD_retry_source_connection_id: return long2string(pp->getRetry_source_connection_id());
         case FIELD_max_udp_payload_size: return long2string(pp->getMax_udp_payload_size());
         case FIELD_initial_max_data: return long2string(pp->getInitial_max_data());
         case FIELD_initial_max_stream_data: return long2string(pp->getInitial_max_stream_data());
@@ -560,7 +540,6 @@ bool QuicHandShakeDataDescriptor::setFieldValueAsString(void *object, int field,
     switch (field) {
         case FIELD_initial_source_connection_id: pp->setInitial_source_connection_id(string2long(value)); return true;
         case FIELD_original_destination_connection_id: pp->setOriginal_destination_connection_id(string2long(value)); return true;
-        case FIELD_retry_source_connection_id: pp->setRetry_source_connection_id(string2long(value)); return true;
         case FIELD_max_udp_payload_size: pp->setMax_udp_payload_size(string2long(value)); return true;
         case FIELD_initial_max_data: pp->setInitial_max_data(string2long(value)); return true;
         case FIELD_initial_max_stream_data: pp->setInitial_max_stream_data(string2long(value)); return true;
