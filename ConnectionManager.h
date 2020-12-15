@@ -58,12 +58,8 @@ enum Packet_type {INITIAL = 0,
                   ZERO_RTT,
                   HANDSHAKE,
                   RETRY,
-                  FIRST_STREAMS_DATA,
-                  ACK_PACKET
-
-                 // MAX_STREAM_DATA,
-                 // MAX_DATA
                     };
+
 namespace inet {
 
 struct ack_range_info {
@@ -73,6 +69,7 @@ struct ack_range_info {
     int first_ack_range;
 };
 
+
 struct old_transport_parameters {
     int connection_window_size;
     int stream_window_size;
@@ -80,44 +77,57 @@ struct old_transport_parameters {
     L3Address destination;
 };
 
+
 class ConnectionManager:  public cSimpleModule, public UdpSocket::ICallback{
 public:
     ConnectionManager();
     virtual ~ConnectionManager();
-
+    virtual void initialize() override;
+    virtual void handleMessage(cMessage *msg) override;
     virtual void socketDataArrived(UdpSocket *socket, Packet *packet) override;
     virtual void socketErrorArrived(UdpSocket *socket, Indication *indication) override;
     virtual void socketClosed(UdpSocket *socket) override;
-    void sendPacket(Packet *packet,L3Address destAddr) ;
-    void processPacketFrames(Packet* packet, int dest_ID_from_peer, bool new_data);
-    void connectToUDPSocket();
-    virtual void initialize() override;
-    virtual void handleMessage(cMessage *msg) override;
     QuicConnectionClient* AddNewConnection(int* connection_data, int connection_data_size,L3Address destination,bool reconnect);
+    void connectToUDPSocket();
     bool isIDAvailable(int src_ID);
+    void sendPacket(Packet *packet,L3Address destAddr);
+    void processPacketFrames(Packet* packet, int dest_ID_from_peer, bool new_data);
+    void sendReadyPackets(QuicConnection* current_connection, bool zero_rtt);
+    void setAckTimer(int dest_ID_from_peer);
+    void cancelRTOonPackets(packet_rcv_type* acked_packet_arr, int total_acked, QuicConnection* current_connection);
     ack_range_info* createAckRange(int arr[],int N,int smallest,int largest,int rcv_next);
+    void handleRetransmissionTimeout(cMessage *msg);
+    void handleInitalTimeout(cMessage *msg);
+    void handleAckTimeout(cMessage *msg);
+    void handleHandshakeInit(cMessage *msg);
+    void handleUpdateThroughput();
+    void handleUpdateThroughputLong();
 
 
 
 protected:
      UdpSocket socket;
-     L3Address destAddr;
      int localPort = -1, destPort = -1;
      std::vector<old_transport_parameters*> old_trans_parameters;
-     int destAddrRNG = -1;
      std::list<QuicConnection*>* connections;
      std::map<int,timer_msg*> ACK_timer_msg_map;
      std::map<int,int> latency_connection_map;
+     std::map<int,int> throughput_connection_map;
      int type = RECEIVER;
      bool connected; // connected to the udp socket
      timer_msg* throughput_timer;
      timer_msg* throughput_timer_long;
+     std::set<int> connections_done;
 
-     int counter;
-
+     // parametetrs to configue server
+     int max_payload;
+     int init_stream_flow_control_window;
+     int init_connection_flow_control_winodw;
+     double max_delay;
 
      /// REMOVE
      int latency_index=0;
+     int throughput_index=0;
 
 
 private:
@@ -129,6 +139,16 @@ private:
      simsignal_t latency_signal_third;
      simsignal_t latency_signal_fourth;
 
+     simsignal_t throughput_signal;
+     simsignal_t throughput_signal_second;
+     simsignal_t throughput_signal_third;
+     simsignal_t throughput_signal_fourth;
+
+     simsignal_t throughput_signal_long;
+     simsignal_t throughput_signal_second_long;
+     simsignal_t throughput_signal_third_long;
+     simsignal_t throughput_signal_fourth_long;
+
 
      simsignal_t current_new_sent_bytes_signal;
      simsignal_t current_total_sent_bytes_signal;
@@ -138,16 +158,6 @@ private:
      simsignal_t bytes_sent_with_ret_signal;
      simsignal_t new_bytes_in_curr_send_signal;
      simsignal_t total_bytes_in_curr_send_signal;
-     simsignal_t stream0_send_bytes_signal;
-     simsignal_t stream1_send_bytes_signal;
-     simsignal_t stream2_send_bytes_signal;
-     simsignal_t stream3_send_bytes_signal;
-     simsignal_t stream4_send_bytes_signal;
-     simsignal_t stream5_send_bytes_signal;
-     simsignal_t stream6_send_bytes_signal;
-     simsignal_t stream7_send_bytes_signal;
-     simsignal_t stream8_send_bytes_signal;
-     simsignal_t stream9_send_bytes_signal;
 
 
 };

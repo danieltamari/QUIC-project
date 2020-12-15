@@ -50,20 +50,24 @@ namespace inet {
  * //
  * class QuicPacketHeader extends FieldsChunk
  * {
+ *     unsigned int dest_connection_id_length; // length in bytes of the Destination Connection ID field that follows it. This length is encoded as an 8-bit unsigned integer
  *     int dest_connection_ID;
- *     //int src_connectionID;
+ *     B packet_number_length; // contain the length of the packet number, encoded as an unsigned, two-bit integer that is one less than the length of the packet number field in bytes
  *     int packet_number;
- *     //int packet_type;
  *     b header_form;
+ *     b fixed_bit; // The next bit of byte 0 is set to 1. Packets containing a zero value for this bit are not valid packets in this version and MUST be discarded.
  * }
  * </pre>
  */
 class INET_API QuicPacketHeader : public ::inet::FieldsChunk
 {
   protected:
+    unsigned int dest_connection_id_length = 0;
     int dest_connection_ID = 0;
+    B packet_number_length = B(-1);
     int packet_number = 0;
     b header_form = b(-1);
+    b fixed_bit = b(-1);
 
   private:
     void copy(const QuicPacketHeader& other);
@@ -82,12 +86,18 @@ class INET_API QuicPacketHeader : public ::inet::FieldsChunk
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
+    virtual unsigned int getDest_connection_id_length() const;
+    virtual void setDest_connection_id_length(unsigned int dest_connection_id_length);
     virtual int getDest_connection_ID() const;
     virtual void setDest_connection_ID(int dest_connection_ID);
+    virtual B getPacket_number_length() const;
+    virtual void setPacket_number_length(B packet_number_length);
     virtual int getPacket_number() const;
     virtual void setPacket_number(int packet_number);
     virtual b getHeader_form() const;
     virtual void setHeader_form(b header_form);
+    virtual b getFixed_bit() const;
+    virtual void setFixed_bit(b fixed_bit);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const QuicPacketHeader& obj) {obj.parsimPack(b);}

@@ -52,15 +52,9 @@ namespace inet {
  * //
  * class QuicShortHeader extends QuicPacketHeader
  * {
- *     b header_form; // The most significant bit of byte 0 is set to 1 for long headers
- *     b fixed_bit; // The next bit of byte 0 is set to 1. Packets containing a zero value for this bit are not valid packets in this version and MUST be discarded.
+ *     // Packets with the short header are used after a connection is established and 1-RTT keys are available (RFC 12)   
  *     b spin_bit;
  *     B reserved_bits;
- *     B packet_number_length; // contain the length of the packet number, encoded as an unsigned, two-bit integer that is one less than the length of the packet number field in bytes
- *     //	int dest_connection_ID; // The Destination Connection ID is a connection ID that is chosen by the intended recipient of the packet, max size is 20 Bytes
- *     //	int packet_number; //  The packet number field is 1 to 4 bytes long
- *     // remove later
- *     int packet_type;
  * 
  * 	// total size(in bytes): 2 + packet_number_length + dest_connection_id_length
  * }
@@ -69,12 +63,8 @@ namespace inet {
 class INET_API QuicShortHeader : public ::inet::QuicPacketHeader
 {
   protected:
-    b header_form = b(-1);
-    b fixed_bit = b(-1);
     b spin_bit = b(-1);
     B reserved_bits = B(-1);
-    B packet_number_length = B(-1);
-    int packet_type = 0;
 
   private:
     void copy(const QuicShortHeader& other);
@@ -93,18 +83,10 @@ class INET_API QuicShortHeader : public ::inet::QuicPacketHeader
     virtual void parsimUnpack(omnetpp::cCommBuffer *b) override;
 
     // field getter/setter methods
-    virtual b getHeader_form() const;
-    virtual void setHeader_form(b header_form);
-    virtual b getFixed_bit() const;
-    virtual void setFixed_bit(b fixed_bit);
     virtual b getSpin_bit() const;
     virtual void setSpin_bit(b spin_bit);
     virtual B getReserved_bits() const;
     virtual void setReserved_bits(B reserved_bits);
-    virtual B getPacket_number_length() const;
-    virtual void setPacket_number_length(B packet_number_length);
-    virtual int getPacket_type() const;
-    virtual void setPacket_type(int packet_type);
 };
 
 inline void doParsimPacking(omnetpp::cCommBuffer *b, const QuicShortHeader& obj) {obj.parsimPack(b);}

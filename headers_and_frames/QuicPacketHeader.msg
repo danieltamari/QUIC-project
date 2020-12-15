@@ -23,9 +23,10 @@ namespace inet;
 // TODO generated message class
 //
 class QuicPacketHeader extends FieldsChunk {
+    unsigned int dest_connection_id_length; // length in bytes of the Destination Connection ID field that follows it. This length is encoded as an 8-bit unsigned integer
 	int dest_connection_ID;
-	//int src_connectionID;
+	B packet_number_length; // contain the length of the packet number, encoded as an unsigned, two-bit integer that is one less than the length of the packet number field in bytes
 	int packet_number;
-	//int packet_type;
 	b header_form;
+	b fixed_bit; // The next bit of byte 0 is set to 1. Packets containing a zero value for this bit are not valid packets in this version and MUST be discarded.
 }

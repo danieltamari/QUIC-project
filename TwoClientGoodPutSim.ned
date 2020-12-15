@@ -32,20 +32,32 @@ network TwoClientGoodPutSim
         double per = default(0);
         @display("bgb=667.87494,306.15");
     types:
+//        channel C extends DatarateChannel
+//        {
+//            datarate = 10Mbps;
+//            delay = 20ms;
+//            per = per;
+//        }
+//
+//        channel C2 extends DatarateChannel
+//        {
+//            datarate = 2Mbps;
+//            delay = 20ms;
+//            per = per;
+//        }
         channel C extends DatarateChannel
         {
-            datarate = 10Mbps;
-            delay = 10ms;
+            datarate = 100Mbps;
+            delay = 20ms;
             per = per;
         }
 
         channel C2 extends DatarateChannel
         {
-            datarate = 2Mbps;
-            delay = 10ms;
+            datarate = 20Mbps;
+            delay = 20ms;
             per = per;
         }
-
     submodules:
         client1: QuicOneClient {
             parameters:
@@ -55,14 +67,14 @@ network TwoClientGoodPutSim
             parameters:
                 @display("p=123.82499,133.575;i=device/pc3");
         }
-//        client3: QuicOneClient {
-//            parameters:
-//                @display("p=135.525,240.82498;i=device/pc3");
-//        }
-//        client4: QuicOneClient {
-//            parameters:
-//                @display("p=259.34998,272.025;i=device/pc3");
-//        }
+        client3: QuicOneClient {
+            parameters:
+                @display("p=135.525,240.82498;i=device/pc3");
+        }
+        client4: QuicOneClient {
+            parameters:
+                @display("p=259.34998,272.025;i=device/pc3");
+        }
         server: QuicServer {
             parameters:
                 @display("p=599.62494,95.549995;i=device/pc2");
@@ -79,8 +91,8 @@ network TwoClientGoodPutSim
 
         client1.pppg++ <--> C <--> router.pppg++;
         client2.pppg++ <--> C <--> router.pppg++;
-//        client3.pppg++ <--> C <--> router.pppg++;
-//        client4.pppg++ <--> C <--> router.pppg++;
+        client3.pppg++ <--> C <--> router.pppg++;
+        client4.pppg++ <--> C <--> router.pppg++;
 
         router.pppg++ <--> C2 <--> server.pppg++;
 

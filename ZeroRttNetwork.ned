@@ -36,7 +36,7 @@ network ZeroRttNetwork
         channel C extends DatarateChannel
         {
             datarate = 10Mbps;
-            delay = 10ms;
+            delay = 50ms;
             per = per;
         }
 

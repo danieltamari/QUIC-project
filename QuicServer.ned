@@ -16,7 +16,7 @@
 package inet.applications.quicapp;
 import inet.applications.contract.IApp;
 import inet.applications.quicapp.ConnectionManager;
-import inet.applications.quicapp.SimV1_server;
+import inet.applications.quicapp.Server_Module;
 import inet.node.inet.StandardHost;
 import inet.applications.quicapp.IQuicapp;
 import inet.node.base.TransportLayerNodeBase;
@@ -33,7 +33,7 @@ module QuicServer extends TransportLayerNodeBase
         }
 
 
-        toc: SimV1_server {
+        server: Server_Module {
             @display("p=974.925,53.55");
         }
         at: MessageDispatcher {
@@ -41,7 +41,7 @@ module QuicServer extends TransportLayerNodeBase
                 @display("p=750,146;b=1000,5,,,,1");
         }
     connections allowunconnected:
-        toc.out --> connection_manager.quicIn++;
+        server.out --> connection_manager.quicIn++;
         connection_manager.socketOut --> at.in++;
         connection_manager.socketIn <-- at.out++;
         

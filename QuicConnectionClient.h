@@ -41,7 +41,7 @@ public:
     QuicConnectionClient();
     QuicConnectionClient(int* connection_data, int connection_data_size,L3Address destination_,bool reconnect_);
     virtual ~QuicConnectionClient();
-    void AddNewStream(int stream_size,int index);
+    void addNewStream(int stream_size,int index);
     Packet* ProcessInitiateHandshake( int src_ID_);
     void ProcessClientHandshakeResponse(Packet* packet);
     void ProcessClientSend();
@@ -71,7 +71,7 @@ public:
     simtime_t getRto();
     simtime_t getRtt();
     bool getReconnect();
-    bool getEndConnection();
+
     int getConnectionWindow();
     int getMaxPayload();
     int getStreamWindow();
@@ -80,11 +80,13 @@ public:
     int getTotalBytesInCurrSend();
     int getNewBytesInCurrSend();
     int getCurrentBytesSentLong(bool with_ret);
+    int getPacketNumber();
+    bool getEndConnection();
 
 
 protected:
     int packet_counter; // counter to assign each packet header a unique packet number
-    int send_una; // sent and unacknowledged bytes so far
+    int send_unacked; // sent and unacknowledged bytes so far
     QuicSendQueue* send_queue;
     std::list<Packet*>* ACKED_out_of_order;
     std::list<Packet*>* waiting_retransmission;
@@ -93,13 +95,13 @@ protected:
     //flow control client side parameters
     int max_payload;
     int Bytes_in_flight;
-    int connection_max_flow_control_window_size; // constant
-    int connection_flow_control_recieve_window; //
+    int connection_flow_control_window;
     int stream_flow_control_window;
+    int actual_window;
     // ACK control parameters
-    int last_rcvd_ACK;
-    int dup_ACKS;
+    int duplicate_Acks;
     int recovery_start_packet;
+
     QuicNewReno* congestion_alg;
     int min_packet_lost;
     int num_bytes_sent;
@@ -111,6 +113,8 @@ protected:
     // for sent bytes signal
     int total_sent_bytes_in_curr;
     int new_sent_bytes_in_curr;
+
+    int out_of_recovery_packet;
 };
 
 

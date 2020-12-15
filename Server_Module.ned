@@ -13,20 +13,11 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-import inet.common.INETDefs;
-import inet.applications.base.ApplicationPacket;
-import inet.common.packet.chunk.Chunk;
-import inet.applications.quicapp.headers_and_frames.QuicPacketHeader;
-namespace inet;
+package inet.applications.quicapp;
 
-
-//
-// TODO generated message class
-//
-class QuicShortHeader extends QuicPacketHeader {// ; FieldsChunk {
-    // Packets with the short header are used after a connection is established and 1-RTT keys are available (RFC 12)   
-	b spin_bit;
-	B reserved_bits;	
-	
-	// total size(in bytes): 2 + packet_number_length + dest_connection_id_length
+simple Server_Module
+{
+    gates:
+        input in;
+        output out;
 }

@@ -37,15 +37,16 @@
 
 
 // flow control parameters
-#define Init_Connection_FlowControl_Window 1472 * 14
-#define Init_Stream_ReceiveWindow 1472 * 14
+//#define Init_Connection_FlowControl_Window 1472 * 140
+//#define Init_Stream_ReceiveWindow 1472 * 140
+
 // congestion control parameters
 #define ACKTHRESH 3
 #define MAX_THRESHOLD 0xFFFFFFFF
 #define kPacketThreshold 3
 // packets and headers sizes
 #define QUIC_MIN_PACKET_SIZE 1200 // from RFC 14.1
-#define QUIC_MAX_PACKET_SIZE 1472
+//#define QUIC_MAX_PACKET_SIZE 1472
 #define LONG_HEADER_BASE_LENGTH 11
 #define SHORT_HEADER_BASE_LENGTH 2
 
@@ -69,7 +70,6 @@ class QuicConnection {
 public:
     QuicConnection();
     virtual ~QuicConnection();
-
     int getSourceID();
     void setSourceID(int source_ID);
     int getDestID();
@@ -84,8 +84,7 @@ protected:
     int connection_source_ID;
     int connection_dest_ID;
     L3Address destination;
-    QuicStreamArr *stream_arr;
-
+    QuicStreamArr *stream_array;
 };
 
 

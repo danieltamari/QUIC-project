@@ -232,25 +232,45 @@ QuicPacketHeader& QuicPacketHeader::operator=(const QuicPacketHeader& other)
 
 void QuicPacketHeader::copy(const QuicPacketHeader& other)
 {
+    this->dest_connection_id_length = other.dest_connection_id_length;
     this->dest_connection_ID = other.dest_connection_ID;
+    this->packet_number_length = other.packet_number_length;
     this->packet_number = other.packet_number;
     this->header_form = other.header_form;
+    this->fixed_bit = other.fixed_bit;
 }
 
 void QuicPacketHeader::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::FieldsChunk::parsimPack(b);
+    doParsimPacking(b,this->dest_connection_id_length);
     doParsimPacking(b,this->dest_connection_ID);
+    doParsimPacking(b,this->packet_number_length);
     doParsimPacking(b,this->packet_number);
     doParsimPacking(b,this->header_form);
+    doParsimPacking(b,this->fixed_bit);
 }
 
 void QuicPacketHeader::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::FieldsChunk::parsimUnpack(b);
+    doParsimUnpacking(b,this->dest_connection_id_length);
     doParsimUnpacking(b,this->dest_connection_ID);
+    doParsimUnpacking(b,this->packet_number_length);
     doParsimUnpacking(b,this->packet_number);
     doParsimUnpacking(b,this->header_form);
+    doParsimUnpacking(b,this->fixed_bit);
+}
+
+unsigned int QuicPacketHeader::getDest_connection_id_length() const
+{
+    return this->dest_connection_id_length;
+}
+
+void QuicPacketHeader::setDest_connection_id_length(unsigned int dest_connection_id_length)
+{
+    handleChange();
+    this->dest_connection_id_length = dest_connection_id_length;
 }
 
 int QuicPacketHeader::getDest_connection_ID() const
@@ -262,6 +282,17 @@ void QuicPacketHeader::setDest_connection_ID(int dest_connection_ID)
 {
     handleChange();
     this->dest_connection_ID = dest_connection_ID;
+}
+
+B QuicPacketHeader::getPacket_number_length() const
+{
+    return this->packet_number_length;
+}
+
+void QuicPacketHeader::setPacket_number_length(B packet_number_length)
+{
+    handleChange();
+    this->packet_number_length = packet_number_length;
 }
 
 int QuicPacketHeader::getPacket_number() const
@@ -286,14 +317,28 @@ void QuicPacketHeader::setHeader_form(b header_form)
     this->header_form = header_form;
 }
 
+b QuicPacketHeader::getFixed_bit() const
+{
+    return this->fixed_bit;
+}
+
+void QuicPacketHeader::setFixed_bit(b fixed_bit)
+{
+    handleChange();
+    this->fixed_bit = fixed_bit;
+}
+
 class QuicPacketHeaderDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
+        FIELD_dest_connection_id_length,
         FIELD_dest_connection_ID,
+        FIELD_packet_number_length,
         FIELD_packet_number,
         FIELD_header_form,
+        FIELD_fixed_bit,
     };
   public:
     QuicPacketHeaderDescriptor();
@@ -356,7 +401,7 @@ const char *QuicPacketHeaderDescriptor::getProperty(const char *propertyname) co
 int QuicPacketHeaderDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 3+basedesc->getFieldCount() : 3;
+    return basedesc ? 6+basedesc->getFieldCount() : 6;
 }
 
 unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
@@ -368,11 +413,14 @@ unsigned int QuicPacketHeaderDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
+        FD_ISEDITABLE,    // FIELD_dest_connection_id_length
         FD_ISEDITABLE,    // FIELD_dest_connection_ID
+        FD_ISEDITABLE,    // FIELD_packet_number_length
         FD_ISEDITABLE,    // FIELD_packet_number
         FD_ISEDITABLE,    // FIELD_header_form
+        FD_ISEDITABLE,    // FIELD_fixed_bit
     };
-    return (field >= 0 && field < 3) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 6) ? fieldTypeFlags[field] : 0;
 }
 
 const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
@@ -384,20 +432,26 @@ const char *QuicPacketHeaderDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
+        "dest_connection_id_length",
         "dest_connection_ID",
+        "packet_number_length",
         "packet_number",
         "header_form",
+        "fixed_bit",
     };
-    return (field >= 0 && field < 3) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldNames[field] : nullptr;
 }
 
 int QuicPacketHeaderDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'd' && strcmp(fieldName, "dest_connection_ID") == 0) return base+0;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+1;
-    if (fieldName[0] == 'h' && strcmp(fieldName, "header_form") == 0) return base+2;
+    if (fieldName[0] == 'd' && strcmp(fieldName, "dest_connection_id_length") == 0) return base+0;
+    if (fieldName[0] == 'd' && strcmp(fieldName, "dest_connection_ID") == 0) return base+1;
+    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number_length") == 0) return base+2;
+    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number") == 0) return base+3;
+    if (fieldName[0] == 'h' && strcmp(fieldName, "header_form") == 0) return base+4;
+    if (fieldName[0] == 'f' && strcmp(fieldName, "fixed_bit") == 0) return base+5;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -410,11 +464,14 @@ const char *QuicPacketHeaderDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
+        "unsigned int",    // FIELD_dest_connection_id_length
         "int",    // FIELD_dest_connection_ID
+        "inet::B",    // FIELD_packet_number_length
         "int",    // FIELD_packet_number
         "inet::b",    // FIELD_header_form
+        "inet::b",    // FIELD_fixed_bit
     };
-    return (field >= 0 && field < 3) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 6) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **QuicPacketHeaderDescriptor::getFieldPropertyNames(int field) const
@@ -481,9 +538,12 @@ std::string QuicPacketHeaderDescriptor::getFieldValueAsString(void *object, int 
     }
     QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
     switch (field) {
+        case FIELD_dest_connection_id_length: return ulong2string(pp->getDest_connection_id_length());
         case FIELD_dest_connection_ID: return long2string(pp->getDest_connection_ID());
+        case FIELD_packet_number_length: return unit2string(pp->getPacket_number_length());
         case FIELD_packet_number: return long2string(pp->getPacket_number());
         case FIELD_header_form: return unit2string(pp->getHeader_form());
+        case FIELD_fixed_bit: return unit2string(pp->getFixed_bit());
         default: return "";
     }
 }
@@ -498,9 +558,12 @@ bool QuicPacketHeaderDescriptor::setFieldValueAsString(void *object, int field, 
     }
     QuicPacketHeader *pp = (QuicPacketHeader *)object; (void)pp;
     switch (field) {
+        case FIELD_dest_connection_id_length: pp->setDest_connection_id_length(string2ulong(value)); return true;
         case FIELD_dest_connection_ID: pp->setDest_connection_ID(string2long(value)); return true;
+        case FIELD_packet_number_length: pp->setPacket_number_length(B(string2long(value))); return true;
         case FIELD_packet_number: pp->setPacket_number(string2long(value)); return true;
         case FIELD_header_form: pp->setHeader_form(b(string2long(value))); return true;
+        case FIELD_fixed_bit: pp->setFixed_bit(b(string2long(value))); return true;
         default: return false;
     }
 }

@@ -40,9 +40,9 @@ namespace inet {
 class QuicConnectionServer : public QuicConnection {
 public:
     QuicConnectionServer();
-    QuicConnectionServer(L3Address destination);
+    QuicConnectionServer(L3Address destination, int init_stream_flow_control_window);
     virtual ~QuicConnectionServer();
-    Packet* ServerProcessHandshake(Packet* packet);
+    Packet* ServerProcessHandshake(Packet* packet,int max_payload, int init_stream_flow_control_window,int init_connection_flow_control_winodw);
     bool ProcessServerReceivedPacket(Packet* packet);
     void ProcessStreamDataFrame(inet::Ptr<const StreamFrame> stream_frame);
     int getRcvNext();
@@ -51,17 +51,28 @@ public:
     int getLargestInOrder();
     void setCurrLargest(int largest);
     void setLargestWithRcvNext();
+    int getRcvdPackets();
+    int getCurrentBytesReceived(bool with_ret);
+    int getCurrentBytesReceivedLong(bool with_ret);
+    bool getEndConnection();
 
 
 protected:
     int num_packets_recieved;
     QuicReceiveQueue* receive_queue;
-    std::list<int> receive_not_ACKED_queue;
+    std::list<int> received_out_of_order;
     //flow control server side parameters
     int inital_stream_window;
     // ACK control parameters
     int current_largest;
     int rcv_next;
+    int num_streams;
+    int num_streams_ended;
+    bool ended;
+    int current_rcvd_bytes;
+    int current_rcvd_bytes_with_ret;
+    int current_rcvd_bytes_long;
+    int current_rcvd_bytes_with_ret_long;
 
 };
 

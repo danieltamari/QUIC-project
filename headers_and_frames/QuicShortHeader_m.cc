@@ -232,56 +232,22 @@ QuicShortHeader& QuicShortHeader::operator=(const QuicShortHeader& other)
 
 void QuicShortHeader::copy(const QuicShortHeader& other)
 {
-    this->header_form = other.header_form;
-    this->fixed_bit = other.fixed_bit;
     this->spin_bit = other.spin_bit;
     this->reserved_bits = other.reserved_bits;
-    this->packet_number_length = other.packet_number_length;
-    this->packet_type = other.packet_type;
 }
 
 void QuicShortHeader::parsimPack(omnetpp::cCommBuffer *b) const
 {
     ::inet::QuicPacketHeader::parsimPack(b);
-    doParsimPacking(b,this->header_form);
-    doParsimPacking(b,this->fixed_bit);
     doParsimPacking(b,this->spin_bit);
     doParsimPacking(b,this->reserved_bits);
-    doParsimPacking(b,this->packet_number_length);
-    doParsimPacking(b,this->packet_type);
 }
 
 void QuicShortHeader::parsimUnpack(omnetpp::cCommBuffer *b)
 {
     ::inet::QuicPacketHeader::parsimUnpack(b);
-    doParsimUnpacking(b,this->header_form);
-    doParsimUnpacking(b,this->fixed_bit);
     doParsimUnpacking(b,this->spin_bit);
     doParsimUnpacking(b,this->reserved_bits);
-    doParsimUnpacking(b,this->packet_number_length);
-    doParsimUnpacking(b,this->packet_type);
-}
-
-b QuicShortHeader::getHeader_form() const
-{
-    return this->header_form;
-}
-
-void QuicShortHeader::setHeader_form(b header_form)
-{
-    handleChange();
-    this->header_form = header_form;
-}
-
-b QuicShortHeader::getFixed_bit() const
-{
-    return this->fixed_bit;
-}
-
-void QuicShortHeader::setFixed_bit(b fixed_bit)
-{
-    handleChange();
-    this->fixed_bit = fixed_bit;
 }
 
 b QuicShortHeader::getSpin_bit() const
@@ -306,39 +272,13 @@ void QuicShortHeader::setReserved_bits(B reserved_bits)
     this->reserved_bits = reserved_bits;
 }
 
-B QuicShortHeader::getPacket_number_length() const
-{
-    return this->packet_number_length;
-}
-
-void QuicShortHeader::setPacket_number_length(B packet_number_length)
-{
-    handleChange();
-    this->packet_number_length = packet_number_length;
-}
-
-int QuicShortHeader::getPacket_type() const
-{
-    return this->packet_type;
-}
-
-void QuicShortHeader::setPacket_type(int packet_type)
-{
-    handleChange();
-    this->packet_type = packet_type;
-}
-
 class QuicShortHeaderDescriptor : public omnetpp::cClassDescriptor
 {
   private:
     mutable const char **propertynames;
     enum FieldConstants {
-        FIELD_header_form,
-        FIELD_fixed_bit,
         FIELD_spin_bit,
         FIELD_reserved_bits,
-        FIELD_packet_number_length,
-        FIELD_packet_type,
     };
   public:
     QuicShortHeaderDescriptor();
@@ -401,7 +341,7 @@ const char *QuicShortHeaderDescriptor::getProperty(const char *propertyname) con
 int QuicShortHeaderDescriptor::getFieldCount() const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
-    return basedesc ? 6+basedesc->getFieldCount() : 6;
+    return basedesc ? 2+basedesc->getFieldCount() : 2;
 }
 
 unsigned int QuicShortHeaderDescriptor::getFieldTypeFlags(int field) const
@@ -413,14 +353,10 @@ unsigned int QuicShortHeaderDescriptor::getFieldTypeFlags(int field) const
         field -= basedesc->getFieldCount();
     }
     static unsigned int fieldTypeFlags[] = {
-        FD_ISEDITABLE,    // FIELD_header_form
-        FD_ISEDITABLE,    // FIELD_fixed_bit
         FD_ISEDITABLE,    // FIELD_spin_bit
         FD_ISEDITABLE,    // FIELD_reserved_bits
-        FD_ISEDITABLE,    // FIELD_packet_number_length
-        FD_ISEDITABLE,    // FIELD_packet_type
     };
-    return (field >= 0 && field < 6) ? fieldTypeFlags[field] : 0;
+    return (field >= 0 && field < 2) ? fieldTypeFlags[field] : 0;
 }
 
 const char *QuicShortHeaderDescriptor::getFieldName(int field) const
@@ -432,26 +368,18 @@ const char *QuicShortHeaderDescriptor::getFieldName(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldNames[] = {
-        "header_form",
-        "fixed_bit",
         "spin_bit",
         "reserved_bits",
-        "packet_number_length",
-        "packet_type",
     };
-    return (field >= 0 && field < 6) ? fieldNames[field] : nullptr;
+    return (field >= 0 && field < 2) ? fieldNames[field] : nullptr;
 }
 
 int QuicShortHeaderDescriptor::findField(const char *fieldName) const
 {
     omnetpp::cClassDescriptor *basedesc = getBaseClassDescriptor();
     int base = basedesc ? basedesc->getFieldCount() : 0;
-    if (fieldName[0] == 'h' && strcmp(fieldName, "header_form") == 0) return base+0;
-    if (fieldName[0] == 'f' && strcmp(fieldName, "fixed_bit") == 0) return base+1;
-    if (fieldName[0] == 's' && strcmp(fieldName, "spin_bit") == 0) return base+2;
-    if (fieldName[0] == 'r' && strcmp(fieldName, "reserved_bits") == 0) return base+3;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_number_length") == 0) return base+4;
-    if (fieldName[0] == 'p' && strcmp(fieldName, "packet_type") == 0) return base+5;
+    if (fieldName[0] == 's' && strcmp(fieldName, "spin_bit") == 0) return base+0;
+    if (fieldName[0] == 'r' && strcmp(fieldName, "reserved_bits") == 0) return base+1;
     return basedesc ? basedesc->findField(fieldName) : -1;
 }
 
@@ -464,14 +392,10 @@ const char *QuicShortHeaderDescriptor::getFieldTypeString(int field) const
         field -= basedesc->getFieldCount();
     }
     static const char *fieldTypeStrings[] = {
-        "inet::b",    // FIELD_header_form
-        "inet::b",    // FIELD_fixed_bit
         "inet::b",    // FIELD_spin_bit
         "inet::B",    // FIELD_reserved_bits
-        "inet::B",    // FIELD_packet_number_length
-        "int",    // FIELD_packet_type
     };
-    return (field >= 0 && field < 6) ? fieldTypeStrings[field] : nullptr;
+    return (field >= 0 && field < 2) ? fieldTypeStrings[field] : nullptr;
 }
 
 const char **QuicShortHeaderDescriptor::getFieldPropertyNames(int field) const
@@ -538,12 +462,8 @@ std::string QuicShortHeaderDescriptor::getFieldValueAsString(void *object, int f
     }
     QuicShortHeader *pp = (QuicShortHeader *)object; (void)pp;
     switch (field) {
-        case FIELD_header_form: return unit2string(pp->getHeader_form());
-        case FIELD_fixed_bit: return unit2string(pp->getFixed_bit());
         case FIELD_spin_bit: return unit2string(pp->getSpin_bit());
         case FIELD_reserved_bits: return unit2string(pp->getReserved_bits());
-        case FIELD_packet_number_length: return unit2string(pp->getPacket_number_length());
-        case FIELD_packet_type: return long2string(pp->getPacket_type());
         default: return "";
     }
 }
@@ -558,12 +478,8 @@ bool QuicShortHeaderDescriptor::setFieldValueAsString(void *object, int field, i
     }
     QuicShortHeader *pp = (QuicShortHeader *)object; (void)pp;
     switch (field) {
-        case FIELD_header_form: pp->setHeader_form(b(string2long(value))); return true;
-        case FIELD_fixed_bit: pp->setFixed_bit(b(string2long(value))); return true;
         case FIELD_spin_bit: pp->setSpin_bit(b(string2long(value))); return true;
         case FIELD_reserved_bits: pp->setReserved_bits(B(string2long(value))); return true;
-        case FIELD_packet_number_length: pp->setPacket_number_length(B(string2long(value))); return true;
-        case FIELD_packet_type: pp->setPacket_type(string2long(value)); return true;
         default: return false;
     }
 }

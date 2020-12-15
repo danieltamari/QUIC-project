@@ -18,7 +18,7 @@
 namespace inet {
 
 QuicSendQueue::QuicSendQueue() {
-    send_not_ACKED_queue = new std::list<Packet*>();
+    sent_not_Acked_packets = new std::list<Packet*>();
     lost_packets = new std::list<Packet*>();
 
 }
@@ -33,14 +33,14 @@ void QuicSendQueue::createCopyPacket(Packet* original_packet) {
     // create copy
     Packet* copy_packet_to_send = original_packet->dup();
     copy_packet_to_send->setTimestamp(simTime());
-    send_not_ACKED_queue->push_back(copy_packet_to_send);
+    sent_not_Acked_packets->push_back(copy_packet_to_send);
 }
 
 
 Packet* QuicSendQueue::findPacketInSendQueue(int packet_number) {
     Packet* packet_to_peek = NULL;
     for (std::list<Packet*>::iterator it =
-            send_not_ACKED_queue->begin(); it != send_not_ACKED_queue->end(); ++it) {
+            sent_not_Acked_packets->begin(); it != sent_not_Acked_packets->end(); ++it) {
             auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
             if (current_header->getPacket_number()==packet_number){
                 packet_to_peek=*it;
@@ -54,7 +54,7 @@ Packet* QuicSendQueue::findPacketInSendQueue(int packet_number) {
 Packet* QuicSendQueue::findInitialPacket() {
     Packet* packet_to_peek = NULL;
     for (std::list<Packet*>::iterator it =
-            send_not_ACKED_queue->begin(); it != send_not_ACKED_queue->end(); ++it) {
+            sent_not_Acked_packets->begin(); it != sent_not_Acked_packets->end(); ++it) {
             auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
             if (current_header->getHeader_form() == b(1)){
                 auto long_header=(*it)->peekAtFront<QuicLongHeader>();
@@ -70,8 +70,8 @@ Packet* QuicSendQueue::findInitialPacket() {
 
 std::list<Packet*>* QuicSendQueue::getPacketsToCancel(int cancel_RTO_before_number) {
     std::list<Packet*>* cancel_timer_packets = new std::list<Packet*>();
-    std::list<Packet*>::iterator it = send_not_ACKED_queue->begin();
-    while (it != send_not_ACKED_queue->end()) {
+    std::list<Packet*>::iterator it = sent_not_Acked_packets->begin();
+    while (it != sent_not_Acked_packets->end()) {
         auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
         Packet* packet_to_cancel;
         if (current_header->getPacket_number() <= cancel_RTO_before_number){
@@ -88,18 +88,18 @@ std::list<Packet*>* QuicSendQueue::getPacketsToCancel(int cancel_RTO_before_numb
 
 
 void QuicSendQueue::removeFromSendQueue(Packet* packet_to_remove) {
-    send_not_ACKED_queue->remove(packet_to_remove);
+    sent_not_Acked_packets->remove(packet_to_remove);
 }
 
 
 Packet* QuicSendQueue::removeFromSendQueueByNumber(int packet_number) {
     Packet* packet_to_remove = NULL;
     for (std::list<Packet*>::iterator it =
-            send_not_ACKED_queue->begin(); it != send_not_ACKED_queue->end(); ++it) {
+            sent_not_Acked_packets->begin(); it != sent_not_Acked_packets->end(); ++it) {
             auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
             if (current_header->getPacket_number()==packet_number){
                 packet_to_remove=*it;
-                send_not_ACKED_queue->erase(it);
+                sent_not_Acked_packets->erase(it);
                 break;
             }
     }
@@ -117,7 +117,7 @@ std::vector<int>* QuicSendQueue::updateLostPackets(int largest) {
     int packet_threshold = largest - kPacketThreshold; // all packets under packet_threshold are lost
     std::vector<int>* lost_packets_numbers = new std::vector<int>();
     for (std::list<Packet*>::iterator it =
-            send_not_ACKED_queue->begin(); it != send_not_ACKED_queue->end(); ++it) {
+            sent_not_Acked_packets->begin(); it != sent_not_Acked_packets->end(); ++it) {
         auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
         Packet* packet_to_remove;
         if (current_header->getPacket_number() <= packet_threshold){
@@ -132,14 +132,14 @@ std::vector<int>* QuicSendQueue::updateLostPackets(int largest) {
 
 std::list<Packet*>* QuicSendQueue::getLostAcksPackets(int get_before_number) {
     std::list<Packet*>* lost_ACK_packets = new std::list<Packet*>();
-    std::list<Packet*>::iterator it = send_not_ACKED_queue->begin();
-    while (it != send_not_ACKED_queue->end()) {
+    std::list<Packet*>::iterator it = sent_not_Acked_packets->begin();
+    while (it != sent_not_Acked_packets->end()) {
         auto current_header=(*it)->peekAtFront<QuicPacketHeader>();
         Packet* packet_to_remove;
         if (current_header->getPacket_number() <= get_before_number){
             packet_to_remove=*it;
             it++;
-            send_not_ACKED_queue->remove(packet_to_remove);
+            sent_not_Acked_packets->remove(packet_to_remove);
             lost_ACK_packets->push_back(packet_to_remove);
         }
         else {
@@ -152,10 +152,10 @@ std::list<Packet*>* QuicSendQueue::getLostAcksPackets(int get_before_number) {
 
 // TEMP
 void QuicSendQueue::printSendNotAcked(){
-    // print send_not_ACKED_queue:
-    EV << "########### send_not_ACKED_queue: ###############" << endl;
+    // print sent_not_Acked_packets:
+    EV << "########### sent_not_Acked_packets: ###############" << endl;
     for (std::list<Packet*>::iterator it =
-            send_not_ACKED_queue->begin(); it != send_not_ACKED_queue->end(); ++it) {
+            sent_not_Acked_packets->begin(); it != sent_not_Acked_packets->end(); ++it) {
         auto temp_header =(*it)->peekAtFront<QuicPacketHeader>();
         EV << "packet number: " << temp_header->getPacket_number() << endl;
     }

@@ -25,14 +25,21 @@ QuicConnectionServer::QuicConnectionServer() {
 }
 
 
-QuicConnectionServer::QuicConnectionServer(L3Address destination_) {
-    stream_arr = new QuicStreamArr();
+QuicConnectionServer::QuicConnectionServer(L3Address destination_, int init_stream_flow_control_window) {
+    ended = false;
+    stream_array = new QuicStreamArr();
     receive_queue = new QuicReceiveQueue();
     num_packets_recieved = 0;
     rcv_next = 0;
     destination = destination_;
-    inital_stream_window = Init_Stream_ReceiveWindow;
+    inital_stream_window = init_stream_flow_control_window;
     current_largest=-1;
+    num_streams = 0;
+    num_streams_ended = 0;
+    current_rcvd_bytes = 0;
+    current_rcvd_bytes_with_ret = 0;
+    current_rcvd_bytes_long = 0;
+    current_rcvd_bytes_with_ret_long = 0;
 }
 
 
@@ -41,7 +48,7 @@ QuicConnectionServer::~QuicConnectionServer() {
 }
 
 
-Packet* QuicConnectionServer::ServerProcessHandshake(Packet* packet) {
+Packet* QuicConnectionServer::ServerProcessHandshake(Packet* packet,int max_payload, int init_stream_flow_control_window,int init_connection_flow_control_winodw) {
     char msgName[32];
     sprintf(msgName, "QUIC INITIAL PACKET (RESPONSE)");
     int src_ID = getSourceID();
@@ -67,9 +74,9 @@ Packet* QuicConnectionServer::ServerProcessHandshake(Packet* packet) {
 
     // create frames for packet's payload
     const auto &handshake_data = makeShared<QuicHandShakeData>();
-    handshake_data->setInitial_max_data(Init_Connection_FlowControl_Window); // initial window per connection
-    handshake_data->setInitial_max_stream_data(Init_Stream_ReceiveWindow); // initial window per stream
-    handshake_data->setMax_udp_payload_size(QUIC_MAX_PACKET_SIZE);
+    handshake_data->setInitial_max_data(init_connection_flow_control_winodw); // initial window per connection
+    handshake_data->setInitial_max_stream_data(init_stream_flow_control_window); // initial window per stream
+    handshake_data->setMax_udp_payload_size(max_payload);
     handshake_data->setOriginal_destination_connection_id(dest_ID);
     handshake_data->setChunkLength(B(sizeof(int)*3 + sizeof(long)));
     packet_to_send->insertAtBack(handshake_data);
@@ -82,6 +89,8 @@ Packet* QuicConnectionServer::ServerProcessHandshake(Packet* packet) {
 
 
 bool QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
+    this->num_packets_recieved++;
+    int packet_size = packet->getByteLength();
     auto header = packet->peekAtFront<QuicPacketHeader>();
     int income_packet_number = header->getPacket_number();
     int dest_connectionID  = header->getDest_connection_ID();
@@ -97,18 +106,18 @@ bool QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
             int original_packet_number = *it;
             if (original_packet_number < rcv_next) { // unnecessary retransmission
                 new_data = false;
-                receive_not_ACKED_queue.push_back(income_packet_number);
+                received_out_of_order.push_back(income_packet_number);
 
             }
             else { // add to receive_not_ACKED_queue all the previous numbers of this packet
-                receive_not_ACKED_queue.push_back(original_packet_number);
-                receive_not_ACKED_queue.push_back(income_packet_number);
+                received_out_of_order.push_back(original_packet_number);
+                received_out_of_order.push_back(income_packet_number);
             }
         }
     }
 
     else if (rcv_next != income_packet_number) { // out of order packet
-        receive_not_ACKED_queue.push_back(income_packet_number);
+        received_out_of_order.push_back(income_packet_number);
     }
 
     else     { // in order packet
@@ -118,19 +127,19 @@ bool QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
     EV << "Packet's header info: packet number is " << income_packet_number << " dest connection ID is " <<
                 dest_connectionID << endl;
 
-    receive_not_ACKED_queue.sort();
-    receive_not_ACKED_queue.unique();
+    received_out_of_order.sort();
+    received_out_of_order.unique();
 
     EV << "########### receive next before: " << rcv_next <<" ###############" << endl;
 
     // pop packets' numbers from Queue
-    std::list<int>::iterator it = receive_not_ACKED_queue.begin();
-    while (it != receive_not_ACKED_queue.end()) {
+    std::list<int>::iterator it = received_out_of_order.begin();
+    while (it != received_out_of_order.end()) {
         if ((*it) <= rcv_next){
             int packet_number_to_remove = (*it);
-            receive_not_ACKED_queue.remove(packet_number_to_remove);
+            received_out_of_order.remove(packet_number_to_remove);
             rcv_next++;
-            it = receive_not_ACKED_queue.begin();
+            it = received_out_of_order.begin();
         }
         else {
             it++;
@@ -140,11 +149,17 @@ bool QuicConnectionServer::ProcessServerReceivedPacket(Packet* packet) {
     // print receive_not_ACKED_queue:
     EV << "########### receive_not_ACKED_queue: ###############" << endl;
     for (std::list<int>::iterator it =
-            receive_not_ACKED_queue.begin(); it != receive_not_ACKED_queue.end(); ++it) {
+            received_out_of_order.begin(); it != received_out_of_order.end(); ++it) {
         EV << "packet number: " << *it << endl;
     }
 
     EV << "########### receive next after: " << rcv_next <<" ###############" << endl;
+    current_rcvd_bytes_with_ret += packet_size;
+    current_rcvd_bytes_with_ret_long += packet_size;
+    if (new_data) {
+        current_rcvd_bytes += packet_size;
+        current_rcvd_bytes_long += packet_size;
+    }
     return new_data;
 }
 
@@ -158,20 +173,53 @@ void QuicConnectionServer::ProcessStreamDataFrame(inet::Ptr<const StreamFrame> s
     EV << "connection id of client: " << this->connection_dest_ID << endl;
     EV << "stream_id is " << stream_id << " offset is " << offset << " length is " << length << endl;
     // add new stream at server's side if not already exists
-    if(!stream_arr->isStreamExist(stream_id)) {
-        stream_arr->addNewStreamServer(stream_id, inital_stream_window);
+    if(!stream_array->isStreamExist(stream_id)) {
+        stream_array->addNewStreamServer(stream_id, inital_stream_window);
+        num_streams++;
     }
 
     // update new accepted bytes in streams info
-    receive_queue->updateStreamInfo(stream_id,offset,length,is_FIN);
+    receive_queue->updateStreamStatus(stream_id,offset,length,is_FIN);
 
     // check if stream has ended
     if (receive_queue->checkIfEnded(stream_id)) {
        //  handle stream ending operations
-       stream_arr->closeStream(stream_id);
-       receive_queue->removeStreamInfo(stream_id);
+       stream_array->closeStream(stream_id);
+       receive_queue->removeStreamStatus(stream_id);
        EV << "******** stream " << stream_id << " ended at server *********" << endl;
+       num_streams_ended++;
+       if (num_streams_ended == num_streams) {
+           ended = true;
+       }
    }
+}
+
+
+int QuicConnectionServer::getCurrentBytesReceived(bool with_ret) {
+    int bytes_rcvd;
+    if (with_ret) {
+        bytes_rcvd = current_rcvd_bytes_with_ret;
+        current_rcvd_bytes_with_ret = 0;
+    }
+    else {
+        bytes_rcvd = current_rcvd_bytes;
+        current_rcvd_bytes = 0;
+    }
+    return bytes_rcvd;
+}
+
+
+int QuicConnectionServer::getCurrentBytesReceivedLong(bool with_ret) {
+    int bytes_rcvd;
+    if (with_ret) {
+        bytes_rcvd = current_rcvd_bytes_with_ret_long;
+        current_rcvd_bytes_with_ret_long = 0;
+    }
+    else {
+        bytes_rcvd = current_rcvd_bytes_long;
+        current_rcvd_bytes_long = 0;
+    }
+    return bytes_rcvd;
 }
 
 
@@ -186,7 +234,7 @@ int QuicConnectionServer::getCurrLargest(){
 
 
 std::list<int> QuicConnectionServer::getNotAckedList(){
-    return receive_not_ACKED_queue;
+    return received_out_of_order;
 }
 
 
@@ -202,6 +250,15 @@ void QuicConnectionServer::setCurrLargest(int largest){
 
 void QuicConnectionServer::setLargestWithRcvNext(){
     current_largest=rcv_next-1;;
+}
+
+int QuicConnectionServer::getRcvdPackets() {
+    return num_packets_recieved;
+}
+
+
+bool QuicConnectionServer::getEndConnection() {
+    return ended;
 }
 
 

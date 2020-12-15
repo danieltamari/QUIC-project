@@ -35,10 +35,6 @@ class QuicHandShakeData extends QuicFrame {
     // by the client; This transport parameter is only sent by a server. (RFC 18.2)
 	int original_destination_connection_id; // inital Dest_ID server get in the first packet
 	
-	// The value that the server included in the Source Connection ID field of a Retry packet;
-	// This transport parameter is only sent by a server.
-	int retry_source_connection_id; // new Source_ID negotiated by server
-	
 	// limits the size of UDP payloads that the endpoint is willing to receive. UDP packets with
     // payloads larger than this limit are not likely to be processed by the receiver. (RFC 18.2)
 	int max_udp_payload_size;
