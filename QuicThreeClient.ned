@@ -25,7 +25,7 @@ import inet.common.MessageDispatcher;
 
 
 
-module QuicOneClient extends TransportLayerNodeBase
+module QuicThreeClient extends TransportLayerNodeBase
 {
     submodules:
         connection_manager: <> like IQuicapp {
@@ -36,9 +36,15 @@ module QuicOneClient extends TransportLayerNodeBase
 
 
         trigger1: Client_Module {
-            @display("p=1026.9,50.399998");
+            @display("p=974.925,50.399998");
         }
 
+        trigger2: Client_Module {
+            @display("p=960.74994,127.575");
+        }
+        trigger3: Client_Module {
+            @display("p=875.69995,189");
+        }
         at: MessageDispatcher {
             parameters:
                 @display("p=750,146;b=1000,5,,,,1");
@@ -47,6 +53,8 @@ module QuicOneClient extends TransportLayerNodeBase
 
     connections allowunconnected:
         trigger1.out --> connection_manager.quicIn++;
+        trigger2.out --> connection_manager.quicIn++;
+        trigger3.out --> connection_manager.quicIn++;
 
 
         connection_manager.socketOut --> at.in++;

@@ -16,7 +16,7 @@
 package inet.applications.quicapp;
 import inet.applications.contract.IApp;
 import inet.applications.quicapp.ConnectionManager;
-import inet.applications.quicapp.SimV1_client;
+import inet.applications.quicapp.Client_Module;
 import inet.node.inet.StandardHost;
 import inet.node.base.TransportLayerNodeBase;
 import inet.applications.quicapp.IQuicapp;
@@ -35,10 +35,10 @@ module QuicTwoClient extends TransportLayerNodeBase
 
 
 
-        tic: SimV1_client {
+        trigger1: Client_Module {
             @display("p=974.925,50.399998");
         }
-        tic2: SimV1_client {
+        trigger2: Client_Module {
             @display("p=974.925,50.399998");
         }
 
@@ -49,8 +49,8 @@ module QuicTwoClient extends TransportLayerNodeBase
 
 
     connections allowunconnected:
-        tic.out --> connection_manager.quicIn++;
-        tic2.out --> connection_manager.quicIn++;
+        trigger1.out --> connection_manager.quicIn++;
+        trigger2.out --> connection_manager.quicIn++;
 
 
         connection_manager.socketOut --> at.in++;

@@ -32,20 +32,32 @@ network TwoClientGoodPutSim
         double per = default(0);
         @display("bgb=667.87494,306.15");
     types:
+//        channel C extends DatarateChannel
+//        {
+//            datarate = 10Mbps;
+//            delay = 20ms;
+//            per = per;
+//        }
+//
+//        channel C2 extends DatarateChannel
+//        {
+//            datarate = 2Mbps;
+//            delay = 20ms;
+//            per = per;
+//        }
         channel C extends DatarateChannel
         {
-            datarate = 10Mbps;
+            datarate = 100Mbps;
             delay = 20ms;
             per = per;
         }
 
         channel C2 extends DatarateChannel
         {
-            datarate = 2Mbps;
+            datarate = 20Mbps;
             delay = 20ms;
             per = per;
         }
-
     submodules:
         client1: QuicOneClient {
             parameters:

@@ -40,9 +40,9 @@ namespace inet {
 class QuicConnectionServer : public QuicConnection {
 public:
     QuicConnectionServer();
-    QuicConnectionServer(L3Address destination);
+    QuicConnectionServer(L3Address destination, int init_stream_flow_control_window);
     virtual ~QuicConnectionServer();
-    Packet* ServerProcessHandshake(Packet* packet);
+    Packet* ServerProcessHandshake(Packet* packet,int max_payload, int init_stream_flow_control_window,int init_connection_flow_control_winodw);
     bool ProcessServerReceivedPacket(Packet* packet);
     void ProcessStreamDataFrame(inet::Ptr<const StreamFrame> stream_frame);
     int getRcvNext();
@@ -60,7 +60,7 @@ public:
 protected:
     int num_packets_recieved;
     QuicReceiveQueue* receive_queue;
-    std::list<int> receive_not_ACKED_queue;
+    std::list<int> received_out_of_order;
     //flow control server side parameters
     int inital_stream_window;
     // ACK control parameters

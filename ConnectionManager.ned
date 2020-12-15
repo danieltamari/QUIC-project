@@ -21,16 +21,12 @@ import inet.applications.quicapp.IQuicapp;
 simple ConnectionManager like IQuicapp
 {
     parameters:
-        //string destAddresses = default(""); // list of IP addresses, separated by spaces ("": don't send)
-        //string localAddress = default("");
-        string destAddresses; // space-separated list of destination IP addresses, can be empty;
-                              // see module description for possibilities
-        bool excludeLocalDestAddresses = default(true);     // excluding local addresses from destAddresses
-        //string chooseDestAddrMode @enum("once","perBurst","perSend"); // when to change the destination address
-        int destAddrRNG = default(0); // random generator ID for selecting a destination address
         int localPort = default(-1);  // local UDP port number (-1: use ephemeral port)
         int destPort; // remote UDP port number
-        //   int numApps = default(1);
+        int max_payload=default(0);
+        int init_stream_flow_control_window = default(0);
+        int init_connection_flow_control_winodw =default(0);
+        double max_ack_delay=default(0);
         @signal[snd_wnd];
         @signal[num_bytes_sent];
         @signal[bytes_sent_with_ret];
@@ -83,7 +79,5 @@ simple ConnectionManager like IQuicapp
         input socketIn @labels(UdpControlInfo/up);
         output socketOut @labels(UdpControlInfo/down);
         input quicIn[];
-        //input toc_in;
-        //output tic_out;
-        //output toc_out;
+
 }

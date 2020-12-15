@@ -43,7 +43,7 @@ public:
 
 
 protected:
-    std::list<Packet*>* send_not_ACKED_queue;
+    std::list<Packet*>* sent_not_Acked_packets;
     std::list<Packet*>* lost_packets;
 
 };
